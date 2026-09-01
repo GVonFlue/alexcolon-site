@@ -21,13 +21,16 @@ const TOOLS = {
 } as const;
 
 /**
- * The tone rotation for bands with no reason of their own to be light or
- * dark. pickYourDoor and conversion stay a fixed navyWash: they are the two
- * deliberate dark moments on every route and mixing them into the rotation
- * would make them stop reading as landmarks. Everything else cycles through
- * these three so the page swings between grounds instead of running several
- * of the same one together, which is the actual defect being fixed, not
- * decoration for its own sake.
+ * v4 flips the ratio. Navy is the dominant ground now, cream is the exhale
+ * between dark sections, and it is reserved for bands with a real fields
+ * reason to need a light ground: prose, lossAversion (its calculator has
+ * inputs), tool (all four do), faq and proof. Everything else, hero, steps,
+ * trust, areaMap, pickYourDoor, the assistant, conversion and closingCta, is
+ * a fixed dark chapter rather than part of a rotation, because on the actual
+ * reference the dark sections run two and three in a row on purpose (Scout
+ * straight into the steps section) rather than strictly alternating with
+ * light ones. The light bands still rotate through these three so two
+ * light bands next to each other are not the same flat fill twice.
  */
 const LIGHT_TONES: SectionTone[] = ["cream", "paper", "wash"];
 
@@ -42,12 +45,12 @@ function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1:
   const featured = band.feature === "areaMap";
 
   return (
-    // Genuinely less top padding than a standard band: this overrides the
-    // inner block's padding directly rather than adding to it from outside,
-    // which is what the previous version of this override did not actually
-    // do. Every pixel above the headline is a pixel the five second test does
-    // not get to use.
-    <Section tone="wash" pad="pb-16 pt-6 sm:pb-20 sm:pt-8 lg:pb-24 lg:pt-10">
+    // Dark ground: navy with the radial glow tone, so the fold has depth and
+    // the one accent phrase a page carries can finally be real gold rather
+    // than the darkened, type-safe compromise a light ground forces. Still
+    // less top padding than a standard band, and now overriding the inner
+    // block's padding directly rather than adding to it from outside.
+    <Section tone="navyWash" pad="pb-14 pt-6 sm:pb-16 sm:pt-8 lg:pb-20 lg:pt-10">
       <div
         className={
           featured
@@ -55,12 +58,12 @@ function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1:
             : ""
         }
       >
-        <div className={featured ? "" : "max-w-[52rem]"}>
-          {band.eyebrow && <Eyebrow>{band.eyebrow}</Eyebrow>}
-          <Heading className="display text-[2.05rem] font-semibold leading-[1.1] sm:text-[2.8rem] lg:text-[3.1rem] text-navy">
-            <AccentHeadline text={band.headline} phrase={band.accentPhrase} />
+        <div className={`hero-in ${featured ? "" : "max-w-[52rem]"}`}>
+          {band.eyebrow && <Eyebrow tone="dark">{band.eyebrow}</Eyebrow>}
+          <Heading className="display text-[2.2rem] font-black leading-[0.98] tracking-[-0.04em] text-cream sm:text-[3rem] lg:text-[3.7rem] xl:text-[4rem]">
+            <AccentHeadline text={band.headline} phrase={band.accentPhrase} dark />
           </Heading>
-          <p className="measure mt-6 text-[1.1rem] leading-[1.68] text-subtle">{band.support}</p>
+          <p className="measure mt-6 text-[1.1rem] leading-[1.68] text-dim">{band.support}</p>
           {/*
             Gutenberg. The action sits at the end of the block, in the terminal
             zone the eye sweeps to, rather than floating mid band.
@@ -75,17 +78,18 @@ function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1:
         </div>
 
         {/*
-          The second column, now a real object rather than a diagram floating
-          in space: a raised card with its own ground, offset slightly on large
-          screens for a stacked feel. Without it a desktop hero is a text
-          column beside half a screen of nothing, which reads as unfinished
-          rather than as restraint. The map is also the one element on this
-          site that is true only of this client, so the fold is where it
-          belongs.
+          The second column, a real object rather than a diagram floating in
+          space: a raised card that is a genuine value step above its ground
+          (navy-deep, not another flat cream card dropped onto navy), offset
+          slightly on large screens for a stacked feel. Without it a desktop
+          hero is a text column beside half a screen of nothing, which reads
+          as unfinished rather than as restraint. The map is also the one
+          element on this site that is true only of this client, so the fold
+          is where it belongs.
         */}
         {featured && (
-          <div className="lg:pl-4">
-            <div className="rounded-2xl border border-navy/10 bg-paper p-6 shadow-[0_24px_60px_-28px_rgba(23,42,58,0.35)] sm:p-8 lg:-rotate-1 lg:translate-x-2">
+          <div className="hero-in lg:pl-4" style={{ animationDelay: "120ms" }}>
+            <div className="rounded-2xl border border-cream/10 bg-navy-deep p-6 shadow-[0_30px_70px_-24px_rgba(0,0,0,0.6)] sm:p-8 lg:-rotate-1 lg:translate-x-2">
               <ServiceAreaMap towns={site.serviceAreas} compact />
             </div>
           </div>
@@ -146,8 +150,11 @@ export function Bands({ page }: { page: PageContent }) {
             return <BandHero key={i} band={band} isH1 />;
 
           case "assistant":
+            // Dark on purpose: this is the direct analog of the reference's
+            // own "Meet Scout" section, a character introduction rather than
+            // a form bolted onto the page.
             return (
-              <Section key={i} tone={nextLightTone()} id="ask">
+              <Section key={i} tone="navyWash" id="ask">
                 <Assistant
                   heading={band.heading}
                   intro={band.intro}
@@ -171,7 +178,7 @@ export function Bands({ page }: { page: PageContent }) {
                       <li key={lane.href}>
                         <Link
                           href={lane.href}
-                          className="group flex h-full min-h-[168px] flex-col justify-between rounded-xl border border-cream/15 bg-cream/[0.05] p-6 shadow-[0_18px_40px_-26px_rgba(0,0,0,0.55)] transition-[transform,background-color,border-color] duration-150 hover:-translate-y-1 hover:border-cream/30 hover:bg-cream/[0.1]"
+                          className="group flex h-full min-h-[180px] flex-col justify-between rounded-xl border border-cream/15 bg-navy-glow p-6 shadow-[0_4px_0_rgba(255,255,255,0.04)_inset,0_24px_50px_-24px_rgba(0,0,0,0.7)] transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-1.5 hover:border-cream/35 hover:shadow-[0_4px_0_rgba(255,255,255,0.06)_inset,0_30px_60px_-22px_rgba(0,0,0,0.75)]"
                         >
                           <span className="text-[1.3rem] font-semibold tracking-[-0.015em]">
                             {lane.lane}
@@ -207,13 +214,16 @@ export function Bands({ page }: { page: PageContent }) {
             );
 
           case "steps":
+            // Dark: this is the site's one genuinely sequential content, the
+            // same reason the reference gives its own step-by-step section
+            // the dark, numbered treatment rather than a plain light list.
             return (
-              <Section key={i} tone={nextLightTone()}>
+              <Section key={i} tone="navyWash">
                 <Split
-                  heading={<H2 className="text-navy">{band.heading}</H2>}
+                  heading={<H2 className="text-cream">{band.heading}</H2>}
                   aside={
                     band.intro ? (
-                      <p className="mt-4 text-[1.02rem] leading-[1.7] text-subtle">{band.intro}</p>
+                      <p className="mt-4 text-[1.02rem] leading-[1.7] text-dim">{band.intro}</p>
                     ) : null
                   }
                 >
@@ -222,12 +232,12 @@ export function Bands({ page }: { page: PageContent }) {
                 <ol className="space-y-8">
                   {band.steps.map((s, n) => (
                     <li key={s.title} className="grid gap-3 sm:grid-cols-[3.5rem_1fr]">
-                      <span className="figure text-[0.95rem] font-semibold text-subtle">
+                      <span className="figure text-[0.95rem] font-semibold text-dim">
                         {String(n + 1).padStart(2, "0")}
                       </span>
                       <div>
-                        <h3 className="text-[1.12rem] font-semibold text-navy">{s.title}</h3>
-                        <p className="measure mt-2 text-[1rem] leading-[1.7] text-subtle">{s.detail}</p>
+                        <h3 className="text-[1.12rem] font-semibold text-cream">{s.title}</h3>
+                        <p className="measure mt-2 text-[1rem] leading-[1.7] text-dim">{s.detail}</p>
                       </div>
                     </li>
                   ))}
@@ -248,10 +258,10 @@ export function Bands({ page }: { page: PageContent }) {
 
           case "trust":
             return (
-              <Section key={i} tone={nextLightTone()}>
+              <Section key={i} tone="navyWash">
                 <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr]">
                   <div>
-                    <H2 className="text-navy">{band.heading}</H2>
+                    <H2 className="text-cream">{band.heading}</H2>
                     {/* The headshot slot withholds itself until real photography
                         exists. No stock image of a person who is not Alex. */}
                     {site.headshot.src && (
@@ -259,29 +269,29 @@ export function Bands({ page }: { page: PageContent }) {
                       <img
                         src={site.headshot.src}
                         alt={site.headshot.alt}
-                        className="mt-6 w-full max-w-[22rem] rounded-lg"
+                        className="mt-6 w-full max-w-[22rem] rounded-lg border border-cream/10"
                       />
                     )}
                   </div>
-                  <Prose paragraphs={band.body} />
+                  <Prose paragraphs={band.body} tone="dark" />
                 </div>
               </Section>
             );
 
           case "areaMap":
+            // Dark, to match the map's own redesign: cream and gold marks on
+            // navy, not grey dots on a white card.
             return (
-              <Section key={i} tone={nextLightTone()}>
+              <Section key={i} tone="navyWash">
                 <Split
-                  heading={<H2 className="text-navy">{band.heading}</H2>}
-                  aside={
-                    <p className="mt-4 text-[1.02rem] leading-[1.7] text-subtle">{band.intro}</p>
-                  }
+                  heading={<H2 className="text-cream">{band.heading}</H2>}
+                  aside={<p className="mt-4 text-[1.02rem] leading-[1.7] text-dim">{band.intro}</p>}
                 >
                   <ServiceAreaMap towns={site.serviceAreas} />
                 </Split>
                 <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2">
                   {site.serviceAreas.map((a) => (
-                    <li key={a.name} className="label text-subtle">
+                    <li key={a.name} className="label text-dim">
                       {a.name}
                     </li>
                   ))}
@@ -379,11 +389,14 @@ export function Bands({ page }: { page: PageContent }) {
             );
 
           case "closingCta":
+            // Dark: the bookend to the hero rather than another light card.
+            // No inner card here, unlike conversion's form: there are no
+            // fields to protect on a light ground, just a closing statement.
             return (
-              <Section key={i} tone={nextLightTone()}>
-                <div className="rounded-lg border border-navy/15 bg-paper p-7 sm:p-10">
-                  <H2 className="text-navy">{band.heading}</H2>
-                  <p className="measure mt-4 text-[1.05rem] leading-[1.7] text-subtle">{band.body}</p>
+              <Section key={i} tone="navyWash">
+                <div className="max-w-[42rem]">
+                  <H2 className="text-cream">{band.heading}</H2>
+                  <p className="measure mt-4 text-[1.05rem] leading-[1.7] text-dim">{band.body}</p>
                   <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                     {band.ctas.map((c) => (
                       <CtaLink key={c.label} cta={c} />
