@@ -21,6 +21,13 @@ const NAV = [
  * primary styled action, and a primary button in a sticky header would put two
  * of them in the same screenful, which is a Hick's Law defect even though it
  * feels like helpfulness.
+ *
+ * Translucent navy with a blur, not the flat cream bar this carried before.
+ * Every route is navy-dominant now (see Bands.tsx), so a cream header sat as
+ * a hard, light seam across the top of a dark page and read as bolted on
+ * from a different site. `on-dark` picks up the same secondary/quiet CTA and
+ * gold-focus-ring overrides every other dark section already gets, so this
+ * needed no styling invented just for the header.
  */
 export function Header({
   phoneDisplay,
@@ -37,19 +44,24 @@ export function Header({
   const pathname = usePathname();
 
   return (
-    // Fully opaque. At 95 percent the band headings underneath ghosted through
-    // the bar while scrolling, which read as a rendering bug rather than a style.
-    <header className="sticky top-0 z-50 border-b border-line bg-cream">
+    // Translucent navy, not flat cream: at 92 percent opacity plus a blur the
+    // composited worst case (this over the lightest thing that can scroll
+    // under it) is still far past AA, verified in audit-contrast.mjs, and the
+    // blur means nothing sharp from the page below shows through the way flat
+    // 95 percent cream once let band headings ghost through while scrolling.
+    // on-dark picks up the secondary CTA and gold focus ring every other dark
+    // section already gets.
+    <header className="on-dark sticky top-0 z-50 border-b border-cream/12 bg-navy/92 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-[76rem] items-center gap-4 px-5 py-3 sm:px-8">
         <Link
           href="/"
-          className="flex min-h-[44px] shrink-0 items-center text-[1.02rem] font-semibold tracking-[-0.015em] text-navy"
+          className="flex min-h-[44px] shrink-0 items-center text-[1.02rem] font-semibold tracking-[-0.015em] text-cream"
         >
           {agentName}
         </Link>
 
         <nav aria-label="Main" className="ml-auto hidden lg:block">
-          <ul className="flex items-center gap-0.5 rounded-full border border-navy/10 bg-navy/[0.03] p-1">
+          <ul className="flex items-center gap-0.5 rounded-full border border-cream/15 bg-cream/[0.06] p-1">
             {NAV.map((n) => {
               const active = pathname === n.href;
               return (
@@ -58,7 +70,7 @@ export function Header({
                     href={n.href}
                     aria-current={active ? "page" : undefined}
                     className={`inline-flex min-h-[38px] items-center rounded-full px-3.5 text-[0.92rem] transition-colors duration-150 ${
-                      active ? "bg-navy font-semibold text-cream" : "text-subtle hover:text-navy"
+                      active ? "bg-cream font-semibold text-navy" : "text-dim hover:text-cream"
                     }`}
                   >
                     {n.label}
@@ -72,7 +84,7 @@ export function Header({
         {/* Tappable tel in the header, on every route. */}
         <a
           href={telHref}
-          className="ml-auto hidden min-h-[44px] items-center text-[0.95rem] text-subtle hover:text-navy lg:ml-4 lg:inline-flex"
+          className="ml-auto hidden min-h-[44px] items-center text-[0.95rem] text-dim hover:text-cream lg:ml-4 lg:inline-flex"
         >
           <span className="figure">{phoneDisplay}</span>
         </a>
@@ -87,7 +99,7 @@ export function Header({
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-controls="mobile-nav"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-navy/55 text-navy lg:hidden"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-cream/50 text-cream lg:hidden"
         >
           <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
           <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5">
@@ -101,22 +113,25 @@ export function Header({
       </div>
 
       {/* Rendered in the DOM and toggled with hidden, so the markup is correct on
-          first paint and no animation gates reaching the navigation. */}
-      <div id="mobile-nav" hidden={!open} className="border-t border-line lg:hidden">
+          first paint and no animation gates reaching the navigation. Its own
+          opaque navy, not translucent: this panel sits over whatever content
+          is underneath rather than at the top edge where the blur above lives,
+          so it gets a plain solid fill instead. */}
+      <div id="mobile-nav" hidden={!open} className="border-t border-cream/12 bg-navy lg:hidden">
         <ul className="mx-auto w-full max-w-[76rem] px-5 py-2 sm:px-8">
           {NAV.map((n) => (
             <li key={n.href}>
               <Link
                 href={n.href}
                 onClick={() => setOpen(false)}
-                className="flex min-h-[48px] items-center border-b border-line/70 text-[1rem] text-ink"
+                className="flex min-h-[48px] items-center border-b border-cream/10 text-[1rem] text-cream"
               >
                 {n.label}
               </Link>
             </li>
           ))}
           <li>
-            <a href={telHref} className="flex min-h-[48px] items-center text-[1rem] text-ink">
+            <a href={telHref} className="flex min-h-[48px] items-center text-[1rem] text-cream">
               Call <span className="figure ml-2">{phoneDisplay}</span>
             </a>
           </li>
