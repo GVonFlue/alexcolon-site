@@ -1,0 +1,142 @@
+{
+  "route": "/sell",
+  "title": "Selling Your House in the Wichita Area | Alexander Colón",
+  "description": "A real number on your house with the comparable sales attached, put together by Alex rather than an automated estimate. No listing appointment attached.",
+  "h1": "Find out what your house is worth without agreeing to sell it",
+  "job": "Deliver a real number before asking for anything, so the valuation itself is the proof of competence.",
+  "primaryPrinciple": "Reciprocity. A real number delivered before anything is asked in return.",
+
+  "bands": [
+    {
+      "type": "hero",
+      "eyebrow": "Sellers",
+      "headline": "Find out what your house is worth without agreeing to sell it",
+      "support": "Alex puts valuations together himself and sends the comparable sales he used, so you can check the reasoning rather than take a number on faith.",
+      "ctas": [
+        {
+          "label": "Send me my home value",
+          "href": "#valuation",
+          "kind": "give",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Text Alex about your house",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        }
+      ],
+      "image": null
+    },
+
+    {
+      "type": "prose",
+      "heading": "Why the number on your screen is usually wrong",
+      "body": [
+        "Automated valuations work from public records and recent nearby sales. They have never been inside your house, so they cannot see the kitchen you redid, the roof that is at the end of its life, or the fact that your lot backs onto something that changes what a buyer will pay.",
+        "That is not a reason to distrust them entirely. It is a reason to treat the number as a starting point and get a person to look at the specific things about your house that move it in either direction."
+      ]
+    },
+
+    {
+      "type": "lossAversion",
+      "heading": "What every month of deciding costs you",
+      "body": [
+        "While you are thinking about it, you are still paying for the house. The mortgage payment, the taxes, the insurance, and the utilities you keep on continue whether the sign is in the yard or not.",
+        "This does not predict what your house will sell for, because nobody can do that from a web page. It only totals what you are already spending while you decide. Put your own figures in and the arithmetic is the arithmetic."
+      ],
+      "calculator": "carryCost"
+    },
+
+    {
+      "type": "conversion",
+      "magnetId": "home-value"
+    },
+
+    {
+      "type": "steps",
+      "heading": "What happens after you say go",
+      "intro": null,
+      "steps": [
+        {
+          "title": "Walk the house together",
+          "detail": "Alex goes through it with you and separates the work worth doing before listing from the work a buyer will not pay you back for. Some of the most expensive pre listing projects return the least."
+        },
+        {
+          "title": "Set the price with the reasoning attached",
+          "detail": "You see the comparable sales and how each one was adjusted. If you disagree with a comparison you say so, and it gets discussed rather than overridden."
+        },
+        {
+          "title": "Prepare and photograph",
+          "detail": "What gets cleared out, what gets fixed, and what gets shot. The listing photographs are the first showing, and most buyers decide whether to book a second one from them."
+        },
+        {
+          "title": "List, show, and read the response",
+          "detail": "Showing traffic and feedback in the first two weeks tell you whether the price is right. Alex reports what he is actually hearing, including when what he is hearing is that the number is too high."
+        },
+        {
+          "title": "Negotiate the offer, not just the price",
+          "detail": "Closing date, possession, what conveys, and how inspection findings get handled all sit inside an offer. A slightly lower number with better terms is often the better deal."
+        },
+        {
+          "title": "Close",
+          "detail": "Title work, the buyer's financing, and the final walkthrough. Alex tracks the dates so you find out about a problem while there is still time to solve it."
+        }
+      ]
+    },
+
+    {
+      "type": "faq",
+      "heading": "What sellers ask before they commit",
+      "items": [
+        {
+          "q": "Does asking for a valuation put me on a call list?",
+          "a": "No. You asked what your house is worth and that is the whole transaction. If you want to talk about listing afterward, you will be the one to bring it up."
+        },
+        {
+          "q": "Should I fix things before I list?",
+          "a": "Some things, and fewer than most people expect. Alex will walk it with you and tell you which projects a buyer will pay for and which ones you would be doing for your own satisfaction."
+        },
+        {
+          "q": "What if I need to buy and sell at the same time?",
+          "a": "That is a scheduling problem with several standard solutions, and which one fits depends on your equity and your flexibility on dates. It is worth a conversation early rather than once one side is already under contract."
+        },
+        {
+          "q": "How is the commission handled?",
+          "a": "It is agreed in writing before anything is listed, and you will see exactly what is paid and to whom. Ask Alex to walk you through the agreement line by line before you sign it. He would rather you did."
+        }
+      ]
+    },
+
+    {
+      "type": "proof",
+      "heading": "What sellers say about working with Alex"
+    },
+
+    {
+      "type": "closingCta",
+      "heading": "Get the number first, decide after",
+      "body": "The valuation costs you nothing and commits you to nothing. Plenty of people get one, sit on it for a year, and come back later.",
+      "ctas": [
+        {
+          "label": "Text Alex about your house",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Call (813) 613-8822",
+          "href": "tel:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        },
+        {
+          "label": "Send it in writing instead",
+          "href": "/contact",
+          "kind": "give",
+          "emphasis": "quiet"
+        }
+      ]
+    }
+  ]
+}

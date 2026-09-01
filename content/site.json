@@ -1,0 +1,81 @@
+{
+  "agentName": "Alexander Colón",
+  "siteName": "Alexander Colón, Wichita Area Real Estate",
+  "tagline": "Straight answers about buying and selling in the Wichita area.",
+
+  "phone": {
+    "e164": "+18136138822",
+    "display": "(813) 613-8822",
+    "accepts": ["call", "text"]
+  },
+  "email": "alex@athomewichita.com",
+
+  "serviceAreas": [
+    "Wichita",
+    "Maize",
+    "Derby",
+    "Andover",
+    "Goddard",
+    "Park City",
+    "Rose Hill"
+  ],
+
+  "social": [],
+
+  "compliance": {
+    "brokerageName": {
+      "value": "At Home Wichita Real Estate",
+      "source": "athomewichita.com agent directory, which lists Alex Colón at alex@athomewichita.com. Confirm with Alex before launch."
+    },
+    "brokerageAddress": {
+      "value": "6530 E. 13th St. N., Wichita, Kansas 67206",
+      "source": "athomewichita.com site footer. Confirm with Alex before launch."
+    },
+    "brokeragePhone": {
+      "value": "(316) 247-1217",
+      "source": "athomewichita.com site footer. Confirm with Alex before launch."
+    },
+    "licenseNumber": {
+      "value": null,
+      "pending": "Alex's Kansas real estate license number. Not published anywhere public that could be verified, and a license number that reaches production wrong is the exact failure hard stop 6 exists to prevent. Needed from Alex directly, in writing."
+    },
+    "narMembershipConfirmed": false,
+    "equalHousing": true,
+    "idxDisclaimer": null,
+    "additionalRequired": []
+  },
+
+  "numbers": [],
+
+  "testimonials": [],
+
+  "headshot": {
+    "src": null,
+    "alt": "Alexander Colón",
+    "needed": "One photograph of Alex. The professional shoot is pending, so this band withholds itself until a real image exists. No stock substitute."
+  },
+
+  "assistant": {
+    "name": "Wick",
+    "introduction": "Wick is an assistant on this site, not Alex. It answers questions about buying and selling in the Wichita area, and hands you to Alex the moment you want a person.",
+    "chips": [
+      {
+        "label": "What does it cost to buy here?",
+        "prompt": "Walk me through the money a buyer actually needs up front in the Wichita area, and what each piece is for.",
+        "kind": "info"
+      },
+      {
+        "label": "How does selling work, step by step?",
+        "prompt": "Walk me through what happens from the first conversation to closing when I sell a house here.",
+        "kind": "info"
+      },
+      {
+        "label": "Have Alex look at my situation",
+        "prompt": "I would like Alex to look at my situation and get back to me.",
+        "kind": "conversion"
+      }
+    ],
+    "bookingUrl": null,
+    "sourceTag": "Colon - Site Assistant"
+  }
+}

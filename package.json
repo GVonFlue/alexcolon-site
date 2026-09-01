@@ -1,0 +1,38 @@
+{
+  "name": "alexcolon-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Alexander Colon - Wichita area real estate. Built by ProyTech to the ProyTech Website Build Doctrine.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "npm run audit:content && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "audit:content": "node scripts/audit-copy.mjs",
+    "audit:contrast": "node scripts/audit-contrast.mjs",
+    "audit:rendered": "node scripts/audit-rendered.mjs",
+    "audit:negative": "node scripts/audit-negative.mjs",
+    "audit:all": "npm run audit:negative && npm run audit:content && npm run audit:contrast && npm run audit:rendered",
+    "test:leads": "node --test tests/leads.test.mjs",
+    "report": "node scripts/report.mjs",
+    "shots": "node scripts/shots.mjs",
+    "test": "node --test tests/leads.test.mjs"
+  },
+  "dependencies": {
+    "next": "^16.3.4",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "server-only": "^0.0.1",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.13",
+    "@types/node": "22.18.1",
+    "@types/react": "19.1.13",
+    "@types/react-dom": "19.1.9",
+    "node-html-parser": "^9.0.2",
+    "playwright": "^1.62.1",
+    "tailwindcss": "4.1.13",
+    "typescript": "5.9.2"
+  }
+}

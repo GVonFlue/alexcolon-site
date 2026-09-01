@@ -1,0 +1,132 @@
+{
+  "route": "/buy",
+  "title": "Buying a House in the Wichita Area | Alexander Colón",
+  "description": "What buying a house around Wichita actually costs and what order it happens in. Read it first, ask Alex second, decide when you are ready.",
+  "h1": "Buying a house here, explained before you are asked to decide anything",
+  "job": "Give a first time buyer enough of the process for free that asking Alex a question feels like the small next step it is.",
+  "primaryPrinciple": "Commitment ladder. A low friction micro conversion first, never the big ask cold.",
+
+  "bands": [
+    {
+      "type": "hero",
+      "eyebrow": "First time buyers",
+      "headline": "Buying a house here, explained before you are asked to decide anything",
+      "support": "Most of the stress in a first purchase comes from finding out what something costs on the day it is due. This page is the part that usually gets skipped.",
+      "ctas": [
+        {
+          "label": "Send me the buyer's guide",
+          "href": "#guide",
+          "kind": "give",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Text Alex a question",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        }
+      ],
+      "image": null
+    },
+
+    {
+      "type": "steps",
+      "heading": "The order things actually happen in",
+      "intro": "Six stages, and the money leaves your account at three of them. Knowing which three is most of what makes this manageable.",
+      "steps": [
+        {
+          "title": "Get pre approved",
+          "detail": "A lender looks at your income, your debts, and your credit, and tells you what you can borrow. It costs nothing and it is the step that turns a price range from a guess into a number. Alex can point you at lenders who work this market, and you are free to use your own."
+        },
+        {
+          "title": "Work out what you actually want",
+          "detail": "Not a wish list. The two or three things that would make you regret the purchase if they were missing, separated from the things you would like. This conversation saves more time than any search filter."
+        },
+        {
+          "title": "See houses",
+          "detail": "Alex walks them with you and points out what a house is telling you about itself. The point of this stage is to get you calibrated, so by the fifth house you can read one yourself."
+        },
+        {
+          "title": "Make an offer",
+          "detail": "Price is one term of several. The closing date, the possession date, what stays with the house, and how the inspection is handled all move, and some of them matter more than the number does. This is where earnest money leaves your account."
+        },
+        {
+          "title": "Inspection and appraisal",
+          "detail": "You pay for the inspection. The lender orders the appraisal and you pay for that too. Between them they are the two places a deal most often gets renegotiated, and Alex will tell you which findings are worth reopening and which are just the age of the house."
+        },
+        {
+          "title": "Close",
+          "detail": "You sign, the remaining funds move, and you get keys. The closing figure is known days ahead, so nothing about the last step should be a surprise by the time you get there."
+        }
+      ]
+    },
+
+    {
+      "type": "prose",
+      "heading": "The money, in the order it leaves your account",
+      "body": [
+        "Earnest money goes first, at the offer, and it is credited back to you at closing rather than spent. The inspection is paid at the time of the inspection. Closing costs come last and they are the largest of the three, and your lender is required to put them in writing before you get there.",
+        "The exact figures depend on the price of the house and the loan you use, which is why nobody honest will quote them to you off a web page. What you can do right now is ask a lender for the numbers on a specific price, and ask Alex to sanity check what comes back."
+      ]
+    },
+
+    {
+      "type": "conversion",
+      "magnetId": "buyer-guide"
+    },
+
+    {
+      "type": "faq",
+      "heading": "The questions buyers ask first",
+      "items": [
+        {
+          "q": "How much do I need saved before I start?",
+          "a": "It depends on the loan. Some loan types are built around a small down payment and some are not, and the down payment is only one of three places money leaves your account. Ask a lender to run it on a specific price, then ask Alex whether the answer looks right for this market."
+        },
+        {
+          "q": "Do I pay Alex?",
+          "a": "Agent compensation comes out of the transaction and it is put in writing before you sign anything. You will see the number and agree to it in advance, and nothing about it is a surprise at closing."
+        },
+        {
+          "q": "How long does the whole thing take?",
+          "a": "The part you control is how long you look, which varies enormously. The part after an accepted offer is driven by the lender and the title work. Alex will give you the current realistic window when you ask, rather than a number from a template."
+        },
+        {
+          "q": "What if my credit is not great?",
+          "a": "Talk to a lender before you assume anything. People rule themselves out on this more often than lenders do, and the fix is sometimes a few months of specific, boring steps rather than years."
+        }
+      ]
+    },
+
+    {
+      "type": "proof",
+      "heading": "What buyers say about working with Alex"
+    },
+
+    {
+      "type": "closingCta",
+      "heading": "Ask the question you have been sitting on",
+      "body": "You do not need to be ready to buy to ask something. Most of the useful conversations Alex has are with people who are months out.",
+      "ctas": [
+        {
+          "label": "Text Alex a question",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Call (813) 613-8822",
+          "href": "tel:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        },
+        {
+          "label": "Send it in writing instead",
+          "href": "/contact",
+          "kind": "give",
+          "emphasis": "quiet"
+        }
+      ]
+    }
+  ]
+}

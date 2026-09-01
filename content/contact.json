@@ -1,0 +1,86 @@
+{
+  "route": "/contact",
+  "title": "Contact Alexander Colón | Call, Text, or Email",
+  "description": "Call or text (813) 613-8822, email alex@athomewichita.com, or send a question in writing. Nothing starts automatically because you got in touch.",
+  "h1": "Get in touch",
+  "job": "Remove every reason not to make contact, and offer more than one way to do it.",
+  "primaryPrinciple": "Remove friction. Every channel the visitor might prefer, on one screen.",
+
+  "bands": [
+    {
+      "type": "hero",
+      "eyebrow": "Contact",
+      "headline": "Get in touch",
+      "support": "Call or text (813) 613-8822, or email alex@athomewichita.com. If you would rather write it out and not talk to anybody yet, the form below goes to the same place.",
+      "ctas": [
+        {
+          "label": "Text Alex a question",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Call (813) 613-8822",
+          "href": "tel:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        }
+      ],
+      "image": null
+    },
+
+    {
+      "type": "conversion",
+      "magnetId": "general"
+    },
+
+    {
+      "type": "faq",
+      "heading": "Before you send it",
+      "items": [
+        {
+          "q": "Which is fastest?",
+          "a": "Text. Alex is in appointments and showings during the day, and a text gets read between them where a voicemail often does not get returned until the evening."
+        },
+        {
+          "q": "What happens after I send this?",
+          "a": "It reaches Alex directly. He answers these himself, so the reply comes from him rather than from an autoresponder pretending to be him."
+        },
+        {
+          "q": "Am I signing up for anything?",
+          "a": "No. There is no sequence attached to these forms. One question is one question."
+        },
+        {
+          "q": "Can I just ask something without giving my phone number?",
+          "a": "Yes. The phone field is optional, and it is there only so Alex can text you back instead of writing a long email if that would be faster."
+        }
+      ]
+    },
+
+    {
+      "type": "closingCta",
+      "heading": "Or skip the form entirely",
+      "body": "There is no advantage to using the form over sending a text. Use whichever one you would actually use.",
+      "ctas": [
+        {
+          "label": "Text Alex a question",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Call (813) 613-8822",
+          "href": "tel:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        },
+        {
+          "label": "Email alex@athomewichita.com",
+          "href": "mailto:alex@athomewichita.com",
+          "kind": "direct",
+          "emphasis": "quiet"
+        }
+      ]
+    }
+  ]
+}

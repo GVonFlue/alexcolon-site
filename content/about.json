@@ -1,0 +1,96 @@
+{
+  "route": "/about",
+  "title": "About Alexander Colón | Wichita Area Real Estate Agent",
+  "description": "How Alex works, who he works with, and what he will not do. Read it and decide whether he is a fit before you spend a phone call finding out.",
+  "h1": "How Alex works, and who he is a poor fit for",
+  "job": "Let a visitor decide whether this is the right person, on purpose, before they call.",
+  "primaryPrinciple": "Trust is a person. The soft ask, after the visitor has enough to judge.",
+
+  "bands": [
+    {
+      "type": "hero",
+      "eyebrow": "About",
+      "headline": "How Alex works, and who he is a poor fit for",
+      "support": "Most agent pages are a list of adjectives. This one is about the actual working relationship, including the parts that would make you choose somebody else.",
+      "ctas": [
+        {
+          "label": "Ask Alex something",
+          "href": "#ask",
+          "kind": "give",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Call (813) 613-8822",
+          "href": "tel:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        }
+      ],
+      "image": null
+    },
+
+    {
+      "type": "trust",
+      "heading": "The way he works",
+      "body": [
+        "Alex is an agent with At Home Wichita Real Estate, working across Wichita, Maize, Derby, Andover, Goddard, Park City, and Rose Hill. He works with first time buyers, service members and veterans, people selling a house, and people buying property to rent out.",
+        "The thing he is deliberate about is explaining something before you have to decide on it. A lot of what makes a transaction stressful is being handed a document and a deadline at the same moment, and most of that is avoidable by saying what is coming a week earlier.",
+        "He is hands on from the first conversation through closing. That means you deal with him rather than being passed to a coordinator once the interesting part is over."
+      ]
+    },
+
+    {
+      "type": "prose",
+      "heading": "Who he is a poor fit for",
+      "body": [
+        "If you want an agent who will agree with your price, tell you the house is perfect, and match your enthusiasm at every step, he is going to disappoint you. He will tell you when a house has a problem and when a number is wrong, and some people find that deflating rather than useful.",
+        "If you want to be pushed, he will not do that either. He works with people who are a year out from doing anything and he does not chase them in between. If you need someone to create urgency for you, that is a real preference and he is not the one."
+      ]
+    },
+
+    {
+      "type": "prose",
+      "heading": "How to reach him, and what actually works",
+      "body": [
+        "Call or text (813) 613-8822, or email alex@athomewichita.com. Text tends to be the fastest way to get him, and he is happy to handle an entire question by text if you would rather never be on the phone about it.",
+        "If your question has an address in it, send the address. Nearly every useful answer in this business starts with a specific property rather than a general one."
+      ]
+    },
+
+    {
+      "type": "conversion",
+      "magnetId": "general"
+    },
+
+    {
+      "type": "proof",
+      "heading": "What people say about working with Alex"
+    },
+
+    {
+      "type": "closingCta",
+      "heading": "If that sounds like what you want, say hello",
+      "body": "One question is a reasonable place to start. You will get a sense of how he thinks from the answer, which is the actual thing you are trying to find out.",
+      "ctas": [
+        {
+          "label": "Text Alex a question",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Call (813) 613-8822",
+          "href": "tel:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        },
+        {
+          "label": "Send it in writing instead",
+          "href": "/contact",
+          "kind": "give",
+          "emphasis": "quiet"
+        }
+      ]
+    }
+  ]
+}

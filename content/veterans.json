@@ -1,0 +1,128 @@
+{
+  "route": "/veterans",
+  "title": "VA Loan Home Buying in the Wichita Area | Alexander Colón",
+  "description": "What the VA loan requires, where the process stalls locally, and how to line up a closing when your report date is the thing you cannot move.",
+  "h1": "Buying with a VA loan when the timeline is not yours to set",
+  "job": "Show enough specific command of the VA process that a service member trusts Alex with a deadline they cannot move.",
+  "primaryPrinciple": "Authority through specificity. Detail nobody bluffs their way into.",
+
+  "bands": [
+    {
+      "type": "hero",
+      "eyebrow": "Service members and veterans",
+      "headline": "Buying with a VA loan when the timeline is not yours to set",
+      "support": "A VA purchase is not harder than any other purchase. It has different requirements and a different appraisal, and both of them are predictable once somebody tells you what they are.",
+      "ctas": [
+        {
+          "label": "Send me the VA checklist",
+          "href": "#checklist",
+          "kind": "give",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Text Alex your dates",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        }
+      ],
+      "image": null
+    },
+
+    {
+      "type": "prose",
+      "heading": "The two places a VA purchase actually differs",
+      "body": [
+        "The first is eligibility. You need a Certificate of Eligibility, and how much entitlement you have available changes what you can do, particularly if you have used the benefit before or still own a house you bought with it.",
+        "The second is the appraisal. A VA appraisal checks condition against a set of minimum property requirements as well as value, so a house can appraise at the number and still need work before it will pass. Knowing which condition items trip it is the difference between finding out in week one and finding out in week five."
+      ]
+    },
+
+    {
+      "type": "steps",
+      "heading": "Working backward from a date you cannot move",
+      "intro": "When there is a report date on the other end, the schedule gets built in reverse.",
+      "steps": [
+        {
+          "title": "Start with the date you have to be there",
+          "detail": "Everything else is calculated back from it, including the last day an offer can be accepted and still close in time."
+        },
+        {
+          "title": "Get the Certificate of Eligibility early",
+          "detail": "This is the item most likely to sit waiting on someone else. Requesting it before you are house hunting removes it from the critical path entirely."
+        },
+        {
+          "title": "Pre approval with a lender who closes VA loans regularly",
+          "detail": "Not every lender does volume in these. The ones that do know what the appraisal will ask for, which shortens the back half of the transaction."
+        },
+        {
+          "title": "Filter for houses that will pass",
+          "detail": "Alex flags condition problems while you are still walking through, before an offer is written on a house that will not clear the appraisal in your window."
+        },
+        {
+          "title": "Write the offer with the timeline in it",
+          "detail": "Sellers weigh certainty as heavily as price. An offer that explains why your dates are firm and shows the financing is already moving reads as lower risk, not higher."
+        }
+      ]
+    },
+
+    {
+      "type": "conversion",
+      "magnetId": "va-checklist"
+    },
+
+    {
+      "type": "faq",
+      "heading": "What comes up on VA purchases",
+      "items": [
+        {
+          "q": "Do sellers turn down VA offers?",
+          "a": "Some do, usually because of things they heard rather than things they experienced. A VA offer presented with the timeline and the lender's status attached answers most of that objection before it gets raised."
+        },
+        {
+          "q": "Can I use the benefit more than once?",
+          "a": "In many situations yes, and how much you have available depends on what you have used and whether you still hold the property you used it on. Your lender can pull the exact figure. It is worth knowing before you shop rather than after."
+        },
+        {
+          "q": "What if I am buying from out of state before I arrive?",
+          "a": "It is common and it works. Alex walks houses on video and gives you the read he would give in person, including the things a camera does not pick up. Say up front that you are buying remotely so the process is built for it."
+        },
+        {
+          "q": "Is the funding fee always charged?",
+          "a": "There are situations where it is waived. Your lender confirms whether yours is one of them, and the answer changes your closing figure meaningfully, so ask early."
+        }
+      ]
+    },
+
+    {
+      "type": "proof",
+      "heading": "What veteran buyers say about working with Alex"
+    },
+
+    {
+      "type": "closingCta",
+      "heading": "Send Alex your dates and he will work backward from them",
+      "body": "Even if the move is months out, the Certificate of Eligibility and the lender conversation are worth starting now. Both are free and both are slow.",
+      "ctas": [
+        {
+          "label": "Text Alex your dates",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Call (813) 613-8822",
+          "href": "tel:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        },
+        {
+          "label": "Send it in writing instead",
+          "href": "/contact",
+          "kind": "give",
+          "emphasis": "quiet"
+        }
+      ]
+    }
+  ]
+}

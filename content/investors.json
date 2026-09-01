@@ -1,0 +1,128 @@
+{
+  "route": "/investors",
+  "title": "Wichita Area Investment Property Analysis | Alexander Colón",
+  "description": "Send Alex an address and he works the rent, the full carrying cost, and what is left. Including the times the answer is that the numbers do not work.",
+  "h1": "Send an address and get the numbers worked, including when they do not work",
+  "job": "Prove analytical competence on a specific property so the investor treats Alex as the person who screens their deals.",
+  "primaryPrinciple": "Authority through specificity. The analysis is the sales argument.",
+
+  "bands": [
+    {
+      "type": "hero",
+      "eyebrow": "Investment property",
+      "headline": "Send an address and get the numbers worked, including when they do not work",
+      "support": "Rent from comparable local leases, the full carry rather than principal and interest, and the figure that is left at the bottom. Stated plainly, including when it is negative.",
+      "ctas": [
+        {
+          "label": "Run the numbers on this one",
+          "href": "#analysis",
+          "kind": "give",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Text Alex an address",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        }
+      ],
+      "image": null
+    },
+
+    {
+      "type": "prose",
+      "heading": "Where most rental math goes wrong",
+      "body": [
+        "The two errors that account for most bad purchases are a rent figure pulled from a national estimator rather than from what is actually leasing nearby, and a carrying cost that stops at principal and interest.",
+        "Taxes, insurance, vacancy, and maintenance are not rounding. Leave them out and a property that loses money every month can look like it clears a few hundred. Alex runs all of them, and he would rather talk you out of a bad address than sell you one."
+      ]
+    },
+
+    {
+      "type": "steps",
+      "heading": "What you get back on a specific address",
+      "intro": null,
+      "steps": [
+        {
+          "title": "Rent, from comparable leases",
+          "detail": "What similar properties nearby are actually renting for right now, not a percentage applied to the purchase price."
+        },
+        {
+          "title": "The full monthly carry",
+          "detail": "Debt service, taxes, insurance, and a maintenance allowance, with the assumption behind each number written down so you can argue with it."
+        },
+        {
+          "title": "What is left",
+          "detail": "The number at the bottom, before and after vacancy. If it is negative, it says so in the same size type as everything else."
+        },
+        {
+          "title": "What it needs before a tenant",
+          "detail": "The work required to make it rentable and roughly what that runs, because a purchase price plus fifteen thousand dollars of deferred maintenance is a different deal."
+        },
+        {
+          "title": "Alex's read",
+          "detail": "Whether he would buy it, and why. This is the part that is worth asking for, and it is the part he will not soften."
+        }
+      ]
+    },
+
+    {
+      "type": "conversion",
+      "magnetId": "rental-analysis"
+    },
+
+    {
+      "type": "faq",
+      "heading": "Questions investors ask",
+      "items": [
+        {
+          "q": "Will you tell me a deal is bad?",
+          "a": "Yes, and that is most of the value. An agent who approves every address you send is not screening anything, they are processing paperwork."
+        },
+        {
+          "q": "Do you work with people buying their first rental?",
+          "a": "Yes. The analysis is the same either way, and the first one is where an honest second opinion is worth the most."
+        },
+        {
+          "q": "Can you look at more than one address at a time?",
+          "a": "Send them together. Comparing several properties side by side is more useful than looking at one in isolation, and it is faster to work them as a batch."
+        },
+        {
+          "q": "What about properties that need significant work?",
+          "a": "Those need a scope and a contractor number before the analysis means anything. Alex will tell you when a property cannot be evaluated responsibly without one rather than guessing at a rehab figure."
+        }
+      ]
+    },
+
+    {
+      "type": "proof",
+      "heading": "What investors say about working with Alex"
+    },
+
+    {
+      "type": "closingCta",
+      "heading": "Send the address you are already looking at",
+      "body": "You are probably running numbers on something right now. Send it over and see whether the analysis you get back is better than the one you did.",
+      "ctas": [
+        {
+          "label": "Text Alex an address",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Call (813) 613-8822",
+          "href": "tel:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        },
+        {
+          "label": "Send it in writing instead",
+          "href": "/contact",
+          "kind": "give",
+          "emphasis": "quiet"
+        }
+      ]
+    }
+  ]
+}

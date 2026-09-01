@@ -1,0 +1,97 @@
+{
+  "route": "/areas",
+  "title": "Where Alexander Colón Works | Wichita and Surrounding Towns",
+  "description": "Wichita, Maize, Derby, Andover, Goddard, Park City, and Rose Hill. Seven towns Alex works often enough to know what a house is worth and how long things take.",
+  "h1": "The seven towns Alex works",
+  "job": "Let a visitor confirm in one glance that Alex covers where they are, then ask their specific question about that place.",
+  "primaryPrinciple": "Cognitive fluency. State the coverage plainly and get out of the way.",
+
+  "bands": [
+    {
+      "type": "hero",
+      "eyebrow": "Coverage",
+      "headline": "The seven towns Alex works",
+      "support": "This is a list of places, not a radius drawn to look impressive. If you are somewhere near here that is not on the list, ask anyway and he will tell you honestly whether he is the right person for it.",
+      "ctas": [
+        {
+          "label": "Ask about a specific area",
+          "href": "#ask",
+          "kind": "give",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Text Alex where you are looking",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        }
+      ],
+      "image": null
+    },
+
+    {
+      "type": "areaMap",
+      "heading": "Where these sit relative to each other",
+      "intro": "Wichita in the middle, with the six surrounding towns placed roughly where they fall. Useful if you are moving here and the names do not mean anything to you yet."
+    },
+
+    {
+      "type": "prose",
+      "heading": "What this page deliberately does not do",
+      "body": [
+        "It does not rank these places or tell you which one is better, because that is not a question anybody can answer for someone else, and because characterizing who lives in a neighborhood is something a licensed agent is not permitted to do.",
+        "What Alex can tell you is factual and specific. What houses have recently sold for on a given street, how long they sat, what the taxes run, what a commute actually takes at the hour you would be driving it, and what tends to turn up on inspections of houses of a particular age. Ask about the thing you actually want to know and you will get that."
+      ]
+    },
+
+    {
+      "type": "conversion",
+      "magnetId": "general"
+    },
+
+    {
+      "type": "faq",
+      "heading": "Moving here from somewhere else",
+      "items": [
+        {
+          "q": "I am relocating and I do not know the area at all. Where do I start?",
+          "a": "Start with the constraints rather than the map. Where you need to be on a weekday morning, what you can spend, and what type of house you want narrow the list faster than reading about towns does. Send Alex those three things and he will tell you which of the seven are worth your attention."
+        },
+        {
+          "q": "Can Alex show me houses if I am not in Kansas yet?",
+          "a": "Yes. He walks them on video and tells you what he would tell you standing next to you, including the things a camera flattens out. Say up front that you are buying remotely so it is set up that way from the start."
+        },
+        {
+          "q": "What if the house I want is outside these seven?",
+          "a": "Ask. If it is close by and he knows it, he will say so. If it is far enough out that somebody else would serve you better, he will say that instead and point you somewhere useful."
+        }
+      ]
+    },
+
+    {
+      "type": "closingCta",
+      "heading": "Ask about the street you are actually looking at",
+      "body": "General information about a town is easy to find and rarely answers your question. A specific address or a specific street is where a local answer starts being worth something.",
+      "ctas": [
+        {
+          "label": "Text Alex where you are looking",
+          "href": "sms:+18136138822",
+          "kind": "direct",
+          "emphasis": "primary"
+        },
+        {
+          "label": "Call (813) 613-8822",
+          "href": "tel:+18136138822",
+          "kind": "direct",
+          "emphasis": "secondary"
+        },
+        {
+          "label": "Send it in writing instead",
+          "href": "/contact",
+          "kind": "give",
+          "emphasis": "quiet"
+        }
+      ]
+    }
+  ]
+}

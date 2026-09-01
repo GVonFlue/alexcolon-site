@@ -1,0 +1,168 @@
+{
+  "magnets": [
+    {
+      "id": "buyer-guide",
+      "title": "The Wichita Area Buyer's Guide",
+      "promise": "A plain walkthrough of what buying a house around Wichita actually involves, written so you can read it before you are ready to talk to anyone.",
+      "stack": [
+        {
+          "label": "What you need up front, in dollars",
+          "detail": "Earnest money, inspection, appraisal, and closing costs, with what each one pays for and roughly when it leaves your account."
+        },
+        {
+          "label": "The order things happen in",
+          "detail": "From pre-approval to keys, so you know what is coming next instead of finding out the day it is due."
+        },
+        {
+          "label": "What an inspection turns up around here",
+          "detail": "The items that come up often on Wichita area houses, and which of them are worth negotiating over."
+        },
+        {
+          "label": "Loan types side by side",
+          "detail": "Conventional, FHA, VA, and USDA, with the down payment and the tradeoff on each in one table."
+        },
+        {
+          "label": "Questions to ask any agent before you sign",
+          "detail": "Including the ones that are awkward to ask. Alex answers them on the page rather than making you dig."
+        },
+        {
+          "label": "The seven towns Alex works",
+          "detail": "Wichita, Maize, Derby, Andover, Goddard, Park City, and Rose Hill, with what the buying process looks like in each."
+        }
+      ],
+      "assetReady": false,
+      "sourceTag": "Colon - Buyer Guide Request",
+      "submitLabel": "Send me the buyer's guide",
+      "consentLine": "By sending this you are asking for the guide. You are not signing up for a drip campaign, and you are not agreeing to work with anyone.",
+      "successMessage": "Alex puts these together himself rather than sending an automated download, so it arrives as a real email from him. If you would rather just ask a question, text him at (813) 613-8822."
+    },
+    {
+      "id": "home-value",
+      "title": "What your house is worth right now",
+      "promise": "A real number on your house, put together by Alex, with the comparable sales he used so you can check his work.",
+      "stack": [
+        {
+          "label": "A number, not a range with a truck through it",
+          "detail": "Automated tools hedge because they have never seen the inside of your house. Alex gives you a figure and tells you what moves it."
+        },
+        {
+          "label": "The comparable sales attached",
+          "detail": "The actual houses he priced yours against, so you can see whether you agree with the comparison."
+        },
+        {
+          "label": "What would change the number",
+          "detail": "The handful of things in your house that a buyer will price, and whether each is worth doing before you list."
+        },
+        {
+          "label": "What it costs you to wait",
+          "detail": "Your carrying cost per month while the house sits, worked out on your numbers rather than an average."
+        },
+        {
+          "label": "No listing appointment attached",
+          "detail": "You asked what it is worth. That is the whole transaction. If you want to talk after, you will say so."
+        }
+      ],
+      "assetReady": true,
+      "sourceTag": "Colon - Home Valuation Request",
+      "submitLabel": "Send me my home value",
+      "consentLine": "By sending this you are asking for one valuation. You are not signing up for a drip campaign, and you are not agreeing to list.",
+      "successMessage": "Alex puts valuations together himself rather than sending an automated estimate, so it arrives as a real email from him with the comparable sales attached. If you want to add context about the house, text him at (813) 613-8822."
+    },
+    {
+      "id": "va-checklist",
+      "title": "The VA loan checklist for Wichita area buyers",
+      "promise": "What the VA loan actually requires, what it does not, and where the process tends to stall locally.",
+      "stack": [
+        {
+          "label": "Your entitlement, explained once",
+          "detail": "What full and partial entitlement mean for what you can buy, without the acronym soup."
+        },
+        {
+          "label": "The Certificate of Eligibility",
+          "detail": "How to pull it, how long it takes, and what to do if yours comes back wrong."
+        },
+        {
+          "label": "What the VA appraisal looks for",
+          "detail": "The condition items that hold up a VA appraisal, so you are not surprised two weeks before closing."
+        },
+        {
+          "label": "The funding fee, in dollars",
+          "detail": "What it costs at each down payment level, and the situations where it is waived."
+        },
+        {
+          "label": "Timing a purchase around orders",
+          "detail": "How to line up a closing date when your report date is the thing you cannot move."
+        },
+        {
+          "label": "What a seller needs to hear about a VA offer",
+          "detail": "The objections VA offers get, and the plain answers to each one."
+        }
+      ],
+      "assetReady": false,
+      "sourceTag": "Colon - VA Checklist Request",
+      "submitLabel": "Send me the VA checklist",
+      "consentLine": "By sending this you are asking for the checklist. You are not signing up for a drip campaign.",
+      "successMessage": "Alex sends this one himself, so it arrives as a real email from him. If your timeline is tight, text him at (813) 613-8822 and say what your dates are."
+    },
+    {
+      "id": "rental-analysis",
+      "title": "Run the numbers on a specific property",
+      "promise": "Send Alex an address you are considering and he will work the rent, the carrying cost, and what is left.",
+      "stack": [
+        {
+          "label": "Rent based on what is actually leasing",
+          "detail": "Comparable rentals nearby rather than a national estimate applied to a Kansas address."
+        },
+        {
+          "label": "The full carry, not just principal and interest",
+          "detail": "Taxes, insurance, and the maintenance number most spreadsheets leave out."
+        },
+        {
+          "label": "What is left every month",
+          "detail": "The figure after the carry, stated plainly, including when it is negative."
+        },
+        {
+          "label": "What the house needs before a tenant",
+          "detail": "The work it would take to make it rentable, and roughly what that runs."
+        },
+        {
+          "label": "Whether Alex thinks it is a good buy",
+          "detail": "He will tell you when he thinks the answer is no. That is the point of asking."
+        }
+      ],
+      "assetReady": true,
+      "sourceTag": "Colon - Investment Analysis Request",
+      "submitLabel": "Run the numbers on this one",
+      "consentLine": "By sending this you are asking for one analysis. You are not signing up for a drip campaign.",
+      "successMessage": "Alex works these by hand, so it arrives as a real email from him with the rent comparables attached. If you are looking at more than one property, text him at (813) 613-8822."
+    },
+    {
+      "id": "general",
+      "title": "Ask Alex something",
+      "promise": "One question, answered by a person who works this market, with nothing attached to it.",
+      "stack": [
+        {
+          "label": "A real answer to the question you asked",
+          "detail": "Not a redirect into a phone call you did not ask for."
+        },
+        {
+          "label": "He will tell you when the answer is no",
+          "detail": "Including when the honest answer is that now is not the time to move."
+        },
+        {
+          "label": "Nothing starts because you asked",
+          "detail": "One question is one question. You are not entering a sequence."
+        },
+        {
+          "label": "Answered by Alex, not a call center",
+          "detail": "The same person who would handle the transaction reads it."
+        }
+      ],
+      "assetReady": true,
+      "sourceTag": "Colon - General Question",
+      "submitLabel": "Send Alex my question",
+      "consentLine": "By sending this you are asking one question. You are not signing up for a drip campaign.",
+      "successMessage": "This goes straight to Alex. He answers these himself, so the reply comes from him rather than from an autoresponder. If it is time sensitive, text him at (813) 613-8822."
+    }
+  ]
+}
