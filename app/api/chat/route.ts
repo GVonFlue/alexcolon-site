@@ -159,6 +159,24 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
-  return NextResponse.json({ ok: false, error: "Method not allowed" }, { status: 405 });
+/**
+ * Config probe. The assistant asks this on mount so its status line can tell the
+ * truth before anyone types.
+ *
+ * Without it the component has no way to know it is offline until a visitor has
+ * already asked a real question and waited for the answer, which means the label
+ * reads "ready" while the thing is not. That is describing intended behavior as
+ * completed behavior, in the one component built specifically not to do that.
+ *
+ * It returns a boolean about our own configuration and nothing else. No key, no
+ * model name, no error detail.
+ */
+export async function GET(req: Request) {
+  if (!originAllowed(req)) {
+    return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  }
+  return NextResponse.json({
+    ok: true,
+    configured: Boolean(process.env.ANTHROPIC_API_KEY),
+  });
 }

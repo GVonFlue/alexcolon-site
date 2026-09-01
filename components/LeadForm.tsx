@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { LeadMagnet } from "@/lib/schema";
+import { Glyph } from "./ui";
 
 /**
  * Forms work with JavaScript disabled. This is a real form element with a real
@@ -24,11 +25,26 @@ export function LeadForm({
 }) {
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
   const startedAt = useRef<number>(0);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     startedAt.current = Date.now();
+  }, []);
+
+  /**
+   * Carries a town selected on the service area map into this form, so the
+   * visitor arrives with their question already started rather than facing an
+   * empty box. Read from location rather than useSearchParams on purpose: the
+   * hook opts the whole route out of static rendering, and a prefill is not
+   * worth that.
+   */
+  useEffect(() => {
+    const about = new URLSearchParams(window.location.search).get("about");
+    if (!about) return;
+    const clean = about.replace(/[^\p{L}\p{N}\s'.-]/gu, "").slice(0, 60).trim();
+    if (clean) setMessage(`I am looking at ${clean}. `);
   }, []);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -58,6 +74,8 @@ export function LeadForm({
       }
       setState("done");
       form.reset();
+      // form.reset() does not clear a controlled field.
+      setMessage("");
     } catch {
       setState("error");
       setError(
@@ -174,6 +192,8 @@ export function LeadForm({
             id={`message-${magnet.id}`}
             name="message"
             rows={3}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
             className="w-full rounded-md border border-field bg-paper px-3 py-3 text-[1rem] leading-relaxed text-ink"
           />
         </div>
@@ -188,9 +208,10 @@ export function LeadForm({
       <button
         type="submit"
         disabled={state === "sending"}
-        className="mt-6 inline-flex min-h-[52px] w-full items-center justify-center rounded-md bg-gold px-6 text-[1rem] font-semibold text-navy disabled:opacity-70 sm:w-auto"
+        className="group mt-6 inline-flex min-h-[52px] w-full items-center justify-center rounded-full bg-gold px-6 text-[1rem] font-semibold text-navy shadow-[0_1px_0_rgba(23,42,58,0.18)] transition-[filter] duration-150 hover:brightness-[1.04] active:brightness-[0.98] disabled:opacity-70 sm:w-auto"
       >
         {state === "sending" ? "Sending" : magnet.submitLabel}
+        {state !== "sending" && <Glyph />}
       </button>
 
       {/* Defuses the obvious objection at the point of friction. */}
