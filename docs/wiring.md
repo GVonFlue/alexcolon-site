@@ -1,6 +1,6 @@
 # Wiring v1
 
-Everything needed to take `github.com/proygo/alexcolon-site` from pushed to
+Everything needed to take `github.com/GVonFlue/alexcolon-site` from pushed to
 capturing leads. Follow it in order, because two of the values depend on the
 deploy existing first.
 
@@ -21,7 +21,7 @@ Steps 1 and 2 are independent. Do them in either order or at the same time.
 
 Vercel is already connected to the GitHub account, so this is dashboard clicks.
 
-- **Add New > Project > Import** `proygo/alexcolon-site`
+- **Add New > Project > Import** `GVonFlue/alexcolon-site`
 - Framework preset: **Next.js**, detected automatically
 - Build command, output directory, install command: **leave every one on default**
 - Root directory: `./`
