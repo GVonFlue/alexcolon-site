@@ -5,7 +5,6 @@
   "h1": "Find out what your house is worth without agreeing to sell it",
   "job": "Deliver a real number before asking for anything, so the valuation itself is the proof of competence.",
   "primaryPrinciple": "Reciprocity. A real number delivered before anything is asked in return.",
-
   "bands": [
     {
       "type": "hero",
@@ -28,7 +27,6 @@
       ],
       "image": null
     },
-
     {
       "type": "prose",
       "heading": "Why the number on your screen is usually wrong",
@@ -37,7 +35,6 @@
         "That is not a reason to distrust them entirely. It is a reason to treat the number as a starting point and get a person to look at the specific things about your house that move it in either direction."
       ]
     },
-
     {
       "type": "lossAversion",
       "heading": "What every month of deciding costs you",
@@ -45,14 +42,21 @@
         "While you are thinking about it, you are still paying for the house. The mortgage payment, the taxes, the insurance, and the utilities you keep on continue whether the sign is in the yard or not.",
         "This does not predict what your house will sell for, because nobody can do that from a web page. It only totals what you are already spending while you decide. Put your own figures in and the arithmetic is the arithmetic."
       ],
-      "calculator": "carryCost"
+      "calculator": "none"
     },
-
+    {
+      "type": "tool",
+      "heading": "What you would actually walk away with",
+      "body": [
+        "The number people care about is not what the house sells for, it is what lands in their account afterward. Those are different numbers and the gap between them surprises most sellers.",
+        "Put in your own figures and see it. The commission field is blank on purpose, because that rate is negotiable and nobody should be quoting you one from a web page."
+      ],
+      "tool": "netProceeds"
+    },
     {
       "type": "conversion",
       "magnetId": "home-value"
     },
-
     {
       "type": "steps",
       "heading": "What happens after you say go",
@@ -84,7 +88,6 @@
         }
       ]
     },
-
     {
       "type": "faq",
       "heading": "What sellers ask before they commit",
@@ -107,12 +110,10 @@
         }
       ]
     },
-
     {
       "type": "proof",
       "heading": "What sellers say about working with Alex"
     },
-
     {
       "type": "closingCta",
       "heading": "Get the number first, decide after",

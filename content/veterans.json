@@ -5,7 +5,6 @@
   "h1": "Buying with a VA loan when the timeline is not yours to set",
   "job": "Show enough specific command of the VA process that a service member trusts Alex with a deadline they cannot move.",
   "primaryPrinciple": "Authority through specificity. Detail nobody bluffs their way into.",
-
   "bands": [
     {
       "type": "hero",
@@ -28,7 +27,6 @@
       ],
       "image": null
     },
-
     {
       "type": "prose",
       "heading": "The two places a VA purchase actually differs",
@@ -37,7 +35,6 @@
         "The second is the appraisal. A VA appraisal checks condition against a set of minimum property requirements as well as value, so a house can appraise at the number and still need work before it will pass. Knowing which condition items trip it is the difference between finding out in week one and finding out in week five."
       ]
     },
-
     {
       "type": "steps",
       "heading": "Working backward from a date you cannot move",
@@ -65,12 +62,19 @@
         }
       ]
     },
-
+    {
+      "type": "tool",
+      "heading": "Put your report date in and see the schedule",
+      "body": [
+        "When the date on the other end is not yours to move, the useful question is not how long things take in general. It is which day each thing has to happen by.",
+        "Enter your report date for the days remaining. Add how long your lender says closing takes and the rest of the schedule builds itself."
+      ],
+      "tool": "vaTimeline"
+    },
     {
       "type": "conversion",
       "magnetId": "va-checklist"
     },
-
     {
       "type": "faq",
       "heading": "What comes up on VA purchases",
@@ -93,12 +97,10 @@
         }
       ]
     },
-
     {
       "type": "proof",
       "heading": "What veteran buyers say about working with Alex"
     },
-
     {
       "type": "closingCta",
       "heading": "Send Alex your dates and he will work backward from them",

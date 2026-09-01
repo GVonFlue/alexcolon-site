@@ -5,7 +5,6 @@
   "h1": "Buying a house here, explained before you are asked to decide anything",
   "job": "Give a first time buyer enough of the process for free that asking Alex a question feels like the small next step it is.",
   "primaryPrinciple": "Commitment ladder. A low friction micro conversion first, never the big ask cold.",
-
   "bands": [
     {
       "type": "hero",
@@ -28,7 +27,6 @@
       ],
       "image": null
     },
-
     {
       "type": "steps",
       "heading": "The order things actually happen in",
@@ -60,7 +58,6 @@
         }
       ]
     },
-
     {
       "type": "prose",
       "heading": "The money, in the order it leaves your account",
@@ -69,12 +66,19 @@
         "The exact figures depend on the price of the house and the loan you use, which is why nobody honest will quote them to you off a web page. What you can do right now is ask a lender for the numbers on a specific price, and ask Alex to sanity check what comes back."
       ]
     },
-
+    {
+      "type": "tool",
+      "heading": "Work backward from the payment, not the price",
+      "body": [
+        "Most people start with a price and hope the payment works out. It is easier the other way around: decide what you are comfortable paying every month, then see what price that supports.",
+        "The rate field is blank because this page will not quote you one. Use the rate a lender actually gave you and the answer means something."
+      ],
+      "tool": "affordability"
+    },
     {
       "type": "conversion",
       "magnetId": "buyer-guide"
     },
-
     {
       "type": "faq",
       "heading": "The questions buyers ask first",
@@ -97,12 +101,10 @@
         }
       ]
     },
-
     {
       "type": "proof",
       "heading": "What buyers say about working with Alex"
     },
-
     {
       "type": "closingCta",
       "heading": "Ask the question you have been sitting on",

@@ -5,7 +5,6 @@
   "h1": "Send an address and get the numbers worked, including when they do not work",
   "job": "Prove analytical competence on a specific property so the investor treats Alex as the person who screens their deals.",
   "primaryPrinciple": "Authority through specificity. The analysis is the sales argument.",
-
   "bands": [
     {
       "type": "hero",
@@ -28,7 +27,6 @@
       ],
       "image": null
     },
-
     {
       "type": "prose",
       "heading": "Where most rental math goes wrong",
@@ -37,7 +35,15 @@
         "Taxes, insurance, vacancy, and maintenance are not rounding. Leave them out and a property that loses money every month can look like it clears a few hundred. Alex runs all of them, and he would rather talk you out of a bad address than sell you one."
       ]
     },
-
+    {
+      "type": "tool",
+      "heading": "Run it with the whole carry, not just the payment",
+      "body": [
+        "Vacancy and maintenance are fields here rather than footnotes, because leaving them out is what turns a property that loses money every month into one that looks like it clears a few hundred.",
+        "If the number at the bottom is negative, it says so in the same size type as everything else."
+      ],
+      "tool": "rentalCashflow"
+    },
     {
       "type": "steps",
       "heading": "What you get back on a specific address",
@@ -65,12 +71,10 @@
         }
       ]
     },
-
     {
       "type": "conversion",
       "magnetId": "rental-analysis"
     },
-
     {
       "type": "faq",
       "heading": "Questions investors ask",
@@ -93,12 +97,10 @@
         }
       ]
     },
-
     {
       "type": "proof",
       "heading": "What investors say about working with Alex"
     },
-
     {
       "type": "closingCta",
       "heading": "Send the address you are already looking at",
