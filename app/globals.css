@@ -19,18 +19,43 @@
  * So the accent is never type on the cream ground. It is a filled surface with
  * navy on top, which is also what keeps rule 3 of the nine checks honest: the
  * accent color means "act here" and appears nowhere decorative.
+ *
+ * v3 adds two more, both verified the same way before they were used anywhere:
+ *
+ *   gold-ink  #786443 on cream #F7F4EE ....... 5.17:1  AA
+ *   gold-ink  #786443 on paper #FFFFFF ....... 5.67:1  AA
+ *   cream     #F7F4EE on navy-deep #0F1D28 ... 15.59:1  AA, AAA
+ *   dim       #C9CDD2 on navy-deep #0F1D28 ... 10.72:1  AA, AAA
+ *
+ * gold-ink exists for exactly one job: the single accent phrase allowed in
+ * display type (see Bands.tsx, accentPhrase). Plain --color-gold stays banned
+ * as text on any light ground; it is a filled surface only. On a navy ground
+ * plain gold already clears 5.44:1 as text, so gold-ink is never needed there.
+ *
+ * navy-deep is the dark end of the navyWash gradient tone on Section. It is
+ * darker than navy, so any pairing already verified against flat navy holds
+ * across the whole gradient too; these two are added for the record because
+ * the hex value itself is new, not because the flat-navy numbers left any
+ * doubt.
  */
 
 @theme {
   --color-navy: #172a3a;
+  --color-navy-deep: #0f1d28;
   --color-cream: #f7f4ee;
   --color-ink: #292d32;
   --color-gold: #b89a67;
+  /* Darkened for type use only. Never a fill; buttons stay --color-gold. */
+  --color-gold-ink: #786443;
   --color-paper: #ffffff;
 
   --color-subtle: #5a6068;
   --color-dim: #c9cdd2;
   --color-line: #e2dcd0;
+  /* Semantic, not the accent. Used only where a computed figure is negative,
+     e.g. a rental that does not clear its carry. 7.56:1 on white, 6.88:1 on
+     cream, both verified by the contrast auditor. */
+  --color-negative: #8c3b2e;
   --color-field: #8a8177;
 
   /* Full fallback stacks: the page is correct before the webfont arrives and
@@ -101,6 +126,46 @@ body {
 
 .on-dark :where(a, button, input, textarea, select):focus-visible {
   outline-color: var(--color-gold);
+}
+
+/*
+ * Gradient washes, used by Section's "wash" and "navyWash" tones instead of a
+ * flat fill. Both are soft: the light one moves between two already-verified
+ * tokens (cream and paper), so every contrast pairing already proven against
+ * either end holds everywhere in between. The dark one moves from navy to the
+ * newly added navy-deep, which only ever increases contrast for the light
+ * text painted on it.
+ */
+.wash {
+  background-image: linear-gradient(180deg, var(--color-cream) 0%, var(--color-paper) 100%);
+}
+
+.navy-wash {
+  background-image: linear-gradient(160deg, var(--color-navy) 0%, var(--color-navy-deep) 100%);
+}
+
+/*
+ * Marquee. A low, quiet strip of the audience lanes between bands, built from
+ * the same array pickYourDoor renders, so there is one list of the four lanes
+ * rather than two that can disagree.
+ *
+ * Reduced motion is honored twice: this query flattens the animation the same
+ * way every other animation on the site is flattened, and Marquee.tsx also
+ * checks matchMedia itself so it never doubles the track for a loop nobody
+ * will see move, which would otherwise render as a stalled, doubled list
+ * rather than a normal static one.
+ */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee-track {
+  animation: marquee 32s linear infinite;
 }
 
 /*

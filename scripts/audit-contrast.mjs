@@ -13,14 +13,17 @@
 
 const TOKENS = {
   navy: "#172A3A",
+  navyDeep: "#0F1D28",
   cream: "#F7F4EE",
   ink: "#292D32",
   gold: "#B89A67",
+  goldInk: "#786443",
   paper: "#FFFFFF",
   subtle: "#5A6068",
   dim: "#C9CDD2",
   line: "#E2DCD0",
   field: "#8A8177",
+  negative: "#8C3B2E",
 };
 
 function hexToRgb(hex) {
@@ -64,6 +67,20 @@ const PAIRS = [
   { what: "primary button label, navy on gold", fg: T.navy, bg: T.gold, kind: "text" },
   { what: "secondary button label on cream", fg: T.navy, bg: T.cream, kind: "text" },
   { what: "quiet link on cream", fg: T.subtle, bg: T.cream, kind: "text" },
+  // Semantic, used only where a computed figure comes out negative.
+  { what: "negative figure on the white card", fg: T.negative, bg: T.paper, kind: "text" },
+  { what: "negative figure on cream", fg: T.negative, bg: T.cream, kind: "text" },
+  // gold-ink: the one exception to "gold is a fill, never type." Verified
+  // separately before it was used anywhere. Checked against both ends of the
+  // wash gradient (cream and paper), which bounds every point between them.
+  { what: "accent phrase in a headline, gold-ink on cream", fg: T.goldInk, bg: T.cream, kind: "text" },
+  { what: "accent phrase in a headline, gold-ink on white", fg: T.goldInk, bg: T.paper, kind: "text" },
+  // navy-deep: the dark end of the navyWash gradient tone. Flat navy is
+  // already verified above and is the lighter, lower-contrast end of this
+  // same gradient, so these are added for the record rather than out of
+  // doubt: contrast can only be higher against the darker end.
+  { what: "headings on navy-deep, the dark end of navyWash", fg: T.cream, bg: T.navyDeep, kind: "text" },
+  { what: "supporting copy on navy-deep", fg: T.dim, bg: T.navyDeep, kind: "text" },
   { what: "form input border on the white card", fg: T.field, bg: T.paper, kind: "ui" },
   { what: "form input border on cream", fg: T.field, bg: T.cream, kind: "ui" },
   { what: "focus ring on cream", fg: T.navy, bg: T.cream, kind: "ui" },

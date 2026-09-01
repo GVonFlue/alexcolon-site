@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { CtaLink } from "./ui";
 
 const NAV = [
   { href: "/buy", label: "Buy" },
@@ -36,7 +37,9 @@ export function Header({
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-cream/95 backdrop-blur-sm">
+    // Fully opaque. At 95 percent the band headings underneath ghosted through
+    // the bar while scrolling, which read as a rendering bug rather than a style.
+    <header className="sticky top-0 z-50 border-b border-line bg-cream">
       <div className="mx-auto flex w-full max-w-[76rem] items-center gap-4 px-5 py-3 sm:px-8">
         <Link
           href="/"
@@ -46,7 +49,7 @@ export function Header({
         </Link>
 
         <nav aria-label="Main" className="ml-auto hidden lg:block">
-          <ul className="flex items-center gap-1">
+          <ul className="flex items-center gap-0.5 rounded-full border border-navy/10 bg-navy/[0.03] p-1">
             {NAV.map((n) => {
               const active = pathname === n.href;
               return (
@@ -54,8 +57,8 @@ export function Header({
                   <Link
                     href={n.href}
                     aria-current={active ? "page" : undefined}
-                    className={`inline-flex min-h-[44px] items-center rounded px-3 text-[0.95rem] ${
-                      active ? "font-semibold text-navy" : "text-subtle hover:text-navy"
+                    className={`inline-flex min-h-[38px] items-center rounded-full px-3.5 text-[0.92rem] transition-colors duration-150 ${
+                      active ? "bg-navy font-semibold text-cream" : "text-subtle hover:text-navy"
                     }`}
                   >
                     {n.label}
@@ -74,12 +77,10 @@ export function Header({
           <span className="figure">{phoneDisplay}</span>
         </a>
 
-        <a
-          href={smsHref}
-          className="ml-auto inline-flex min-h-[44px] items-center justify-center rounded-md border border-navy/55 px-4 text-[0.92rem] font-semibold text-navy hover:border-navy hover:bg-navy/[0.04] lg:ml-3"
-        >
-          Text Alex
-        </a>
+        <CtaLink
+          cta={{ label: "Text Alex", href: smsHref, kind: "direct", emphasis: "secondary" }}
+          className="ml-auto !min-h-[44px] !px-4 !py-0 lg:ml-3"
+        />
 
         <button
           type="button"
