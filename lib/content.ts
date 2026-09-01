@@ -73,6 +73,11 @@ export const validSourceTags: readonly string[] = [
   site.assistant.sourceTag,
 ];
 
+/** Just the names, for copy and for the assistant's prompt. */
+export function areaNames(): string[] {
+  return site.serviceAreas.map((a) => a.name);
+}
+
 export function telHref() {
   return `tel:${site.phone.e164}`;
 }

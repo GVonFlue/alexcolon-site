@@ -5,11 +5,10 @@
   "h1": "Get real answers about buying or selling here before you commit to anything",
   "job": "Sort the visitor into the lane that fits them, and answer enough of their question that contacting Alex is the obvious next step.",
   "primaryPrinciple": "Reciprocity. The give comes before the ask.",
-
   "bands": [
     {
       "type": "hero",
-      "eyebrow": "Wichita · Maize · Derby · Andover · Goddard · Park City · Rose Hill",
+      "eyebrow": "Seven towns around Wichita",
       "headline": "Get real answers about buying or selling here before you commit to anything",
       "support": "Alexander Colón is an agent with At Home Wichita Real Estate. He works with first time buyers, service members and veterans, people selling a house, and people buying property to rent out, across seven towns in the Wichita area.",
       "ctas": [
@@ -26,15 +25,15 @@
           "emphasis": "secondary"
         }
       ],
-      "image": null
+      "image": null,
+      "feature": "areaMap",
+      "accentPhrase": "real answers"
     },
-
     {
       "type": "assistant",
       "heading": "Ask a question before you talk to anyone",
       "intro": "Wick answers questions about buying and selling around Wichita. It says so when it does not know something, and it hands you to Alex the moment you would rather have a person."
     },
-
     {
       "type": "pickYourDoor",
       "heading": "Where are you starting from?",
@@ -61,7 +60,6 @@
         }
       ]
     },
-
     {
       "type": "prose",
       "heading": "What working with Alex actually looks like",
@@ -70,13 +68,6 @@
         "That holds from the first conversation through closing. He handles the parts that need handling and tells you about the parts that need you, and he does not disappear into email between them."
       ]
     },
-
-    {
-      "type": "areaMap",
-      "heading": "The seven towns Alex works",
-      "intro": "Not a service radius drawn on a map to look impressive. These are the places he is in often enough to know what a house is worth and how long things take."
-    },
-
     {
       "type": "lossAversion",
       "heading": "What waiting costs, worked on your numbers",
@@ -86,7 +77,6 @@
       ],
       "calculator": "carryCost"
     },
-
     {
       "type": "trust",
       "heading": "Who you would actually be working with",
@@ -96,17 +86,14 @@
         "If what you want is someone who will agree with you, he is going to be a poor fit. He would rather you find that out on this page than three weeks into a transaction."
       ]
     },
-
     {
       "type": "conversion",
       "magnetId": "buyer-guide"
     },
-
     {
       "type": "proof",
       "heading": "What people say about working with Alex"
     },
-
     {
       "type": "faq",
       "heading": "What happens if you contact him",
@@ -129,7 +116,6 @@
         }
       ]
     },
-
     {
       "type": "closingCta",
       "heading": "Start with a question, not a commitment",

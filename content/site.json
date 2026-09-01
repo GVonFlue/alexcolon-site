@@ -2,26 +2,54 @@
   "agentName": "Alexander Colón",
   "siteName": "Alexander Colón, Wichita Area Real Estate",
   "tagline": "Straight answers about buying and selling in the Wichita area.",
-
   "phone": {
     "e164": "+18136138822",
     "display": "(813) 613-8822",
-    "accepts": ["call", "text"]
+    "accepts": [
+      "call",
+      "text"
+    ]
   },
   "email": "alex@athomewichita.com",
-
   "serviceAreas": [
-    "Wichita",
-    "Maize",
-    "Derby",
-    "Andover",
-    "Goddard",
-    "Park City",
-    "Rose Hill"
+    {
+      "name": "Wichita",
+      "lat": 37.6872,
+      "lon": -97.3301,
+      "anchor": true
+    },
+    {
+      "name": "Maize",
+      "lat": 37.7756,
+      "lon": -97.467
+    },
+    {
+      "name": "Park City",
+      "lat": 37.7994,
+      "lon": -97.32
+    },
+    {
+      "name": "Goddard",
+      "lat": 37.6597,
+      "lon": -97.5753
+    },
+    {
+      "name": "Andover",
+      "lat": 37.7142,
+      "lon": -97.1353
+    },
+    {
+      "name": "Derby",
+      "lat": 37.5453,
+      "lon": -97.2683
+    },
+    {
+      "name": "Rose Hill",
+      "lat": 37.5589,
+      "lon": -97.1275
+    }
   ],
-
   "social": [],
-
   "compliance": {
     "brokerageName": {
       "value": "At Home Wichita Real Estate",
@@ -44,17 +72,13 @@
     "idxDisclaimer": null,
     "additionalRequired": []
   },
-
   "numbers": [],
-
   "testimonials": [],
-
   "headshot": {
     "src": null,
     "alt": "Alexander Colón",
     "needed": "One photograph of Alex. The professional shoot is pending, so this band withholds itself until a real image exists. No stock substitute."
   },
-
   "assistant": {
     "name": "Wick",
     "introduction": "Wick is an assistant on this site, not Alex. It answers questions about buying and selling in the Wichita area, and hands you to Alex the moment you want a person.",
@@ -76,6 +100,12 @@
       }
     ],
     "bookingUrl": null,
-    "sourceTag": "Colon - Site Assistant"
+    "sourceTag": "Colon - Site Assistant",
+    "goodAt": [
+      "Buying questions",
+      "Selling questions",
+      "General questions",
+      "Hands you to Alex"
+    ]
   }
 }

@@ -124,8 +124,22 @@ export const SiteConfig = z.object({
     accepts: z.array(z.enum(["call", "text"])).min(1),
   }),
   email: z.string().email(),
-  /** Ordered. First is the anchor market. */
-  serviceAreas: z.array(z.string().min(1)).min(1),
+  /**
+   * The single source of truth for where Alex works. Carries coordinates because
+   * the map draws from this list: if the towns lived in the component and the
+   * names lived here, editing one would silently disagree with the other.
+   * Ordered, and exactly one entry is the anchor.
+   */
+  serviceAreas: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        lat: z.number(),
+        lon: z.number(),
+        anchor: z.boolean().optional(),
+      }),
+    )
+    .min(1),
   /** Real profiles only. An icon pointing nowhere is withheld, not dead. */
   social: z.array(z.object({ label: z.string(), href: z.string().url() })),
   compliance: Compliance,
@@ -163,6 +177,13 @@ export const SiteConfig = z.object({
      */
     bookingUrl: z.string().url().nullable(),
     sourceTag: z.string().min(1),
+    /**
+     * Short capability labels for the chip row on the assistant's character
+     * card. Plain nouns describing what it actually already does elsewhere on
+     * the site (the buy/sell/veterans/investors pages, the handoff to Alex),
+     * never a new claim invented for the card itself.
+     */
+    goodAt: z.array(z.string().min(1)).min(3).max(6),
   }),
 });
 export type SiteConfig = z.infer<typeof SiteConfig>;
@@ -175,6 +196,23 @@ export const Band = z.discriminatedUnion("type", [
     support: z.string().min(1),
     ctas: z.array(Cta).length(2),
     image: ImageSlot.nullable(),
+    /**
+     * What occupies the second column. With no photography, a hero that is only
+     * a text column leaves half a desktop screen empty, which reads as
+     * unfinished. "areaMap" puts the signature element in the fold instead of
+     * six bands down, and it is the one thing on the page that is true only of
+     * this client.
+     */
+    feature: z.enum(["areaMap", "none"]).default("none"),
+    /**
+     * An exact substring of `headline` to render in the accent color, e.g.
+     * "real answers". Optional, and matched literally: if it does not occur
+     * in the headline the whole headline just renders plain rather than
+     * silently dropping text. Display type gets exactly this one exception to
+     * "gold is a fill, never type," and only because gold-ink (see
+     * globals.css) is a separately verified color for that one job.
+     */
+    accentPhrase: z.string().min(1).optional(),
   }),
   z.object({
     type: z.literal("assistant"),
@@ -227,6 +265,18 @@ export const Band = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("proof"),
     heading: z.string().min(1),
+  }),
+  /**
+   * An interactive tool. Every one of these takes all of its figures from the
+   * visitor, so the result is arithmetic rather than a market claim. That is
+   * what makes them publishable for a client with no verified numbers, and it
+   * is the reason a tool can carry a page that a statistics band cannot.
+   */
+  z.object({
+    type: z.literal("tool"),
+    heading: z.string().min(1),
+    body: z.array(z.string().min(1)).min(1),
+    tool: z.enum(["netProceeds", "affordability", "vaTimeline", "rentalCashflow"]),
   }),
   z.object({
     type: z.literal("areaMap"),

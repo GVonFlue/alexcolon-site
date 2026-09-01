@@ -1,5 +1,5 @@
 import "server-only";
-import { site } from "./content";
+import { areaNames, site } from "./content";
 
 /**
  * The assistant's system prompt inherits every compliance limit in section 1 of
@@ -9,7 +9,7 @@ import { site } from "./content";
  * mid-conversation.
  */
 export function systemPrompt(): string {
-  const areas = site.serviceAreas.join(", ");
+  const areas = areaNames().join(", ");
   const broker = site.compliance.brokerageName.value ?? "the brokerage";
 
   return `You are ${site.assistant.name}, an assistant on the website of ${site.agentName}, a real estate agent with ${broker} working in ${areas}.

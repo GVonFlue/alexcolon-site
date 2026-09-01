@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     url: origin,
     areaServed: site.serviceAreas.map((a) => ({
       "@type": "City",
-      name: a,
+      name: a.name,
       addressRegion: "KS",
     })),
   };

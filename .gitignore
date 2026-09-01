@@ -19,3 +19,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /audit-output/
+*.tar.gz
