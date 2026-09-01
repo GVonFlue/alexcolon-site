@@ -8,11 +8,11 @@ import type { Cta } from "@/lib/schema";
  */
 const emphasisClass: Record<Cta["emphasis"], string> = {
   primary:
-    "bg-gold text-navy font-semibold shadow-[0_1px_0_rgba(23,42,58,0.18)] hover:brightness-[1.04] active:brightness-[0.98]",
+    "cta-primary bg-gold text-navy font-semibold shadow-[0_1px_0_rgba(23,42,58,0.18)] hover:brightness-[1.04] active:brightness-[0.98]",
   secondary:
-    "bg-transparent text-navy font-semibold border border-navy/55 hover:border-navy hover:bg-navy/[0.04]",
+    "cta-secondary bg-transparent text-navy font-semibold border border-navy/55 hover:border-navy hover:bg-navy/[0.04]",
   quiet:
-    "bg-transparent text-subtle font-medium underline underline-offset-4 decoration-subtle/45 hover:text-ink hover:decoration-ink",
+    "cta-quiet bg-transparent text-subtle font-medium underline underline-offset-4 decoration-subtle/45 hover:text-ink hover:decoration-ink",
 };
 
 /**
@@ -114,7 +114,12 @@ export function Section({
 }) {
   return (
     <section id={id} className={`${TONES[tone]} ${className}`}>
-      <div className={`mx-auto w-full max-w-[76rem] px-5 sm:px-8 ${pad ?? "py-16 sm:py-20 lg:py-24"}`}>
+      {/*
+       * Cut from py-16/20/24 (up to 96px a side, 192px between two adjacent
+       * bands) to this. Premium is not the same as empty: there was enough
+       * dead space between some bands to fit another one in it.
+       */}
+      <div className={`mx-auto w-full max-w-[76rem] px-5 sm:px-8 ${pad ?? "py-11 sm:py-14 lg:py-16"}`}>
         {children}
       </div>
     </section>
@@ -210,7 +215,7 @@ export function AccentHeadline({
 
 export function H2({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <h2 className={`display text-[1.75rem] leading-[1.15] sm:text-[2.15rem] font-semibold ${className}`}>
+    <h2 className={`display text-[1.9rem] leading-[1.05] sm:text-[2.4rem] font-extrabold ${className}`}>
       {children}
     </h2>
   );

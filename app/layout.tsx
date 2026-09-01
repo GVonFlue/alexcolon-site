@@ -20,7 +20,7 @@ import { SkipLink } from "@/components/ui";
  * page is correct before the stylesheet arrives and correct if it never does.
  */
 const FONT_HREF =
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap";
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap";
 
 const origin = process.env.SITE_ORIGIN ?? "http://localhost:3000";
 

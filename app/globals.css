@@ -37,11 +37,25 @@
  * across the whole gradient too; these two are added for the record because
  * the hex value itself is new, not because the flat-navy numbers left any
  * doubt.
+ *
+ * v4 flips the ratio: navy becomes the dominant ground (hero, steps, trust,
+ * pickYourDoor, the assistant, conversion, closingCta, the map) and cream
+ * becomes the exhale between dark sections, kept for prose and anything with
+ * form fields. navy-glow is the brightest point of the new radial glow those
+ * dark sections paint instead of a flat fill:
+ *
+ *   cream     #F7F4EE on navy-glow  #1C3350 ... 11.65:1  AA, AAA
+ *   dim       #C9CDD2 on navy-glow  #1C3350 ...  8.01:1  AA, AAA
+ *   gold      #B89A67 on navy-glow  #1C3350 ...  4.79:1  AA
+ *
+ * Checked against gold specifically because the one accent phrase can land
+ * anywhere in a dark headline, including right where the glow is brightest.
  */
 
 @theme {
   --color-navy: #172a3a;
   --color-navy-deep: #0f1d28;
+  --color-navy-glow: #1c3350;
   --color-cream: #f7f4ee;
   --color-ink: #292d32;
   --color-gold: #b89a67;
@@ -105,10 +119,15 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Display type. Tight tracking at large sizes, normal below, so headings stay
-   readable on a 320px screen where they wrap three or four times. */
+/* Display type. Tight tracking at every size so headings command the screen
+   instead of reading like body text set bigger. Leading tightens further on
+   the largest sizes only (hero h1), set per instance, because the same 0.95
+   to 1.0 leading on a smaller wrapped H2 reads cramped rather than heavy.
+   Both stay readable on a 320px screen where headings still wrap three or
+   four times. */
 .display {
-  letter-spacing: -0.022em;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
   text-wrap: balance;
 }
 
@@ -129,19 +148,77 @@ body {
 }
 
 /*
+ * The secondary and quiet button variants are styled for a light ground by
+ * default (see ui.tsx). Navy is now the dominant ground, so both need a dark
+ * variant; .on-dark is already stamped on every dark Section tone, so this is
+ * the one place that has to change for every secondary or quiet button on a
+ * dark section to read correctly, rather than a prop threaded through every
+ * call site. Primary needs no override: navy-on-gold passes on any ground.
+ */
+.on-dark .cta-secondary {
+  border-color: rgba(247, 244, 238, 0.5);
+  color: var(--color-cream);
+}
+.on-dark .cta-secondary:hover {
+  border-color: var(--color-cream);
+  background-color: rgba(247, 244, 238, 0.08);
+}
+.on-dark .cta-quiet {
+  color: var(--color-dim);
+  text-decoration-color: rgba(201, 205, 210, 0.5);
+}
+.on-dark .cta-quiet:hover {
+  color: var(--color-cream);
+  text-decoration-color: var(--color-cream);
+}
+
+/*
  * Gradient washes, used by Section's "wash" and "navyWash" tones instead of a
- * flat fill. Both are soft: the light one moves between two already-verified
- * tokens (cream and paper), so every contrast pairing already proven against
- * either end holds everywhere in between. The dark one moves from navy to the
- * newly added navy-deep, which only ever increases contrast for the light
- * text painted on it.
+ * flat fill. wash is soft: it moves between two already-verified tokens
+ * (cream and paper), so every contrast pairing already proven against either
+ * end holds everywhere in between.
+ *
+ * navyWash is a radial glow rather than a flat dark fill, the same technique
+ * the reference's dark sections use: brightest at top center, fading to navy
+ * and then to navy-deep at the edges. The brightest stop, navy-glow, is
+ * verified above against cream, dim and gold, because a headline (including
+ * the one accent phrase) can land anywhere in it, not only at the edges.
  */
 .wash {
   background-image: linear-gradient(180deg, var(--color-cream) 0%, var(--color-paper) 100%);
 }
 
 .navy-wash {
-  background-image: linear-gradient(160deg, var(--color-navy) 0%, var(--color-navy-deep) 100%);
+  background-color: var(--color-navy);
+  background-image: radial-gradient(
+    ellipse 90% 65% at 50% -8%,
+    var(--color-navy-glow) 0%,
+    var(--color-navy) 55%,
+    var(--color-navy-deep) 100%
+  );
+}
+
+/*
+ * The hero's one-time entrance. Plays on every load, not on scroll, so it
+ * never competes with the "no scattered scroll reveals" rule: this is the one
+ * sanctioned entrance, named in the brief, and it is the only band that gets
+ * one. Reduced motion is honored the same way every other animation on this
+ * site is, by the blanket query below, which is why this keyframe does not
+ * need its own reduced-motion branch.
+ */
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-in {
+  animation: hero-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /*

@@ -14,6 +14,7 @@
 const TOKENS = {
   navy: "#172A3A",
   navyDeep: "#0F1D28",
+  navyGlow: "#1C3350",
   cream: "#F7F4EE",
   ink: "#292D32",
   gold: "#B89A67",
@@ -81,6 +82,13 @@ const PAIRS = [
   // doubt: contrast can only be higher against the darker end.
   { what: "headings on navy-deep, the dark end of navyWash", fg: T.cream, bg: T.navyDeep, kind: "text" },
   { what: "supporting copy on navy-deep", fg: T.dim, bg: T.navyDeep, kind: "text" },
+  // navy-glow: the brightest stop of the navyWash radial gradient. A headline
+  // (including the one accent phrase, in gold) can land here, not only at the
+  // gradient's darker edges, so this is the real worst case for anything
+  // painted on a dark section, not navy-deep.
+  { what: "headings on navy-glow, the brightest point of navyWash", fg: T.cream, bg: T.navyGlow, kind: "text" },
+  { what: "supporting copy on navy-glow", fg: T.dim, bg: T.navyGlow, kind: "text" },
+  { what: "accent phrase in a dark headline, gold on navy-glow", fg: T.gold, bg: T.navyGlow, kind: "text" },
   { what: "form input border on the white card", fg: T.field, bg: T.paper, kind: "ui" },
   { what: "form input border on cream", fg: T.field, bg: T.cream, kind: "ui" },
   { what: "focus ring on cream", fg: T.navy, bg: T.cream, kind: "ui" },
@@ -92,6 +100,12 @@ const PAIRS = [
     kind: "ui",
   },
   {
+    what: "secondary button border on navy-glow, cream at 50 percent",
+    fg: composite(T.cream, 0.5, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+  },
+  {
     what: "card border on cream, navy at 15 percent",
     fg: composite(T.navy, 0.15, T.cream),
     bg: T.cream,
@@ -99,9 +113,28 @@ const PAIRS = [
     decorative: true,
   },
   {
-    what: "map connector lines, navy at 22 percent on cream",
-    fg: composite(T.navy, 0.22, T.cream),
-    bg: T.cream,
+    what: "map marks, cream at 60 percent on navy-glow",
+    fg: composite(T.cream, 0.6, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+  },
+  {
+    what: "map marks, cream at 75 percent on navy-glow",
+    fg: composite(T.cream, 0.75, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+  },
+  {
+    what: "map connector lines, cream at 25 percent on navy-glow",
+    fg: composite(T.cream, 0.25, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "map connector line, selected, cream at 70 percent on navy-glow",
+    fg: composite(T.cream, 0.7, T.navyGlow),
+    bg: T.navyGlow,
     kind: "ui",
     decorative: true,
   },
