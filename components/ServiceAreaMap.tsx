@@ -3,62 +3,58 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 import { Glyph } from "./ui";
+import {
+  MUNICIPAL_BOUNDARY_PATHS,
+  RIVER_AREA_PATHS,
+  RIVER_LINE_PATHS,
+  ROAD_PATHS,
+  VIEW_H,
+  VIEW_W,
+  project,
+} from "@/lib/generated/wichitaMap";
 
 /**
  * The signature element.
  *
- * A hand authored map of the seven towns Alex works, plotted from their actual
- * coordinates rather than arranged for looks. It is true only of this client:
- * change the seven towns and the drawing changes, which is the test the doctrine
- * sets for whether a signature element is one.
+ * Real geometry, not an abstract dot diagram. The rivers, the highway grid
+ * and the Wichita city limit are actual US Census TIGER/Line shapes (public
+ * domain, no tile library, no API key), simplified and baked into
+ * lib/generated/wichitaMap.ts by scripts/build-map-geometry.mjs. The seven
+ * towns are still hand-plotted from content/site.json, but through the exact
+ * same projection the geometry was built with, so a dot for Andover lands
+ * where Andover actually is relative to the river and the highways, not
+ * relative to the other six dots.
+ *
+ * Layered back to front the way a map is actually read: the rivers (the
+ * widest, most identifying shapes), the city limit, the five highways, then
+ * the towns on top. No straight connector lines between towns anymore, the
+ * roads themselves now do that job and do it honestly instead of implying a
+ * road that is not there.
  *
  * It is also a door. Selecting a town carries that town into the contact form,
  * which turns the most distinctive thing on the page into a conversion path
  * rather than an ornament.
  *
- * Redrawn for a dark ground: cream and white marks on navy, tightened padding
- * so the drawing fills its card instead of floating in the middle of it, and a
- * soft glow behind the anchor rather than a plain outline ring.
+ * Deliberately no gold anywhere in the drawing, including the selected state.
+ * Gold means "act here" everywhere else on this site, the CTA it reveals is
+ * secondary styled on purpose, and putting the accent on decoration would
+ * spend the one signal the palette has. Every mark in the drawing is a shade
+ * of cream on the navy ground instead, verified in scripts/audit-contrast.mjs.
  *
- * Deliberately no gold anywhere in the drawing itself, including the selected
- * state. Gold means "act here" everywhere else on this site, the CTA it
- * reveals is secondary styled on purpose, and putting the accent on decoration
- * would spend the one signal the palette has.
- *
- * Fair housing: this renders place names and relative position, both of which
- * are facts. It carries no characterization of any area and no school or
- * quality claim, and it must stay that way.
+ * Fair housing: this renders real rivers, real roads, a real municipal
+ * boundary and place names, all of which are facts about location. It
+ * carries no characterization of any area, no shading of any area, and no
+ * school or quality claim, and it must stay that way. The boundary is a
+ * stroked outline only, never a fill, on purpose: filling it would read as
+ * "this side of the line is different," which is exactly the claim this
+ * graphic is not allowed to make.
  */
 
 export type Town = { name: string; lat: number; lon: number; anchor?: boolean };
 
-const W = 800;
-const H = 460;
-const PAD_X = 58;
-const PAD_Y = 64;
-
-/**
- * Projects the towns into the drawing. Guards the single-town case, where the
- * extent is zero and every coordinate would otherwise come out NaN.
- */
-function projector(towns: Town[]) {
-  const lons = towns.map((t) => t.lon);
-  const lats = towns.map((t) => t.lat);
-  const minLon = Math.min(...lons);
-  const maxLon = Math.max(...lons);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const spanLon = maxLon - minLon || 1;
-  const spanLat = maxLat - minLat || 1;
-  return (t: Town) => ({
-    x: PAD_X + ((t.lon - minLon) / spanLon) * (W - PAD_X * 2),
-    y: PAD_Y + ((maxLat - t.lat) / spanLat) * (H - PAD_Y * 2),
-  });
-}
-
 function labelAnchor(x: number): "start" | "middle" | "end" {
-  if (x < W * 0.18) return "start";
-  if (x > W * 0.82) return "end";
+  if (x < VIEW_W * 0.14) return "start";
+  if (x > VIEW_W * 0.86) return "end";
   return "middle";
 }
 
@@ -70,18 +66,16 @@ export function ServiceAreaMap({
   compact?: boolean;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
-  const project = projector(towns);
   const anchor = towns.find((t) => t.anchor) ?? towns[0];
-  const anchorPos = project(anchor);
   const glowId = useId();
 
   return (
     <figure className={compact ? "m-0" : "mt-10"}>
       <svg
-        viewBox={`0 0 ${W} ${H}`}
+        viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         className="h-auto w-full"
         role="group"
-        aria-label={`The ${towns.length} towns Alex works. Select one to ask him about it.`}
+        aria-label={`A map of the Wichita area showing the Arkansas and Little Arkansas rivers, the main highways, the city limit, and the ${towns.length} towns Alex works. Select a town to ask him about it.`}
       >
         <defs>
           {/* A real soft halo rather than a flat outline ring, reused for
@@ -91,28 +85,47 @@ export function ServiceAreaMap({
           </filter>
         </defs>
 
-        {/* Connector lines, drawn individually so the selected town's line can
-            brighten instead of only its dot. Deliberate weight, not a hairline
-            accident. */}
-        {towns.filter((t) => !t.anchor).map((t) => {
-          const p = project(t);
-          const isOn = selected === t.name;
-          return (
-            <line
-              key={t.name}
-              x1={anchorPos.x}
-              y1={anchorPos.y}
-              x2={p.x}
-              y2={p.y}
+        {/* Rivers first: the widest, most identifying shapes on the ground,
+            so everything else draws on top of them. A soft fill for the
+            channel plus a slightly brighter stroke, both cream, both
+            verified against navy-glow in the contrast auditor. */}
+        <g className="text-cream" aria-hidden="true">
+          {RIVER_AREA_PATHS.map((d, i) => (
+            <path key={`ra${i}`} d={d} fill="currentColor" fillOpacity={0.3} stroke="currentColor" strokeOpacity={0.55} strokeWidth={1.4} />
+          ))}
+          {RIVER_LINE_PATHS.map((d, i) => (
+            <path key={`rl${i}`} d={d} fill="none" stroke="currentColor" strokeOpacity={0.55} strokeWidth={1.4} strokeLinecap="round" />
+          ))}
+        </g>
+
+        {/* The city limit: a real, jagged, annexation-drawn boundary, not a
+            circle standing in for one. Stroked only, never filled, so it
+            reads as a location fact rather than a shaded claim about
+            anything inside it. */}
+        <g className="text-cream" aria-hidden="true">
+          {MUNICIPAL_BOUNDARY_PATHS.map((d, i) => (
+            <path
+              key={`b${i}`}
+              d={d}
+              fill="none"
               stroke="currentColor"
-              className={isOn ? "text-cream/70" : "text-cream/25"}
-              strokeWidth={isOn ? 2 : 1.5}
+              strokeOpacity={0.22}
+              strokeWidth={1}
+              strokeDasharray="1.5 3.5"
             />
-          );
-        })}
+          ))}
+        </g>
+
+        {/* The five named highways, drawn brighter than the boundary so the
+            grid reads clearly but still under the towns. */}
+        <g className="text-cream" aria-hidden="true">
+          {ROAD_PATHS.map((r) => (
+            <path key={r.id} d={r.d} fill="none" stroke="currentColor" strokeOpacity={0.4} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
+          ))}
+        </g>
 
         {towns.map((t) => {
-          const p = project(t);
+          const p = project(t.lon, t.lat);
           const isAnchor = Boolean(t.anchor);
           const isOn = selected === t.name;
           const glowing = isAnchor || isOn;
@@ -213,9 +226,10 @@ export function ServiceAreaMap({
       </div>
 
       <figcaption className="sr-only">
-        A diagram placing {towns.map((t) => t.name).join(", ")} in their actual relative
-        positions, with Wichita at the center. It shows location only and makes no claim about
-        any of these places.
+        A map of the Wichita area: the Arkansas and Little Arkansas rivers, I-135, I-235,
+        US-54/Kellogg, K-96, the Kansas Turnpike, the Wichita city limit, and{" "}
+        {towns.map((t) => t.name).join(", ")} in their actual relative positions. It shows
+        location only and makes no claim about any of these places.
       </figcaption>
     </figure>
   );

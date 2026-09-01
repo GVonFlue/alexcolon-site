@@ -20,3 +20,5 @@ yarn-error.log*
 next-env.d.ts
 /audit-output/
 *.tar.gz
+
+/.cache/
