@@ -100,13 +100,35 @@ breaks and no lead is lost.
 
 ---
 
-## The CRM contract, which I guessed at
+## The CRM contract — checked against the real repo, and it does not exist yet
 
-I could not read `proygo`/`GVonFlue` repos from the build session, so **this is
-the one thing in the build that is unverified against your real system.**
+An earlier build session guessed at this because it could not read
+`GVonFlue/proytech-crm`. That guess has now been checked against the real repo
+at commit `8707c4a` (29 Aug 2026), and the finding is not "here are the real
+field names" — it's that **there is nothing at the other end to POST to.**
 
-`lib/leads.ts` currently POSTs to `CRM_LEAD_ENDPOINT` with
-`Authorization: Bearer <CRM_API_KEY>` and this body:
+What's actually there:
+
+- No route under `api/` in `proytech-crm` accepts an external lead. Every
+  route is calendar, AI (Claude Haiku), or auth. `api/import-leads.js` looks
+  like a candidate but only maps CSV column headers to field names for a
+  human doing a manual import inside the CRM's own UI — it requires a signed-in
+  session (`requireAuth: true`) and returns a column mapping, not a write.
+- The `leads` table's only policy (`leads_all` in `MIGRATION.sql`) requires
+  `auth.uid()` to match an owner, the lead's `owner_id`, or the caller's pool
+  membership. There is no policy that permits an anonymous or API-key insert.
+  All writes go through the browser client (`src/lib/supabase.js`,
+  `db.upsertLead`) from a rep's own authenticated session.
+- The CRM's own engineering notes say this outright, in
+  `SPEED-TO-LEAD-SCOPE.md`: *"a form / webhook intake — no — there is no
+  intake endpoint. `api/import-leads.js` only maps CSV columns; every other
+  route is calendar, AI or auth."*
+
+So `lib/leads.ts` is **unchanged** in this pass. The guessed shape below is
+still just a guess, and adapting it to match a real contract would mean
+inventing one, which is the thing this task exists to prevent. `CRM_LEAD_ENDPOINT`
+stays unset, which is the honest and already-correct state, not a placeholder
+for a fix still pending:
 
 ```json
 {
@@ -121,20 +143,26 @@ the one thing in the build that is unverified against your real system.**
 }
 ```
 
-If your ingest expects different keys, edit the `crm` entry in the `sinks()`
-function in `lib/leads.ts`. It is about eight lines and nothing else changes.
-
-**Two things that must not change when you adapt it:**
+**Two things that must not change whenever this does get wired to a real
+endpoint on the CRM side:**
 
 - `source` must carry `lead.sourceTag` verbatim. Most CRMs default an
   unattributed API lead to "Other", which destroys exactly the reporting that
   proves ROI at the sixty day case study.
 - `external_ref` stays a **string** and is never parsed. Several real estate CRMs
   use 64-bit integer ids, and `Number(9007199254740993)` returns
-  `9007199254740992`, which is a different record. There is a test for this.
+  `9007199254740992`, which is a different record. There is a test for this
+  (`tests/leads.test.mjs`, "a 64-bit external record ID survives the round
+  trip as a string").
 
-Until this is confirmed, leave `CRM_LEAD_ENDPOINT` unset. An unset sink is
-skipped cleanly. A wrong sink 4xxs on every lead and only shows up in the logs.
+**What actually unblocks this:** `proytech-crm` needs a public ingest route —
+something like `POST /api/lead-intake` behind its own bearer secret, inserting
+through a `security definer` function the way `is_owner()` and `my_pools()`
+already do in `MIGRATION.sql`, so an external POST can create a row without an
+authenticated Supabase session. That is a change to the CRM repo, not
+something this site's codebase can do on its own. Until it exists, leave
+`CRM_LEAD_ENDPOINT` unset — the sink skips cleanly, and a sink pointed at a
+nonexistent endpoint 4xxs silently in the logs instead.
 
 ---
 

@@ -56,7 +56,7 @@ Variables screen, never in the repo.
 | `ALLOWED_ORIGINS` | Comma separated origin allowlist for the API routes | Origin check logs a warning and does not run |
 | `LEAD_SHEET_WEBHOOK_URL` | Apps Script endpoint that appends a row. **The source of truth.** | Sink skipped, warning logged |
 | `LEAD_SHEET_SHARED_SECRET` | Shared secret the Apps Script checks | Sent empty |
-| `CRM_LEAD_ENDPOINT` / `CRM_API_KEY` | ProyTech CRM ingest | Sink skipped |
+| `CRM_LEAD_ENDPOINT` / `CRM_API_KEY` | ProyTech CRM ingest | Sink skipped — and there's nowhere to point it yet, see `docs/wiring.md` |
 | `GHL_WEBHOOK_URL` / `GHL_LOCATION_ID` | GoHighLevel inbound webhook | Sink skipped |
 | `NOTIFY_EMAIL_ENDPOINT` / `NOTIFY_EMAIL_TO` | Instant notification. Speed to lead depends on this | Sink skipped |
 | `ANTHROPIC_API_KEY` | The assistant | Assistant says it is not connected and gives the phone number |
