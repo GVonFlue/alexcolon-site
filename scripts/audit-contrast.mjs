@@ -32,11 +32,18 @@ function hexToRgb(hex) {
   return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16));
 }
 
-/** Composite a foreground at alpha over an opaque background. */
-function composite(fgHex, alpha, bgHex) {
-  const fg = hexToRgb(fgHex);
-  const bg = hexToRgb(bgHex);
-  return fg.map((c, i) => Math.round(c * alpha + bg[i] * (1 - alpha)));
+function toRgb(hexOrRgb) {
+  return Array.isArray(hexOrRgb) ? hexOrRgb : hexToRgb(hexOrRgb);
+}
+
+/** Composite a foreground at alpha over an opaque background. Both sides
+ * accept a hex string or an already-composited rgb array, so a color that is
+ * itself painted over another translucent color (the header hairline over
+ * the translucent header) can be composited twice. */
+function composite(fg, alpha, bg) {
+  const fgRgb = toRgb(fg);
+  const bgRgb = toRgb(bg);
+  return fgRgb.map((c, i) => Math.round(c * alpha + bgRgb[i] * (1 - alpha)));
 }
 
 function relLuminance(rgb) {
@@ -99,6 +106,38 @@ const PAIRS = [
     bg: T.cream,
     kind: "ui",
   },
+  // The assistant card's interior, redrawn from three stacked bordered boxes
+  // (a form's own visual grammar) to one recessed transcript well, free
+  // floating chips and a pill composer. The well is cream at 70 percent over
+  // the card's white paper, not flat cream, so it is checked as its own
+  // composited ground rather than assumed to fall inside the already-verified
+  // cream/paper pair.
+  {
+    what: "assistant transcript well, cream at 70 percent over the white card",
+    fg: composite(T.cream, 0.7, T.paper),
+    bg: T.paper,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "body copy in the assistant transcript well",
+    fg: T.ink,
+    bg: composite(T.cream, 0.7, T.paper),
+    kind: "text",
+  },
+  {
+    what: "supporting copy (turn labels) in the assistant transcript well",
+    fg: T.subtle,
+    bg: composite(T.cream, 0.7, T.paper),
+    kind: "text",
+  },
+  {
+    what: "assistant chip and composer borders on the white card, navy at 55 percent",
+    fg: composite(T.navy, 0.55, T.paper),
+    bg: T.paper,
+    kind: "ui",
+  },
+  { what: "composer focus border on the white card", fg: T.navy, bg: T.paper, kind: "ui" },
   {
     what: "secondary button border on navy-glow, cream at 50 percent",
     fg: composite(T.cream, 0.5, T.navyGlow),
@@ -135,6 +174,74 @@ const PAIRS = [
     what: "map connector line, selected, cream at 70 percent on navy-glow",
     fg: composite(T.cream, 0.7, T.navyGlow),
     bg: T.navyGlow,
+    kind: "ui",
+    decorative: true,
+  },
+  // Real geometry, added when the map was rebuilt from US Census TIGER/Line
+  // data instead of an abstract dot diagram. Same worst-case ground as the
+  // town marks above: navy-glow, the brightest point of the dark wash.
+  {
+    what: "river channel fill, cream at 30 percent on navy-glow",
+    fg: composite(T.cream, 0.3, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "river stroke (channel outline and centerlines), cream at 55 percent on navy-glow",
+    fg: composite(T.cream, 0.55, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+  },
+  {
+    what: "highway stroke (I-135/I-235/US-54/K-96/Turnpike), cream at 40 percent on navy-glow",
+    fg: composite(T.cream, 0.4, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+  },
+  {
+    what: "municipal boundary stroke, cream at 22 percent on navy-glow",
+    fg: composite(T.cream, 0.22, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+    decorative: true,
+  },
+  // The sticky header, moved from a cream bar to translucent navy with a
+  // backdrop blur so it reads as part of this dark-first page instead of a
+  // seam across the top of it. Composited twice: navy at 92 percent over
+  // whatever is scrolling underneath. Checked against the two realistic
+  // extremes, the cream page ground and the one gold CTA that can pass
+  // beneath it, both of which only make the header itself darker and raise
+  // contrast further, so these are the worst real cases, not arbitrary
+  // extra checks.
+  {
+    what: "nav links and wordmark, cream on the translucent header over the cream page",
+    fg: T.cream,
+    bg: composite(T.navy, 0.92, T.cream),
+    kind: "text",
+  },
+  {
+    what: "quiet header text (phone number), dim on the translucent header over the cream page",
+    fg: T.dim,
+    bg: composite(T.navy, 0.92, T.cream),
+    kind: "text",
+  },
+  {
+    what: "nav links, cream on the translucent header over a gold CTA scrolling underneath",
+    fg: T.cream,
+    bg: composite(T.navy, 0.92, T.gold),
+    kind: "text",
+  },
+  {
+    what: "active nav pill, navy on its cream fill",
+    fg: T.navy,
+    bg: T.cream,
+    kind: "text",
+  },
+  {
+    what: "header hairline, cream at 12 percent on the translucent header over the cream page",
+    fg: composite(T.cream, 0.12, composite(T.navy, 0.92, T.cream)),
+    bg: composite(T.navy, 0.92, T.cream),
     kind: "ui",
     decorative: true,
   },
