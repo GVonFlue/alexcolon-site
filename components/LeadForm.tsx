@@ -87,7 +87,7 @@ export function LeadForm({
   if (state === "done") {
     return (
       <div
-        className="rounded-lg border border-navy/20 bg-paper p-6"
+        className="rounded-xl border border-navy/12 bg-paper p-6 shadow-[0_30px_70px_-30px_rgba(0,0,0,0.55)]"
         role="status"
         aria-live="polite"
       >
@@ -105,7 +105,7 @@ export function LeadForm({
       action="/api/lead"
       method="post"
       onSubmit={onSubmit}
-      className="rounded-lg border border-navy/15 bg-paper p-6 sm:p-7"
+      className="rounded-xl border border-navy/12 bg-paper p-6 shadow-[0_30px_70px_-30px_rgba(0,0,0,0.55)] sm:p-7"
       noValidate={false}
     >
       {/* Never trusted from the client beyond membership in the known set. */}

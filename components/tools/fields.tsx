@@ -35,7 +35,7 @@ export function ToolFrame({
   footnote: string;
 }) {
   return (
-    <div className="mt-8 rounded-xl border border-navy/12 bg-paper p-6 shadow-[0_18px_44px_-30px_rgba(23,42,58,0.35)] transition-shadow duration-200 hover:shadow-[0_22px_54px_-26px_rgba(23,42,58,0.45)] sm:p-7">
+    <div className="mt-8 rounded-xl border border-navy/12 bg-paper p-6 shadow-[0_1px_0_rgba(255,255,255,0.6)_inset,0_30px_60px_-30px_rgba(23,42,58,0.4)] transition-shadow duration-200 hover:shadow-[0_1px_0_rgba(255,255,255,0.6)_inset,0_36px_70px_-26px_rgba(23,42,58,0.5)] sm:p-7">
       {children}
       {/* Says what the tool is and is not, at the point the number appears. */}
       <p className="measure mt-6 border-t border-line pt-4 text-[0.85rem] leading-relaxed text-subtle">

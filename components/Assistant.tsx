@@ -17,12 +17,12 @@ function AssistantMark() {
   return (
     <span
       aria-hidden="true"
-      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-navy text-cream"
+      className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-navy text-cream shadow-[0_10px_24px_-10px_rgba(23,42,58,0.5)]"
     >
-      <svg viewBox="0 0 24 24" className="h-6 w-6">
-        <circle cx="12" cy="12" r="2.1" fill="currentColor" />
-        <circle cx="12" cy="12" r="6" fill="none" stroke="currentColor" strokeOpacity="0.55" strokeWidth="1.4" />
-        <circle cx="12" cy="12" r="9.6" fill="none" stroke="currentColor" strokeOpacity="0.3" strokeWidth="1.4" />
+      <svg viewBox="0 0 24 24" className="h-8 w-8">
+        <circle cx="12" cy="12" r="2.3" fill="currentColor" />
+        <circle cx="12" cy="12" r="6.4" fill="none" stroke="currentColor" strokeOpacity="0.55" strokeWidth="1.5" />
+        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeOpacity="0.3" strokeWidth="1.5" />
       </svg>
     </span>
   );
@@ -156,24 +156,27 @@ export function Assistant({
 
   return (
     <div>
-      <H2 className="text-navy">{heading}</H2>
-      <p className="measure mt-4 text-[1.05rem] leading-[1.7] text-subtle">{intro}</p>
+      <H2 className="text-cream">{heading}</H2>
+      <p className="measure mt-4 text-[1.05rem] leading-[1.7] text-dim">{intro}</p>
 
       {/*
         The character card. An avatar and a status dot it has actually earned
         (see the probe in the effect above), plus a row naming what it is
         good at, each one already true elsewhere on this site. This is what
-        turns the widget below into someone rather than a form field.
+        turns the widget below into someone rather than a form field. It
+        stays a light card on the new dark section, the same way the lead
+        form does: the input at the bottom needs a light ground, and the rest
+        of the card reads as one surface rather than two.
       */}
-      <div className="mt-8 rounded-2xl border border-navy/12 bg-paper p-6 shadow-[0_20px_50px_-30px_rgba(23,42,58,0.4)] sm:p-8">
-        <div className="flex flex-wrap items-center gap-4">
+      <div className="mt-8 rounded-2xl border border-navy/10 bg-paper p-7 shadow-[0_30px_70px_-30px_rgba(0,0,0,0.55)] sm:p-9">
+        <div className="flex flex-wrap items-center gap-5">
           <AssistantMark />
           <div>
-            <div className="flex items-center gap-2.5">
-              <span className="text-[1.2rem] font-semibold text-navy">{name}</span>
+            <div className="flex items-center gap-3">
+              <span className="text-[1.5rem] font-extrabold tracking-[-0.01em] text-navy">{name}</span>
               <span
                 aria-hidden="true"
-                className={`h-2 w-2 rounded-full ${
+                className={`h-2.5 w-2.5 rounded-full ${
                   status === "offline" ? "bg-field" : status === "checking" ? "bg-line" : "bg-navy"
                 }`}
               />
@@ -193,7 +196,7 @@ export function Assistant({
           ))}
         </ul>
 
-        <div className="mt-6 rounded-lg border border-line">
+        <div className="mt-7 rounded-xl border border-line">
           <div
             ref={logRef}
             role="log"
