@@ -153,3 +153,215 @@ CSS, and the two components that could have animated (the calculator total, the
 mobile nav) render their final state immediately instead. The mobile menu toggles
 with the `hidden` attribute rather than a height transition, so the DOM is correct
 on first paint and no animation gates reaching the navigation.
+
+---
+
+# v2
+
+Three defects and one structural problem, all found by looking at the deployed
+site in a real browser rather than at the code. A green build catches none of
+these.
+
+## What was wrong
+
+**The page used half its width.** At 1440px the hero headline stopped around 60
+percent and everything to the right was empty, and every prose band did the same
+thing. The 62 character measure was correct for reading and wrong for the page:
+a single column in a void reads as unfinished rather than as restraint.
+
+**The assistant's status line lied.** It rendered "ready" before any request,
+because the component had no way to know it was offline until a visitor had
+already asked a real question and waited. Somebody types something real and is
+then told the thing is not connected. That is describing intended behavior as
+completed behavior, in the one component built specifically not to do that.
+
+**The sticky header was translucent.** At 95 percent opacity the band headings
+underneath ghosted through it while scrolling, which reads as a rendering bug.
+
+**The signature element was buried.** The map was six bands down, which is a
+strange place for the only thing on the site that is true of no competitor.
+
+## What changed
+
+**A `Split` band layout.** Heading in its own column, content beside it. The
+measure stays honest and the width has something to do. It collapses to one
+column below the large breakpoint, where the heading simply sits above its
+content as before.
+
+**The map moved into the hero and became a door.** It fills the second column,
+which fixes the emptiness and puts the distinctive thing in the fold at the same
+time. Selecting a town carries that town into the contact form through a query
+parameter, so the most characteristic element on the page is now a conversion
+path rather than an ornament. Its CTA is secondary styled, because the hero
+already spends the one primary this screenful gets.
+
+The eyebrow used to list the seven towns. The map names all seven now, so the
+eyebrow was duplication, and at 1440px it wrapped "Rose Hill" onto its own line.
+
+**The town list moved into `content/site.json`, coordinates included.** The map
+used to hold its own copy. Two lists of the same seven towns is one edit away
+from disagreeing with itself.
+
+**The status line probes on mount.** `GET /api/chat` returns one boolean about
+our own configuration and nothing else. The component starts in a "checking"
+state and never claims a readiness it has not verified.
+
+**FAQ became native disclosure.** `details` and `summary`, so it is interactive
+with no JavaScript at all, keyboard operable and screen reader labelled for
+free, and the answers stay in the rendered HTML while collapsed so the copy
+auditor and search engines both still see them.
+
+## Four interactive tools, one per audience
+
+| Route | Tool | The question it answers |
+| --- | --- | --- |
+| /buy | Affordability | What price does the payment I am comfortable with support |
+| /sell | Net proceeds | What actually lands in my account after the sale |
+| /veterans | Timeline builder | Which day does each thing have to happen by |
+| /investors | Rental cash flow | What is left every month, including when it is negative |
+
+**Every figure comes from the visitor.** No interest rate, no commission rate, no
+days on market, no appreciation assumption is baked into any of them. That is
+what makes them publishable for a client who has no verified numbers of his own:
+the output is arithmetic rather than a claim, so nothing here can be wrong about
+the market because nothing here says anything about the market.
+
+Three consequences worth naming:
+
+- The commission field on the net proceeds tool ships blank and says so. Quoting
+  a rate would be both an unsourced market figure and a statement no agent
+  should make on a web page.
+- The VA timeline's stage durations start empty rather than at a plausible
+  default. "A VA loan closes in thirty five days" has no source, and a schedule
+  built on an invented duration is worse than no schedule when somebody has
+  orders. With nothing entered it still answers the one question needing no
+  assumption at all, which is how many days are left.
+- The rental tool puts vacancy and maintenance in fields rather than footnotes,
+  because leaving them out is exactly what turns a property that loses money
+  every month into one that looks like it clears a few hundred. When the result
+  is negative it renders in the semantic negative color at full size rather than
+  being rounded into looking fine.
+
+## One thing the audit caught that is worth recording
+
+The rendered sweep failed `/sell` on the word "best", from the phrase "your best
+estimate" in a tool's hint text. The content auditor could not have caught it:
+that string lives in a component, not in `content/*.json`.
+
+This is the argument for the rendered sweep being the authoritative one, and it
+is the second time on this build that checking the render rather than the source
+found something the source check structurally could not. The copy was changed.
+The rule was not.
+
+---
+
+# v3
+
+The build was correct, honest, and passing every audit, and it was visually
+flat. The brief for this pass was explicit about the difference: make it feel
+alive without breaking a single thing that makes it honest. That is a
+technique problem, not a content problem, so the work was to study two other
+ProyTech sites (gvonflue.vercel.app, getproytech.com), extract the axis rather
+than the look, and translate it into Alex's own navy, cream and gold system.
+
+## What was taken, and why none of it cost anything
+
+**Pill eyebrows, a pill nav, and a fuller button radius.** Purely typographic
+and geometric. Nothing here touches a fact, a claim, or a color rule.
+
+**More light-to-dark swings.** The page ran several cream bands together and
+read as one long scroll. Section now has a real tone rotation (cream, paper,
+wash) for bands with no fixed reason to be light or dark, and the two bands
+that are deliberately dark, pickYourDoor and the conversion moment, stay
+fixed so they keep reading as landmarks instead of blending into a pattern.
+
+**Gradient washes instead of flat fills.** `wash` moves between the
+already-verified cream and paper tokens, so every contrast pairing proven at
+either end holds everywhere in between. `navyWash` moves from navy to a new,
+darker navy-deep, which only ever raises contrast for the light text painted
+on it. Neither introduces risk; both were still added to
+scripts/audit-contrast.mjs, because a new hex value gets checked regardless
+of how confident the math looks on paper.
+
+**One accent word in the display type.** The references use color in
+headlines freely. This site's whole color discipline is "gold is a fill,
+never type," stated in section 6 of the doctrine and enforced by
+audit-contrast.mjs's FORBIDDEN list. Taking this technique meant not
+breaking that rule, so it became a new, separately verified token
+(`--color-gold-ink`, 5.17:1 on cream, 5.67:1 on paper) used for exactly one
+phrase on one headline, driven by an optional `accentPhrase` field rather
+than hardcoded, so a phrase that does not literally occur in the headline
+renders the headline plain instead of silently eating text.
+
+**The hero's second column as a real object.** A rounded, shadowed, slightly
+rotated card holding the map, instead of the map floating directly on the
+page background. Depth, not a new fact.
+
+**The assistant as a character.** An avatar, its own earned status dot, and a
+chip row naming what it does. The avatar is deliberately not a mascot: three
+concentric arcs, no face, nothing anthropomorphic. Scout works in the
+reference because it is Garrett's decision to make about his own product.
+Inventing a character for Alex is a brand decision, and it is his, not this
+build's.
+
+**A marquee of the four audience lanes.** Built from the exact array
+pickYourDoor already renders, so it is a second *view* of one list, not a
+second list. Static and centered on every first paint; only after mount does
+it check `prefers-reduced-motion`, and only then does it double the track and
+start the loop.
+
+## What was not taken, and what it would have broken
+
+**The avatar stack claiming "120+ families guided home."** Alex has no
+verified numbers and no testimonials on file. This was the single biggest
+trap in the references: both sinks (the numbers band, every proof band) are
+designed to withhold themselves for exactly this reason, and copying the
+component would have meant inventing both a statistic and social proof to
+put inside it.
+
+**The floating cards showing a pipeline value and a lead list.** Mock data
+presented in a chrome that implies it is live. Alex's actual equivalent is
+real: the four interactive tools. Those got the card depth and the shadow
+instead, because they compute something true from whatever the visitor
+enters rather than displaying a number nobody can verify.
+
+**The warm-cream-and-terracotta palette.** This is AI design tell number one
+in section 6 of the doctrine, close to verbatim. It is earned on ProyTech's
+own site by a real logo and real product screenshots. Alex has neither, so
+the site stays navy-led with gold as the one accent, same as v1.
+
+**A splash gate, and the word Realtor.** Neither reference technique
+survives contact with Alex's own intake ("simple interface") or with hard
+stop 4 (NAR membership is not confirmed, and the auditor fails the build on
+the word regardless of what any reference site does).
+
+## The mandatory self critique
+
+**Does it read as designed now, or just as decorated?** Designed, with one
+place that is still closer to decorated than the rest: the pick-your-door
+cards' shadow is nearly invisible against the dark navyWash ground, because a
+dark shadow on a dark background does very little. It is not wrong, and nothing
+fails because of it, but if this gets another pass, that shadow should become
+a faint light-side highlight (a top inner border at low opacity) rather than
+a black-based box-shadow, which is the technique that actually reads as depth
+on a dark card.
+
+**What is still flat.** The routes without a `feature` on their hero
+(`/buy`, `/sell`, `/veterans`, `/investors`) still show an empty second
+column at the width where the featured homepage hero now shows a map. That
+match the brief exactly as written, Split was scoped to prose, steps,
+lossAversion, faq, areaMap and tool, not hero, and only the homepage hero
+was asked to carry the map, so this is not a missed instruction. It is a
+genuine asymmetry a future pass could close, most likely by giving each of
+those heroes a small, real, page-specific object (the net proceeds number
+line, a compact version of the tool itself) rather than reusing the map
+everywhere it does not belong.
+
+**Would this same pass have happened for any other agent using these same
+two references?** The rotation, the pills, the glyphs and the gradients,
+yes, that part is a technique lift and would look similar on any build using
+this component system. What is specific to Alex is everything the pass
+refused to copy: no invented number, no invented testimonial, no invented
+character, and an accent color used exactly once, on a phrase that describes
+what this specific site promises (real answers) rather than as a repeatable
+decorative habit.
