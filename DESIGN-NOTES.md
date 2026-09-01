@@ -365,3 +365,118 @@ refused to copy: no invented number, no invented testimonial, no invented
 character, and an accent color used exactly once, on a phrase that describes
 what this specific site promises (real answers) rather than as a repeatable
 decorative habit.
+
+---
+
+# v4
+
+v3 added the vocabulary of a designed site, pills, one accent phrase, a
+gradient tone, an arrow glyph, without changing the actual ratio underneath
+it: the site was still about 85 percent cream, and the accent phrase read
+muddy because gold-ink is a compromise color that only exists because gold
+itself fails on a light ground. Put side by side with gvonflue.vercel.app,
+the difference was not technique, it was commitment. The reference is
+dark-first. This build was light-first with dark accents.
+
+## The central fix
+
+Inverted it. Navy is now the dominant ground: the hero on every route, the
+steps band, trust, areaMap, pickYourDoor, the assistant, conversion and
+closingCta. Cream is what is left, and it is reserved for bands with an
+actual reason to need a light ground: the two calculators, the four tools,
+faq, and the currently-empty proof band. That is not an aesthetic split, it
+is a fields split, checked once and then followed everywhere.
+
+The direct consequence: the one accent phrase per page is real gold now, not
+gold-ink. Gold as text clears 5.44:1 on navy and only 2.46:1 on cream, which
+is the entire reason gold-ink existed at all in v3. Removing the reason to
+need a compromise color was better than shipping a better compromise color.
+
+Dark sections paint a radial glow (navy-glow at the top, fading through navy
+to navy-deep) rather than a flat fill, the same technique the reference's
+own dark sections use. navy-glow is a new, real color, not just a lighter
+opacity trick, and it is verified in scripts/audit-contrast.mjs against
+cream, dim and gold before it was used anywhere, because a headline can land
+right at the glow's brightest point, not only at the gradient's darker
+edges.
+
+## What else changed
+
+**Type got heavier and bigger.** Display weight moved from 600 to 800
+(band headings) and 900 (the hero h1). Tracking tightened to -0.03em
+everywhere display type is used, -0.04em on the hero specifically, with
+line-height down to 0.98 there. The hero h1 is roughly 20 to 30 percent larger
+in raw size, and reads considerably heavier than that number suggests
+because weight and tracking both changed with it. It is not sized to match
+the reference's exact scale: their headline is four words, this site's is a
+full sentence, and matching their point size line for line would have
+pushed the primary CTA below a normal laptop viewport. Sized instead to the
+tallest headline this site actually has, checked against the shortest
+common viewport height, not against a screenshot.
+
+**The map got redrawn, not patched.** It was flagged as the worst element on
+the site and it earned that: grey dots floating in the middle of a mostly
+empty white card, no relationship to the palette at all. It now lives on
+the dark ground with cream marks, a real soft halo behind the anchor and
+the selected town, tightened padding so the drawing fills its card, and a
+selected state that changes four things at once (glow, ring, dot size,
+label weight) rather than one. No gold anywhere in it, including the
+selected state: that would have spent the one signal the palette has on
+decoration.
+
+**Real elevation, not a thicker border.** Cards (the assistant, the lead
+form, every tool frame, the pick-your-door lanes) now carry a layered
+shadow, a light inset top edge plus a soft ambient shadow, rather than one
+flat drop shadow. pick-your-door's lanes sit on navy-glow specifically, a
+genuine lighter value than the section around them, not a translucent tint
+of the same color.
+
+**The assistant got bigger, not just darker.** It was the thing Alex
+specifically asked for at intake and it was reading as the least
+considered part of the page. Larger mark, larger name at extrabold weight,
+more padding, a real shadow. The card itself stays a light surface on
+purpose: there is an input field at the bottom of it, inputs need a light
+ground the same reason a tool's fields do, and a card that is dark on top
+and light on the bottom would read as two things stapled together rather
+than one.
+
+**Density.** Section's default padding dropped from py-16/20/24 to
+py-11/14/16. There was enough space between some bands to fit another one
+in it, and premium is not the same as empty.
+
+**One entrance, on the hero only.** A CSS keyframe, no JavaScript state,
+staggered slightly between the text column and the map column. Reduced
+motion is caught by the same blanket transition killer that already
+handles every other animation on the site, so this needed no reduced-motion
+branch of its own. Nothing else on the page animates on scroll.
+
+## The mandatory self critique
+
+**Does the fold command attention the way the reference does?** Closer than
+it did, not equal to it, and the honest reason is the same one from the
+typography section: the reference's headline is a four word brand line and
+this site's is a full, specific sentence, because the site's whole voice is
+answer-first plain language rather than a tagline. A four-word version of
+this headline would be a generic real estate tagline, which is a worse
+trade than a slightly less dominant fold. What the fold does now that it
+did not before: real depth (the glow, the map's own halo), real weight, and
+a color that is actually the brand color instead of a darkened stand-in
+for it.
+
+**Is it designed now, or decorated differently?** Designed. The test that
+matters is whether the dark ground changed anything besides color, and it
+did: the map's whole drawing logic changed, the card elevation model
+changed, the type scale and weight changed, and the padding rhythm changed
+site-wide. A decorated pass would have painted the existing layout navy and
+called it done.
+
+**What is the single worst-looking element remaining?** The pick-your-door
+cards' elevation reads correctly up close but the four cards are visually
+closer to each other in weight than the hero and the map are to everything
+around them; on a fast scroll they read as a solid navy block before the
+individual doors resolve. A future pass could differentiate the four lanes
+further (an icon per lane, not just a label) the way each of the four tools
+already has a distinct shape, rather than four identically-structured
+cards. Not fixed here because that is closer to a features change than a
+visual design one, and this pass's brief was explicit about which one this
+was.
