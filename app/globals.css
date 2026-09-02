@@ -251,6 +251,40 @@ body {
 }
 
 /*
+ * A town mark's hover lift: scaled up in place around its own coordinate,
+ * not the SVG's origin. This used to be transform-box: fill-box with
+ * transform-origin: center, which asks the engine to compute the element's
+ * own geometric bounding box and treat that as the reference for "center".
+ * fill-box on SVG shapes has a real history of inconsistent WebKit support:
+ * where it resolves to the wrong reference box (the nearest SVG viewport
+ * instead of the element), a hover does not lift the mark, it visibly
+ * throws it toward the corner of the map. Replaced regardless of being
+ * able to confirm that specific failure directly: WebKit could not be
+ * launched in this session's environment at all (see DESIGN-NOTES.md for
+ * exactly what was tried), so this is done because the replacement is
+ * strictly more portable either way, not because a repro was captured.
+ *
+ * This version needs no reference-box computation at all: --mx/--my (set
+ * inline per mark, in the map's own coordinate units) are literal
+ * coordinates, and translate(mx,my) scale(s) translate(-mx,-my) is the
+ * standard matrix for "scale by s around the point (mx,my)", plain
+ * arithmetic on numbers already known at render time.
+ *
+ * --ms (the scale factor itself) is set to 1.1 by Tailwind's own
+ * group-hover:/group-focus-visible: utilities directly on the element
+ * (see ServiceAreaMap.tsx), not by a hand-written .group:hover selector
+ * here: a first attempt wrote that selector directly in this file, and
+ * Tailwind v4's build folded ".group:hover .mark-scale" down to a bare
+ * ".mark-scale", silently dropping the hover condition and leaving every
+ * mark permanently scaled up. Letting Tailwind's own variant generator own
+ * the selector avoids whatever collided, and var(--ms, 1) means a mark
+ * with no hover state set (the default) is still the identity transform.
+ */
+.mark-scale {
+  transform: translate(var(--mx), var(--my)) scale(var(--ms, 1)) translate(calc(-1 * var(--mx)), calc(-1 * var(--my)));
+}
+
+/*
  * Marquee. A low, quiet strip of the audience lanes between bands, built from
  * the same array pickYourDoor renders, so there is one list of the four lanes
  * rather than two that can disagree.

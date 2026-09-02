@@ -62,6 +62,20 @@ function labelAnchor(x: number): "start" | "middle" | "end" {
   return "middle";
 }
 
+/** The two CSS custom properties .mark-scale (globals.css) pivots its scale
+ * transform on. React's CSSProperties type does not know about custom
+ * properties, hence the cast. The values carry an explicit "px" unit, not a
+ * bare number: a bare unitless number substituted into translate() via
+ * var() computed the whole transform to "none" (an unquoted number is not
+ * a valid CSS <length>, and that invalidity does not get the same SVG
+ * unitless-user-units leniency a literal token written directly in the
+ * transform function gets). "px" on SVG content maps 1:1 to the element's
+ * own user-space units, the same coordinate system p.x/p.y are already in,
+ * so this is not a unit conversion, just spelling the length correctly. */
+function mapCoordVars(p: { x: number; y: number }): React.CSSProperties {
+  return { "--mx": `${p.x}px`, "--my": `${p.y}px` } as React.CSSProperties;
+}
+
 /**
  * The map's one entrance, staggered per layer group with the .map-in class
  * (see globals.css): rivers, then highways, then the boundary and skyline,
@@ -263,19 +277,24 @@ export function ServiceAreaMap({
                     glowing ? "opacity-100" : "opacity-0 group-hover:opacity-70"
                   }`}
                 />
-                {/* The lift: a small scale-up on hover, centered on the dot
-                    itself via fill-box so it grows in place rather than
-                    sliding toward the SVG origin. */}
-                <circle
-                  cx={p.x}
-                  cy={p.y}
-                  r={r}
-                  fill="currentColor"
-                  style={{ transformBox: "fill-box", transformOrigin: "center" }}
-                  className={`transition-transform duration-150 ease-out group-hover:scale-110 ${
-                    glowing ? "text-cream" : "text-cream/60 group-hover:text-cream"
-                  }`}
-                />
+                {/* The lift: a small scale-up on hover, pivoted on the dot's
+                    own coordinate via the .mark-scale CSS variables rather
+                    than transform-box: fill-box (see globals.css for why:
+                    fill-box's reference-box resolution has real cross-engine
+                    history and threw the mark across the map in WebKit
+                    rather than lifting it in place). */}
+                <g
+                  className="mark-scale transition-transform duration-150 ease-out group-hover:[--ms:1.1] group-focus-visible:[--ms:1.1]"
+                  style={mapCoordVars(p)}
+                >
+                  <circle
+                    cx={p.x}
+                    cy={p.y}
+                    r={r}
+                    fill="currentColor"
+                    className={glowing ? "text-cream" : "text-cream/60 group-hover:text-cream"}
+                  />
+                </g>
                 {isOn && (
                   <circle
                     cx={p.x}
