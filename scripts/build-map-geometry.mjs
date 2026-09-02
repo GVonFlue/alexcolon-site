@@ -15,18 +15,22 @@
  *   PRISECROADS  (state)   I-135, I-235, US-54/Kellogg, K-96, the Turnpike
  *   PLACE        (state)   the Wichita municipal boundary
  *
- * Everything is clipped to lon -97.65/-97.05, lat 37.48/37.86, simplified
- * with mapshaper, and reprojected into SVG path data with the same true
- * equirectangular projection ServiceAreaMap.tsx uses for the seven towns
- * in content/site.json, so geometry and town dots land in the same place
- * for the same coordinate.
+ * Everything is fetched clipped to lon -97.65/-97.05, lat 37.48/37.86 (that
+ * window is generous on purpose, to be sure of catching every road and both
+ * rivers whole) and simplified with mapshaper. The exported view is then a
+ * tight, padded crop of wherever the rivers, roads, boundary and the seven
+ * towns actually ended up, not the fetch window itself; see "fit the view
+ * to the real content" in main() for why and how. Everything is reprojected
+ * into SVG path data with the same true equirectangular projection
+ * ServiceAreaMap.tsx uses for the seven towns in content/site.json, so
+ * geometry and town dots land in the same place for the same coordinate.
  *
  * No school district layer, no shaded area: this file emits paths only,
  * never a fill keyed to anything but "this is where the water is."
  *
  * Run with: node scripts/build-map-geometry.mjs
  */
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 
@@ -144,37 +148,50 @@ function linesOf(features) {
 const LAT_CENTER = (BBOX.latMin + BBOX.latMax) / 2;
 const COS_LAT = Math.cos((LAT_CENTER * Math.PI) / 180);
 const SPAN_LON = (BBOX.lonMax - BBOX.lonMin) * COS_LAT;
-const SPAN_LAT = BBOX.latMax - BBOX.latMin;
 
-// World box in projected units, then scaled to a round pixel width. Height
-// follows from the real aspect ratio instead of being chosen separately.
-const VIEW_W = 900;
-const VIEW_H = Math.round((VIEW_W * SPAN_LAT) / SPAN_LON);
-const SCALE = VIEW_W / SPAN_LON;
-
-const PROJECT_SRC = `
-  const lonAdj = (lon - ${BBOX.lonMin}) * ${COS_LAT};
-  const latAdj = ${BBOX.latMax} - lat;
-  return { x: lonAdj * ${SCALE}, y: latAdj * ${SCALE} };
-`;
-const project = new Function("lon", "lat", PROJECT_SRC);
+// Raw projection over the full fetch/clip bbox, true equirectangular (Plate
+// Carrée scaled by cos(latitude) at the clip's center). This is the
+// coordinate system every point gets computed in first; the actual exported
+// view is a tight crop of it (see fitToContent below), because the clip
+// bbox itself was chosen generously to make sure the data fetch captured
+// every road and both rivers in full, not to frame a drawing. Cropping to
+// the fetch window left real dead space, a wide empty band south of Rose
+// Hill and Derby in particular, that had nothing to do with the geometry.
+const RAW_SCALE = 900 / SPAN_LON;
+function rawProject(lon, lat) {
+  const lonAdj = (lon - BBOX.lonMin) * COS_LAT;
+  const latAdj = BBOX.latMax - lat;
+  return { x: lonAdj * RAW_SCALE, y: latAdj * RAW_SCALE };
+}
 
 function fmt(n) {
   return Math.round(n * 10) / 10;
 }
 
-function ringPath(ring) {
-  const pts = ring.map(([lon, lat]) => project(lon, lat));
+/** ringPath/linePath take the projector to use explicitly, rather than
+ * closing over a module-level one, because this file needs two passes: a
+ * first with rawProject to find out how big the real content actually is,
+ * and a second with the fitted projector once that is known. */
+function ringPath(ring, projectFn) {
+  const pts = ring.map(([lon, lat]) => projectFn(lon, lat));
   return `M${pts.map((p) => `${fmt(p.x)} ${fmt(p.y)}`).join("L")}Z`;
 }
 
-function linePath(line) {
-  const pts = line.map(([lon, lat]) => project(lon, lat));
+function linePath(line, projectFn) {
+  const pts = line.map(([lon, lat]) => projectFn(lon, lat));
   return `M${pts.map((p) => `${fmt(p.x)} ${fmt(p.y)}`).join("L")}`;
 }
 
 function multiPath(paths) {
   return paths.join(" ");
+}
+
+/** Expands `box` (mutated in place) to include a projected point. */
+function grow(box, p) {
+  box.minX = Math.min(box.minX, p.x);
+  box.maxX = Math.max(box.maxX, p.x);
+  box.minY = Math.min(box.minY, p.y);
+  box.maxY = Math.max(box.maxY, p.y);
 }
 
 /**
@@ -319,30 +336,79 @@ function main() {
     "wichita-place.json",
   );
 
-  // --- build path data -----------------------------------------------------
+  // --- fit the view to the real content, not the fetch bbox ----------------
+  //
+  // BBOX above is a fetch window, generous on purpose so no road or river
+  // got clipped by accident, and that is exactly why it cannot also be the
+  // frame: a clipped line or polygon has points sitting exactly on the
+  // clip edge wherever the real feature ran past it (the Turnpike keeps
+  // going well south of every town, a river keeps going north of Park
+  // City), so a box drawn around every point of every road and river is
+  // just the fetch window again, dead space and all. The seven towns are
+  // what this map's job actually requires to be visible, so they, plus the
+  // river confluence near the middle of them, are what the frame is fit
+  // to; rivers, roads and the boundary are drawn through the same
+  // projection and simply run off the edge of that frame wherever they
+  // extend past it, the way a locator map's roads normally do.
 
-  const riverAreaPaths = ringsOf(riverArea.features).map(ringPath);
-  const riverLinePaths = linesOf(riverLine.features).map(linePath);
-
-  const roads = ROAD_CATEGORIES.map((cat) => {
-    const feats = roadsAll.features.filter((f) => cat.test.test(f.properties.FULLNAME || ""));
-    const d = multiPath(linesOf(feats).map(linePath));
-    return { id: cat.id, label: cat.label, d, segments: feats.length };
-  });
-
-  const boundaryPaths = ringsOf(wichitaPlace.features).map(ringPath);
-
-  const confluenceLonLat = findConfluence(riverArea.features);
-  const confluence = project(confluenceLonLat.lon, confluenceLonLat.lat);
-  log(`confluence at ${confluenceLonLat.lon.toFixed(5)}, ${confluenceLonLat.lat.toFixed(5)} -> (${confluence.x.toFixed(1)}, ${confluence.y.toFixed(1)})`);
-
-  for (const r of roads) {
-    if (r.segments === 0) {
+  const roadCats = ROAD_CATEGORIES.map((cat) => ({
+    ...cat,
+    feats: roadsAll.features.filter((f) => cat.test.test(f.properties.FULLNAME || "")),
+  }));
+  for (const r of roadCats) {
+    if (r.feats.length === 0) {
       throw new Error(`No PRISECROADS segments matched "${r.label}" (${r.test}) inside the clip bbox.`);
     }
   }
-  if (riverAreaPaths.length === 0) throw new Error("No AREAWATER Arkansas River polygons found in the clip.");
-  if (boundaryPaths.length === 0) throw new Error("No PLACE boundary found for Wichita in the clip.");
+  const riverAreaRings = ringsOf(riverArea.features);
+  const riverLines = linesOf(riverLine.features);
+  const boundaryRings = ringsOf(wichitaPlace.features);
+  if (riverAreaRings.length === 0) throw new Error("No AREAWATER Arkansas River polygons found in the clip.");
+  if (boundaryRings.length === 0) throw new Error("No PLACE boundary found for Wichita in the clip.");
+
+  const towns = JSON.parse(readFileSync(path.join(ROOT, "content", "site.json"), "utf8")).serviceAreas;
+  const confluenceLonLat = findConfluence(riverArea.features);
+
+  const contentBox = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+  for (const t of towns) grow(contentBox, rawProject(t.lon, t.lat));
+  grow(contentBox, rawProject(confluenceLonLat.lon, confluenceLonLat.lat));
+
+  // Padding: generous and asymmetric on top, because a town's label and its
+  // selected-state halo sit above its dot, up to about 40 units for the
+  // anchor town at its largest type size, not below or beside it.
+  const PAD = { top: 60, bottom: 30, left: 45, right: 45 };
+  const fitX = contentBox.minX - PAD.left;
+  const fitY = contentBox.minY - PAD.top;
+  const VIEW_W = Math.round(contentBox.maxX - contentBox.minX + PAD.left + PAD.right);
+  const VIEW_H = Math.round(contentBox.maxY - contentBox.minY + PAD.top + PAD.bottom);
+
+  function project(lon, lat) {
+    const raw = rawProject(lon, lat);
+    return { x: raw.x - fitX, y: raw.y - fitY };
+  }
+  const PROJECT_SRC = `
+  const lonAdj = (lon - ${BBOX.lonMin}) * ${COS_LAT};
+  const latAdj = ${BBOX.latMax} - lat;
+  return { x: lonAdj * ${RAW_SCALE} - ${fitX}, y: latAdj * ${RAW_SCALE} - ${fitY} };
+`;
+
+  log(`fit view: ${VIEW_W}x${VIEW_H} (fetch bbox raw content was ${Math.round(contentBox.maxX - contentBox.minX)}x${Math.round(contentBox.maxY - contentBox.minY)} before padding)`);
+
+  // --- build path data -----------------------------------------------------
+
+  const riverAreaPaths = riverAreaRings.map((r) => ringPath(r, project));
+  const riverLinePaths = riverLines.map((l) => linePath(l, project));
+
+  const roads = roadCats.map((cat) => ({
+    id: cat.id,
+    label: cat.label,
+    d: multiPath(linesOf(cat.feats).map((l) => linePath(l, project))),
+  }));
+
+  const boundaryPaths = boundaryRings.map((r) => ringPath(r, project));
+
+  const confluence = project(confluenceLonLat.lon, confluenceLonLat.lat);
+  log(`confluence at ${confluenceLonLat.lon.toFixed(5)}, ${confluenceLonLat.lat.toFixed(5)} -> (${confluence.x.toFixed(1)}, ${confluence.y.toFixed(1)})`);
 
   // --- write the generated module ------------------------------------------
 

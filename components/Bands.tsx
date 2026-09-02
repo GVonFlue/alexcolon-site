@@ -331,15 +331,22 @@ export function Bands({ page }: { page: PageContent }) {
 
           case "areaMap":
             // Dark, to match the map's own redesign: cream and gold marks on
-            // navy, not grey dots on a white card.
+            // navy, not grey dots on a white card. Stacked, not Split: a
+            // short heading and intro next to a map this size left the map
+            // squeezed into Split's narrower content lane while the heading
+            // column sat mostly empty beside it, wasted width on one side
+            // and a wasted-looking excess of height on the other. The map
+            // is this page's actual subject, not a content-column
+            // illustration, so it gets the full band width to be as large
+            // as its own aspect ratio calls for instead of being fit to a
+            // column sized for prose.
             return (
               <Section key={i} tone="navyWash">
-                <Split
-                  heading={<H2 className="text-cream">{band.heading}</H2>}
-                  aside={<p className="mt-4 text-[1.02rem] leading-[1.7] text-dim">{band.intro}</p>}
-                >
-                  <ServiceAreaMap towns={site.serviceAreas} />
-                </Split>
+                <div className="max-w-[42rem]">
+                  <H2 className="text-cream">{band.heading}</H2>
+                  <p className="mt-4 text-[1.02rem] leading-[1.7] text-dim">{band.intro}</p>
+                </div>
+                <ServiceAreaMap towns={site.serviceAreas} />
                 <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2">
                   {site.serviceAreas.map((a) => (
                     <li key={a.name} className="label text-dim">
