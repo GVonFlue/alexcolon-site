@@ -216,6 +216,15 @@ export const Band = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("assistant"),
+    eyebrow: z.string().min(1).optional(),
+    /**
+     * Must contain the assistant's name (site.assistant.name) as a literal
+     * substring, e.g. "Ask Wick before you talk to anyone": the component
+     * finds it and renders it in the accent color the same way a hero's
+     * accentPhrase works. If the name is not found the heading still renders,
+     * just without the highlight, the same silent-plain fallback
+     * AccentHeadline already uses everywhere else.
+     */
     heading: z.string().min(1),
     intro: z.string().min(1),
   }),

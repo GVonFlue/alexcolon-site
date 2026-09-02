@@ -58,19 +58,35 @@ function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1:
             : ""
         }
       >
-        <div className={`hero-in ${featured ? "" : "max-w-[52rem]"}`}>
-          {band.eyebrow && <Eyebrow tone="dark">{band.eyebrow}</Eyebrow>}
-          <Heading className="display text-[2.2rem] font-black leading-[0.98] tracking-[-0.04em] text-cream sm:text-[3rem] lg:text-[3.7rem] xl:text-[4rem]">
-            <AccentHeadline text={band.headline} phrase={band.accentPhrase} dark />
-          </Heading>
-          <p className="measure mt-6 text-[1.1rem] leading-[1.68] text-dim">{band.support}</p>
+        <div className={featured ? "" : "max-w-[52rem]"}>
+          {/*
+            One orchestrated entrance, not five separate ones: eyebrow,
+            headline, support, CTAs and (when present) the map each carry
+            .hero-in with their own delay, a short stagger that finishes
+            under a second and plays once on load. Everything else on the
+            page is still, so this is the one place motion is allowed to be
+            this busy.
+          */}
+          {band.eyebrow && (
+            <div className="hero-in" style={{ animationDelay: "0ms" }}>
+              <Eyebrow tone="dark">{band.eyebrow}</Eyebrow>
+            </div>
+          )}
+          <div className="hero-in" style={{ animationDelay: "70ms" }}>
+            <Heading className="display text-[2.2rem] font-black leading-[0.98] tracking-[-0.04em] text-cream sm:text-[3rem] lg:text-[3.7rem] xl:text-[4rem]">
+              <AccentHeadline text={band.headline} phrase={band.accentPhrase} dark />
+            </Heading>
+          </div>
+          <div className="hero-in" style={{ animationDelay: "140ms" }}>
+            <p className="measure mt-6 text-[1.1rem] leading-[1.68] text-dim">{band.support}</p>
+          </div>
           {/*
             Gutenberg. The action sits at the end of the block, in the terminal
             zone the eye sweeps to, rather than floating mid band.
             Exactly one primary styled action here, which is the only one in this
             screenful because the header CTA is secondary styled.
           */}
-          <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="hero-in mt-9 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4" style={{ animationDelay: "210ms" }}>
             {band.ctas.map((c) => (
               <CtaLink key={c.label} cta={c} />
             ))}
@@ -85,10 +101,12 @@ function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1:
           hero is a text column beside half a screen of nothing, which reads
           as unfinished rather than as restraint. The map is also the one
           element on this site that is true only of this client, so the fold
-          is where it belongs.
+          is where it belongs. Last in the hero's own stagger; the map then
+          runs its own further entrance (rivers, then highways, then towns)
+          once it starts fading in, see ServiceAreaMap.tsx.
         */}
         {featured && (
-          <div className="hero-in lg:pl-4" style={{ animationDelay: "120ms" }}>
+          <div className="hero-in lg:pl-4" style={{ animationDelay: "280ms" }}>
             <div className="rounded-2xl border border-cream/10 bg-navy-deep p-6 shadow-[0_30px_70px_-24px_rgba(0,0,0,0.6)] sm:p-8 lg:-rotate-1 lg:translate-x-2">
               <ServiceAreaMap towns={site.serviceAreas} compact />
             </div>
@@ -156,15 +174,48 @@ export function Bands({ page }: { page: PageContent }) {
             return (
               <Section key={i} tone="navyWash" id="ask">
                 <Assistant
+                  eyebrow={band.eyebrow}
                   heading={band.heading}
                   intro={band.intro}
                   name={site.assistant.name}
+                  siteName={site.siteName}
                   introduction={site.assistant.introduction}
                   chips={site.assistant.chips}
                   goodAt={site.assistant.goodAt}
                   phoneDisplay={site.phone.display}
                   telHref={telHref()}
                 />
+              </Section>
+            );
+
+          case "contactStrip":
+            // A door, not a form: a compact band between two content bands
+            // carrying only the tappable phone, the text link, and one line
+            // of copy. Light and quiet on purpose, the opposite weight of
+            // conversion's full form, so a page scanning past it still lands
+            // on it as a distinct, easy option rather than more of the same
+            // ask.
+            return (
+              <Section key={i} tone={nextLightTone()} pad="py-8 sm:py-9">
+                <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
+                  <p className="text-[1.05rem] font-medium text-ink">{band.line}</p>
+                  <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 sm:justify-end">
+                    <a
+                      href={telHref()}
+                      className="figure inline-flex min-h-[44px] items-center text-[1.05rem] font-semibold text-navy underline decoration-navy/30 underline-offset-4 hover:decoration-navy"
+                    >
+                      {site.phone.display}
+                    </a>
+                    <CtaLink
+                      cta={{
+                        label: "Text Alex a question",
+                        href: smsHref(),
+                        kind: "direct",
+                        emphasis: "secondary",
+                      }}
+                    />
+                  </div>
+                </div>
               </Section>
             );
 
@@ -303,7 +354,7 @@ export function Bands({ page }: { page: PageContent }) {
             const m = magnet(band.magnetId);
             const detail = DETAIL_FIELD[m.id];
             return (
-              <Section key={i} tone="navyWash" id={m.id === "buyer-guide" ? "guide" : m.id === "home-value" ? "valuation" : m.id === "va-checklist" ? "checklist" : m.id === "rental-analysis" ? "analysis" : "ask"}>
+              <Section key={i} tone="navyWash" id={m.id === "buyer-guide" ? "guide" : m.id === "home-value" ? "valuation" : m.id === "va-checklist" ? "checklist" : m.id === "rental-analysis" ? "analysis" : "contact"}>
                 <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
                   <div>
                     <H2>{m.title}</H2>
