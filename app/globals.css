@@ -222,6 +222,35 @@ body {
 }
 
 /*
+ * The map's one entrance: rivers, then highways, then the boundary and
+ * skyline, then the town marks, each layer group carrying this class with
+ * its own animation-delay (see ServiceAreaMap.tsx). Pure CSS on purpose,
+ * not a JS phase timer: an earlier version drove this with useState and
+ * setTimeout, and under a throttled CPU the React re-render each timer
+ * triggered fell behind the timers themselves, leaving the map showing only
+ * the rivers, nothing else, for seconds. A CSS animation runs on the
+ * browser's own schedule regardless of how busy the main thread is, so it
+ * reaches its end state in real time close to its stated duration even
+ * under load, and it needs no reduced-motion branch of its own: the blanket
+ * query below already zeroes both animation-duration and animation-delay
+ * site-wide.
+ */
+@keyframes map-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.map-in {
+  animation: map-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/*
  * Marquee. A low, quiet strip of the audience lanes between bands, built from
  * the same array pickYourDoor renders, so there is one list of the four lanes
  * rather than two that can disagree.

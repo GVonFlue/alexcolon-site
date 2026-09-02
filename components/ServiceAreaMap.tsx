@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useState } from "react";
+import { useId, useState } from "react";
 import { Glyph } from "./ui";
 import {
   CONFLUENCE,
@@ -63,39 +63,20 @@ function labelAnchor(x: number): "start" | "middle" | "end" {
 }
 
 /**
- * The one entrance this drawing gets: rivers draw in, then the highways,
- * then the boundary and skyline settle, then the town marks land. Five
- * ordered phases, each one only ever moving forward, under a second end to
- * end, once. Reduced motion (checked once, on mount) skips straight to the
- * final phase with nothing hidden first, so a visitor who has asked for
- * less motion never sees any of it, not even briefly. Every phase's content
- * is also the real, complete SVG on first paint (phase starts at "done" on
- * the server and on every render before this effect runs), so nothing here
- * can delay the fold or hide content from a crawler or a no-JS visitor:
- * this only ever plays an already-correct drawing backwards for an instant
- * and lets it catch back up.
+ * The map's one entrance, staggered per layer group with the .map-in class
+ * (see globals.css): rivers, then highways, then the boundary and skyline,
+ * then the town marks, four delays under a second end to end, once. Pure
+ * CSS, not a JS phase timer, specifically because a JS timer chain proved
+ * fragile: under a throttled CPU the React re-render each setTimeout
+ * triggered fell behind the timers themselves, and the map sat showing only
+ * the rivers, nothing else, for seconds. A CSS animation is real, complete
+ * markup from first paint (a no-JS visitor, a crawler, or print all see the
+ * finished drawing, since the animation plays without any JS at all) and
+ * reaches its end state in real time close to its stated duration
+ * regardless of main-thread load, which a JS-driven re-render on every
+ * frame does not.
  */
-type Phase = "start" | "rivers" | "roads" | "context" | "towns";
-const PHASE_ORDER: Phase[] = ["start", "rivers", "roads", "context", "towns"];
-function atLeast(phase: Phase, target: Phase) {
-  return PHASE_ORDER.indexOf(phase) >= PHASE_ORDER.indexOf(target);
-}
-
-function useEntrance() {
-  const [phase, setPhase] = useState<Phase>("towns");
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    setPhase("start");
-    const timers = [
-      setTimeout(() => setPhase("rivers"), 30),
-      setTimeout(() => setPhase("roads"), 330),
-      setTimeout(() => setPhase("context"), 610),
-      setTimeout(() => setPhase("towns"), 720),
-    ];
-    return () => timers.forEach(clearTimeout);
-  }, []);
-  return phase;
-}
+const MAP_DELAY = { rivers: "0ms", roads: "220ms", context: "400ms", towns: "480ms" } as const;
 
 /**
  * A flat, two-tone skyline silhouette anchored on the real river confluence
@@ -109,7 +90,7 @@ function useEntrance() {
  * no outline detail, no third color. Small on purpose, quiet on purpose:
  * the river is the thing that makes this read as Wichita, not the skyline.
  */
-function DowntownSkyline({ visible }: { visible: boolean }) {
+function DowntownSkyline() {
   const { x, y } = CONFLUENCE;
   // Scaled up and pushed further from the confluence than the first pass:
   // at 0.22 opacity and the original 20-unit footprint this was reading as
@@ -134,11 +115,7 @@ function DowntownSkyline({ visible }: { visible: boolean }) {
   const ky = y + OY * 0.6;
   const ks = S * 0.85;
   return (
-    <g
-      aria-hidden="true"
-      className="text-cream transition-opacity duration-500 ease-out"
-      style={{ opacity: visible ? 1 : 0 }}
-    >
+    <g aria-hidden="true" className="map-in text-cream" style={{ animationDelay: MAP_DELAY.context }}>
       {buildings.map(([dx, dy, w, h], i) => (
         <rect key={i} x={x + dx} y={y + dy - h} width={w} height={h} fill="currentColor" fillOpacity={0.3} />
       ))}
@@ -182,13 +159,12 @@ export function ServiceAreaMap({
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   const glowId = useId();
-  const phase = useEntrance();
 
   return (
     <figure className={compact ? "m-0" : "mt-10"}>
       <svg
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        className="h-auto w-full overflow-visible"
+        className="h-auto w-full"
         role="group"
         aria-label={`A map of the Wichita area showing the Arkansas and Little Arkansas rivers, the main highways, the city limit, and the ${towns.length} towns Alex works. Select a town to ask him about it.`}
       >
@@ -206,11 +182,7 @@ export function ServiceAreaMap({
             verified against navy-glow in the contrast auditor. Drawn in
             (stroke sweeping on via dash offset) rather than just appearing,
             the first move in the map's one entrance sequence. */}
-        <g
-          className="text-cream transition-opacity duration-300 ease-out"
-          style={{ opacity: atLeast(phase, "rivers") ? 1 : 0 }}
-          aria-hidden="true"
-        >
+        <g className="map-in text-cream" style={{ animationDelay: MAP_DELAY.rivers }} aria-hidden="true">
           {RIVER_AREA_PATHS.map((d, i) => (
             <path key={`ra${i}`} d={d} fill="currentColor" fillOpacity={0.3} stroke="currentColor" strokeOpacity={0.55} strokeWidth={1.4} />
           ))}
@@ -224,11 +196,7 @@ export function ServiceAreaMap({
             plus the dashed outline it always had; see the fair housing note
             in the file header for why one flat wash on a single closed
             shape does not cross into exposure. */}
-        <g
-          className="text-cream transition-opacity duration-[400ms] ease-out"
-          style={{ opacity: atLeast(phase, "context") ? 1 : 0 }}
-          aria-hidden="true"
-        >
+        <g className="map-in text-cream" style={{ animationDelay: MAP_DELAY.context }} aria-hidden="true">
           {MUNICIPAL_BOUNDARY_PATHS.map((d, i) => (
             <path key={`bf${i}`} d={d} fill="currentColor" fillOpacity={0.045} stroke="none" />
           ))}
@@ -247,26 +215,15 @@ export function ServiceAreaMap({
 
         {/* The five named highways, drawn brighter than the boundary so the
             grid reads clearly but still under the towns. */}
-        <g
-          className="text-cream transition-opacity duration-300 ease-out"
-          style={{ opacity: atLeast(phase, "roads") ? 1 : 0 }}
-          aria-hidden="true"
-        >
+        <g className="map-in text-cream" style={{ animationDelay: MAP_DELAY.roads }} aria-hidden="true">
           {ROAD_PATHS.map((r) => (
             <path key={r.id} d={r.d} fill="none" stroke="currentColor" strokeOpacity={0.4} strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" />
           ))}
         </g>
 
-        <DowntownSkyline visible={atLeast(phase, "context")} />
+        <DowntownSkyline />
 
-        <g
-          className="transition-[opacity,transform] duration-[400ms] ease-out"
-          style={{
-            opacity: atLeast(phase, "towns") ? 1 : 0,
-            transform: atLeast(phase, "towns") ? "translateY(0)" : "translateY(4px)",
-            transformBox: "fill-box",
-          }}
-        >
+        <g className="map-in" style={{ animationDelay: MAP_DELAY.towns }}>
           {towns.map((t) => {
             const p = project(t.lon, t.lat);
             const isAnchor = Boolean(t.anchor);
