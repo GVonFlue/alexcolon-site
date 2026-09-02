@@ -610,3 +610,191 @@ close, because giving each of those heroes a real, page-specific object
 brief did not ask for either. It is the most visible remaining hole on
 four of seven interior routes and the most honest answer to "what is
 still wrong."
+
+---
+
+# v6
+
+Three items carried over from the last report: verify WebKit rather than
+citing its reputation, stop guessing the map's padding, and write down the
+motion system instead of trimming it to fit a number.
+
+## WebKit, tested rather than reasoned about
+
+scripts/shots.mjs now runs every check, overflow at all five widths,
+console errors, screenshots, and a new dedicated map hover/select
+exercise, in both Chromium and WebKit, with screenshots split into
+`audit-output/chromium/` and `audit-output/webkit/` so the two are
+comparable file for file. This is permanent, not a one-off: it is what
+`node scripts/shots.mjs` runs from now on.
+
+**WebKit itself could not be exercised in this session's environment**,
+and that needs to be said plainly rather than folded into a "tests
+passed" summary. `playwright.webkit.launch()` succeeds, but
+`browser.newContext().newPage()` hangs indefinitely, every time, with the
+sandbox both on and explicitly off, confirmed with Playwright's own debug
+tracing pinpointing the exact call that never returns. The system's real
+Safari (17.4, installed) was the fallback plan, driven directly over
+WebDriver via `safaridriver`, but that requires enabling Safari's "Allow
+Remote Automation" first, which itself requires an interactive
+administrator password this session does not have. Both are environment
+limitations of this machine or its sandbox, not something fixable by
+changing the site's code, and not something to claim past. scripts/shots.mjs
+is written to run cleanly wherever WebKit actually launches (a real
+Safari or a developer machine, for instance) and to report a hard,
+visible failure rather than a silent skip when it cannot, which is what
+happened here: it exits 1 and says exactly which engine and why.
+
+**What did get verified in Chromium**, specifically to de-risk the parts
+of this that were WebKit-shaped concerns even without a second engine to
+compare against:
+
+- The map's hover mechanism was rewritten off `transform-box: fill-box`
+  entirely (see below), the change the brief asked for if fill-box
+  misbehaved, done regardless of not being able to confirm the WebKit
+  side, because the replacement is strictly more portable either way and
+  the fill-box reference-box question this was worried about is real and
+  documented independent of what this session could reproduce.
+- Building that replacement surfaced two real, reproducible bugs, caught
+  by testing the actual computed styles rather than by reading the JSX
+  and assuming it would work:
+  1. A hand-written `.group:hover .mark-scale` selector in globals.css
+     compiled, through Tailwind v4's build, into a bare `.mark-scale`
+     with the `.group:hover` condition silently dropped, permanently
+     scaling every mark up regardless of hover state. Tailwind appears to
+     specially process selectors built on its own `.group` marker class;
+     writing raw CSS against that same class collided with it. Fixed by
+     letting Tailwind's own `group-hover:` variant own the selector
+     (`group-hover:[--ms:1.1]`, an arbitrary-property utility) instead of
+     hand-writing one against `.group`.
+  2. `--mx`/`--my` custom properties were set to bare unitless numbers
+     (`"704.99"`), and substituting a bare number into `translate()` via
+     `var()` computed the whole `transform` property to `none`: an
+     unquoted number is not a valid CSS `<length>`, and that invalidity
+     does not get the same "SVG content may use unitless numbers" leniency
+     a literal token written directly in the transform function gets.
+     Fixed by giving the custom properties an explicit `px` unit, which on
+     SVG content maps 1:1 to the same user-space units p.x/p.y already
+     are.
+
+  Neither of these is a WebKit bug. Both are the kind of thing "verify by
+  testing, not by reasoning" is supposed to catch, and did.
+
+## The map mark hover mechanism, rebuilt
+
+`transform-box: fill-box` plus `transform-origin: center` asked the
+engine to compute the mark's own geometric bounding box and scale around
+its center. That computation has a real cross-engine history of
+resolving to the wrong reference box (the nearest SVG viewport instead of
+the element), which would show up as a hover throwing the mark toward the
+corner of the map rather than lifting it in place.
+
+Replaced with `.mark-scale` in globals.css: `--mx`/`--my` carry the
+mark's own coordinates (in px, see the bug above), and
+`translate(mx,my) scale(var(--ms,1)) translate(-mx,-my)` is the plain
+matrix for "scale by a factor around the point (mx,my)", arithmetic on
+numbers already known at render time rather than a reference box the
+browser has to compute. `--ms` itself toggles between 1 and 1.1 through
+Tailwind's own `group-hover:`/`group-focus-visible:` variants, so the
+existing group/hover/transition wiring didn't need to change, just what
+it is driving.
+
+Confirmed in Chromium with a real measurement, not a screenshot glance:
+hovering a non-anchor mark moves its center by 0.00px while it grows by
+exactly the expected 1.1x, and selecting it still sets `aria-pressed` and
+surfaces the "Ask Alex about X" CTA. This exact check now runs on every
+`node scripts/shots.mjs`, in both engines, and is reported as a named
+failure (not folded into a generic screenshot pass) if it ever
+regresses.
+
+## The map's padding, measured instead of guessed
+
+The 60/30/45/45 padding from last pass was tuned by eye to fit the seven
+names actually in content/site.json today, which is exactly the kind of
+number that stops being true the day a client renames a town or adds an
+eighth one, since content/site.json is a file they edit directly and the
+map's viewBox is generated once and does not know a town list changed
+until someone re-runs scripts/build-map-geometry.mjs by hand.
+
+scripts/map-label-metrics.mjs now estimates each town's actual worst-case
+label reach from its name length, its worst-case font size (the anchor
+town's own fixed size, or the "selected" size any other town can reach
+the moment it is clicked), and a deliberately generous 0.6em-per-character
+advance width, no DOM, no canvas, no measurement pass that could shift
+first paint. scripts/build-map-geometry.mjs pads the view by the largest
+reach any current town actually needs (it came out to 964x566 for today's
+seven, up from the hand-tuned 762x572, because "Rose Hill" and "Park
+City" both need more room than 45 units gave them).
+
+The important half of this is the permanent check, not the one-time
+calculation: scripts/audit-map-fit.mjs (now part of `npm run audit:all`)
+independently recomputes every current town's label extent against
+whatever viewBox is currently baked into lib/generated/wichitaMap.ts and
+fails if any of them no longer fit, which is exactly the scenario a fixed
+padding could not catch. Proven able to actually fail, not just report
+green: the negative test suite (scripts/audit-negative.mjs) injects a
+32-character fake town name at Rose Hill's own coordinates, the town that
+already needed the most room, and confirms the check flags it by name
+before confirming the real seven still pass.
+
+## The motion system, named
+
+Seven distinct patterns survive this pass, and the brief for this round
+was explicit that seven deliberate ones is not the "scattered" failure
+mode the doctrine warns about, that ceiling was a heuristic against
+fade-ups sprinkled on every card, heading and list item, not a hard cap,
+and cutting the tool easing to satisfy a number would have made the
+product slightly worse for nobody's benefit. Consolidated to a named set
+so "is this orchestrated" is answerable by reading a list instead of
+counting call sites:
+
+1. **Load entrance.** One sequence, once, on page load: the hero's five
+   elements (eyebrow, headline, support, CTAs, map) via `.hero-in`, and
+   the map's own four layers (rivers, highways, boundary+skyline, towns)
+   via `.map-in`, both plain CSS keyframes with staggered
+   `animation-delay`, no JS state driving either.
+2. **Section reveal.** One IntersectionObserver-backed pattern
+   (`Reveal.tsx`), applied at the section level only, every `Section`
+   gets it automatically and no individual card, heading or list item
+   carries its own.
+3. **Interactive surfaces respond on hover.** Buttons, the pick-your-door
+   lanes, and the map's town marks all lift, brighten, or shift on
+   hover/focus. Three different surfaces, one rule: a hovered or focused
+   interactive element visibly acknowledges it, immediately, with no
+   scroll or load choreography attached. This is the one place last
+   pass's report counted three separate near-identical entries where one
+   name covers all of them; the behavior did not change, the description
+   did.
+4. **Marquee.** A continuous, decorative ticker of the same four audience
+   lanes pickYourDoor already lists. The one loop on the site, and it is
+   allowed to be one: it is texture, not an entrance, and was never in
+   scope for "not a loop."
+5. **Tool result easing.** The big figure in all four interactive tools
+   eases toward a changed value (`fields.tsx`, shared by all four, not
+   duplicated per tool). Skipped on the very first value a tool ever
+   shows and under reduced motion, both inside the same hook, so it is
+   never the reason a number is wrong on first paint.
+
+Reduced motion is honored the same two ways everywhere in this list: the
+JS-driven pieces (Reveal, the tool easing) check
+`prefers-reduced-motion` directly, and globals.css's blanket query
+zeroes `animation-duration`, `animation-delay`, `transition-duration` and
+`transition-delay` site-wide as an independent second line of defense,
+which is what actually catches the CSS-only pieces (1 and 3) without
+either of them needing a reduced-motion branch of their own.
+
+## Deferred: the hero map card on very tall, narrow viewports
+
+Not touched this pass, staying on the list rather than being fixed
+quietly or silently dropped. On a very tall, narrow viewport (a phone in
+portrait with an unusually generous height, or a browser window resized
+tall and thin) the hero's map card sizes itself from the map's own
+aspect ratio and the column width, not from the available vertical space,
+so it can end up visually small relative to how much vertical room the
+fold actually has, floating rather than filling. The fix is almost
+certainly a `max-height` tied to the viewport (something like a `dvh`
+clamp on the card) with the map's own `h-auto w-full` still driving the
+common case, rather than anything about the map's data or drawing; not
+done here because it needs real testing across actual tall-narrow
+viewports to get the clamp right rather than a guessed value, the same
+discipline this pass's other two fixes were about.
