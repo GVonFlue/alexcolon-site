@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 
 /**
  * Shared input primitives for the interactive tools.
@@ -228,9 +228,72 @@ export function ChoiceRow<T extends string | number>({
   );
 }
 
+/** Strips a formatted figure like "$1,450" or "-12" back to a number, or
+ * null if there is nothing numeric to animate (an empty string, mainly). */
+function parseFigure(s: string): number | null {
+  if (!s) return null;
+  const n = Number(s.replace(/[^0-9.-]/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
 /**
- * The result block. Renders its final values immediately with no count up, so
- * the number is correct on first paint and reduced motion needs no special case.
+ * Eases the big result figure toward a new value instead of just swapping the
+ * text, so a visitor adjusting a field sees the number move rather than
+ * flicker. Purely a display layer: the very first value a tool ever shows
+ * (nothing animates from), any non-numeric value (the empty state's copy),
+ * and anything under reduced motion all render immediately and exactly as
+ * passed in, so the figure is correct on first paint either way and reduced
+ * motion needs no special case at the call site.
+ */
+function useEasedFigure(target: string, durationMs = 550) {
+  const [display, setDisplay] = useState(target);
+  const prevNum = useRef<number | null>(null);
+  const raf = useRef<number | null>(null);
+
+  useEffect(() => {
+    const targetNum = parseFigure(target);
+    if (raf.current) cancelAnimationFrame(raf.current);
+
+    if (
+      targetNum === null ||
+      prevNum.current === null ||
+      prevNum.current === targetNum ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      setDisplay(target);
+      prevNum.current = targetNum;
+      return;
+    }
+
+    const isCurrency = target.trim().startsWith("$") || target.trim().startsWith("-$");
+    const from = prevNum.current;
+    const start = performance.now();
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const current = from + (targetNum - from) * eased;
+      setDisplay(isCurrency ? usd.format(current) : String(Math.round(current)));
+      if (t < 1) {
+        raf.current = requestAnimationFrame(step);
+      } else {
+        prevNum.current = targetNum;
+        setDisplay(target);
+      }
+    };
+    raf.current = requestAnimationFrame(step);
+    return () => {
+      if (raf.current) cancelAnimationFrame(raf.current);
+    };
+  }, [target, durationMs]);
+
+  return display;
+}
+
+/**
+ * The result block. The big figure eases toward a changed value (see
+ * useEasedFigure above); everything else, including the very first value
+ * shown, renders immediately with no count up, so first paint is always
+ * correct and reduced motion needs no special case at the call site.
  */
 export function Result({
   label,
@@ -247,6 +310,7 @@ export function Result({
   children?: React.ReactNode;
   empty?: string;
 }) {
+  const displayValue = useEasedFigure(value);
   return (
     <div className="mt-8 border-t border-line pt-6" aria-live="polite">
       {empty ? (
@@ -259,7 +323,7 @@ export function Result({
               tone === "negative" ? "text-negative" : "text-navy"
             }`}
           >
-            {value}
+            {displayValue}
           </p>
           {rows && rows.length > 0 && (
             <dl className="mt-6 divide-y divide-line border-t border-line">
