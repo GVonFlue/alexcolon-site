@@ -206,6 +206,66 @@ const PAIRS = [
     kind: "ui",
     decorative: true,
   },
+  // The downtown skyline silhouette and the town-mark hover halo, both added
+  // this pass. Same worst-case ground, navy-glow.
+  {
+    what: "skyline building fill, cream at 30 percent on navy-glow",
+    fg: composite(T.cream, 0.3, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "Keeper of the Plains fill and stroke, cream at 50 percent on navy-glow",
+    fg: composite(T.cream, 0.5, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "town mark hover halo, cream at 40 percent on navy-glow",
+    fg: composite(T.cream, 0.4, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+    decorative: true,
+  },
+  // The assistant's capability chips, now centered above the card on the
+  // navyWash section instead of inside it, and its card header bar. Worst
+  // case for the chips is navy-glow, the same brightest dark stop; the
+  // header bar is a near-invisible navy tint over the card's white paper.
+  {
+    what: "assistant capability chip label, dim on cream-at-6-percent over navy-glow",
+    fg: T.dim,
+    bg: composite(T.cream, 0.06, T.navyGlow),
+    kind: "text",
+  },
+  {
+    what: "assistant card header bar, navy at 2 percent over the white card",
+    fg: composite(T.navy, 0.02, T.paper),
+    bg: T.paper,
+    kind: "ui",
+    decorative: true,
+  },
+  // The Split component's vertical rule, shown under a heading with no
+  // aside so the short column is never left floating over empty space (see
+  // ui.tsx). currentColor on the light grounds every no-aside call site
+  // (prose, lossAversion, tool, faq) actually uses; checked against ink,
+  // the darkest of those, which bounds every lighter one.
+  {
+    what: "Split's filler rule, ink at 20 percent on cream",
+    fg: composite(T.ink, 0.2, T.cream),
+    bg: T.cream,
+    kind: "ui",
+    decorative: true,
+  },
+  // The contact strip's tel link underline.
+  {
+    what: "contact strip tel underline, navy at 30 percent on cream",
+    fg: composite(T.navy, 0.3, T.cream),
+    bg: T.cream,
+    kind: "ui",
+    decorative: true,
+  },
   // The sticky header, moved from a cream bar to translucent navy with a
   // backdrop blur so it reads as part of this dark-first page instead of a
   // seam across the top of it. Composited twice: navy at 92 percent over
