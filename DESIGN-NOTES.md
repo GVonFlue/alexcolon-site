@@ -480,3 +480,133 @@ already has a distinct shape, rather than four identically-structured
 cards. Not fixed here because that is closer to a features change than a
 visual design one, and this pass's brief was explicit about which one this
 was.
+
+---
+
+# Between v4 and v5
+
+Three things landed here that never got written up: the map was rebuilt
+from real US Census TIGER/Line geometry instead of the seven-dots-and-
+spider-lines diagram v4 had only restyled, the sticky header moved from a
+flat cream bar (which sat as a hard seam across the top of every now-dark
+page) to translucent navy with a blur, and the assistant's interior went
+from three stacked bordered boxes, the visual grammar of a form, to one
+recessed transcript well, free-floating chips and a pill composer. All
+three are the foundation this pass's own map and assistant work builds on.
+
+# v5
+
+The brief for this pass was explicit that the palette, the type and the
+dark inversion already work: this is about motion, the map, and the
+interior pages carrying their own weight, not another palette pass.
+
+## The map, again
+
+Two previous prompts asked for real geometry and both times it got
+restyled instead of rebuilt. That part was actually already fixed between
+v4 and this pass (see above); what this pass added on top of the real
+geometry is a flat, two-tone downtown skyline and the Keeper of the
+Plains anchored on the actual river confluence, a five-phase orchestrated
+entrance (rivers, then highways, then the boundary and skyline, then the
+towns, under a second, once), a flat uniform fill on the municipal
+boundary alongside its stroke, and hover states that lift the dot,
+strengthen the label and fade the halo in rather than only reacting to a
+click.
+
+The confluence is computed, not eyeballed: `findConfluence` in
+scripts/build-map-geometry.mjs takes the closest pair of vertices between
+the Arkansas and Little Arkansas AREAWATER polygons and exports the
+midpoint as `CONFLUENCE`. It came out to lon -97.34813, lat 37.69113,
+within hundredths of a degree of where the actual sculpture sits. That is
+not a coincidence worth taking credit for; it is what happens when the
+method (real polygon data, not memory) is right.
+
+## Wick, rebuilt to the reference's own format
+
+The reference presents Scout as a centered column with the section's own
+header above it and the capability chips above the card, not a full width
+band with the avatar stranded on the left. Wick now matches that shape:
+eyebrow, a heading that highlights "Wick" the same way a hero's
+accentPhrase highlights a word, one line of intro, the capability chips
+centered above a card that is itself constrained to roughly 672px rather
+than the full band. The card gained a proper header bar (avatar, name,
+the site it belongs to, the status dot) divided from the transcript by a
+real rule. The honest status behavior, checking on mount, never claiming
+a readiness it has not verified, did not change, because it did not need
+to.
+
+## Motion: one pattern, applied once, and the bug it caught
+
+Section reveals on scroll now, added in exactly one place, `Section`
+itself in ui.tsx, via a new `Reveal` component, rather than at each of the
+dozen or so call sites that render one. That is what "one pattern used
+consistently" actually requires: not a rule anyone has to remember to
+follow, a place where following it is the only option.
+
+It also produced this pass's one real bug, caught by this project's own
+verification step rather than by inspection. shots.mjs takes a full-page
+screenshot of the homepage, and that capture does not reliably fire the
+IntersectionObserver a scroll-triggered reveal depends on: every band
+below the hero rendered at opacity 0 in the screenshot, which is exactly
+the "no animation may gate usability" failure the component's own doctrine
+forbids, just discovered by tooling instead of by a human missing it. The
+fix is a 60ms timed fallback: a hidden section reveals on its own if
+nothing has intersected by then, far below what any real screenshot,
+crawl, or print takes to run. The same root cause, animation-delay
+surviving a reduced-motion override that only zeroed animation-duration,
+also affected the hero's own five-element stagger and got the same class
+of fix in globals.css. Both are described in more detail in the commits
+that made them; they are called out here because "did the verification
+catch anything" is a fair question and the honest answer is yes, once,
+and this is what it caught.
+
+The hero's own stagger went from two blocks (the text column, then the
+map) to five (eyebrow, headline, support, CTAs, map), still under a
+second, still plays once on load. Split's dead space (a heading column
+with nothing under it once the body column ran longer, ~200px of it on
+/buy) got a vertical rule filling the column instead of invented filler
+copy, the doctrine's own suggested fix. The four tools' result figure
+eases toward a changed value instead of just swapping text, skipped
+entirely for the very first value a tool ever shows and for anyone with
+reduced motion set.
+
+## Interior pages carrying their own weight
+
+Every interior route had exactly one form, far down the page, and the
+assistant existed nowhere but the homepage. It is on buy, sell, veterans,
+investors and areas now, with different intro copy on each one, and a new
+compact contactStrip band sits mid-page on the same five routes: a
+tappable phone, a text link, one line of copy, deliberately not a third
+form. The per-route audit against the doctrine's own checklist is in the
+delivery notes for this pass rather than repeated here.
+
+## The mandatory self critique
+
+**Does the map read as Wichita to someone who lives there?** Closer than
+it has, and the honest weak point is the skyline: at the sizes this map
+actually renders (a compact hero card, or the larger /areas rendering) the
+building cluster and the Keeper of the Plains are legible on a deliberate
+zoom-in but read as texture, not a recognizable skyline, at normal viewing
+size. That is mostly the tradeoff the brief itself asked for ("if it
+starts looking like a stock city illustration, cut it, the river matters
+more than the buildings") rather than an execution miss, but it means the
+landmark is closer to a rumor than a feature right now.
+
+**Is the motion orchestrated or scattered?** Orchestrated, and the count
+is small on purpose: one hero stagger (five elements, one sequence), one
+map entrance (four phases, one sequence), one scroll-reveal pattern
+applied at the section level everywhere, real hover states on the map
+marks and the pick-your-door lanes (unchanged this pass; they already did
+this), and the tools' result figure. Nothing fades up per card, per list
+item, or per heading, the exact scattered pattern this pass named as an
+AI design tell.
+
+**What is the single worst-looking thing left on the site?** The routes
+without a `feature` on their hero (/buy, /sell, /veterans, /investors)
+still show an empty second column at the width where the homepage hero
+shows the map, the same gap v4's own self-critique named and did not
+close, because giving each of those heroes a real, page-specific object
+(the net proceeds line, a compact tool) is a features change this pass's
+brief did not ask for either. It is the most visible remaining hole on
+four of seven interior routes and the most honest answer to "what is
+still wrong."
