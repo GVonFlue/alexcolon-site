@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Cta } from "@/lib/schema";
+import { Reveal } from "./Reveal";
 
 /**
  * Button styling encodes rule 3 of the nine checks. The gold accent is a filled
@@ -113,7 +114,10 @@ export function Section({
   id?: string;
 }) {
   return (
-    <section id={id} className={`${TONES[tone]} ${className}`}>
+    // Reveal is the site's one scroll-reveal pattern, applied here and only
+    // here so every band gets it the same way instead of each call site
+    // reinventing it. See Reveal.tsx for why the hero is unaffected.
+    <Reveal id={id} className={`${TONES[tone]} ${className}`}>
       {/*
        * Cut from py-16/20/24 (up to 96px a side, 192px between two adjacent
        * bands) to this. Premium is not the same as empty: there was enough
@@ -122,7 +126,7 @@ export function Section({
       <div className={`mx-auto w-full max-w-[76rem] px-5 sm:px-8 ${pad ?? "py-11 sm:py-14 lg:py-16"}`}>
         {children}
       </div>
-    </section>
+    </Reveal>
   );
 }
 
@@ -136,6 +140,18 @@ export function Section({
  *
  * It collapses to one column below the large breakpoint, where the heading
  * simply sits above its content as before.
+ *
+ * A band with no `aside` (prose, lossAversion, tool, faq) used to leave the
+ * heading column floating over whatever empty space was left once the body
+ * column ran longer, which on /buy's "The money, in the order it leaves your
+ * account" was roughly 200px of nothing under a two-line heading. The grid
+ * row already stretches both columns to the taller one's height (grid's own
+ * default, not something added here); what was missing was anything in the
+ * short column willing to use that height. Without an `aside`, this now
+ * grows a vertical rule under the heading down to the bottom of the row,
+ * which is deliberately just a rule and not invented copy: the column reads
+ * as an intentional editorial spine bridging two uneven columns instead of a
+ * heading abandoned in whitespace.
  */
 export function Split({
   heading,
@@ -148,9 +164,14 @@ export function Split({
 }) {
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-14">
-      <div>
+      <div className="flex h-full flex-col">
         {heading}
         {aside}
+        {!aside && (
+          <div aria-hidden="true" className="mt-8 hidden flex-1 lg:block">
+            <div className="h-full w-px bg-gradient-to-b from-current/20 via-current/10 to-transparent" />
+          </div>
+        )}
       </div>
       <div className="min-w-0">{children}</div>
     </div>

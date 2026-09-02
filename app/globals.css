@@ -250,14 +250,24 @@ body {
  * animation and transition, and the components that animate also render their
  * final values immediately in JS. The DOM is correct on first paint either way,
  * and no animation gates usability.
+ *
+ * animation-delay is zeroed here too, not just duration. A near-zero duration
+ * on an element that still carries a real delay does not become instant, it
+ * becomes invisible until the delay elapses and then instant: the hero's own
+ * five-element stagger runs delays up to 280ms, so without this an element
+ * with reduced motion requested would still sit at opacity 0 for up to that
+ * long before snapping in, which is exactly the "gates usability" failure
+ * this rule exists to prevent.
  */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
   }
 }
 
