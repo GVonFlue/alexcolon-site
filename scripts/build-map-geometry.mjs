@@ -33,6 +33,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
+import { labelExtent } from "./map-label-metrics.mjs";
 
 const ROOT = process.cwd();
 const CACHE_DIR = path.join(ROOT, ".cache", "tiger");
@@ -373,10 +374,22 @@ function main() {
   for (const t of towns) grow(contentBox, rawProject(t.lon, t.lat));
   grow(contentBox, rawProject(confluenceLonLat.lon, confluenceLonLat.lat));
 
-  // Padding: generous and asymmetric on top, because a town's label and its
-  // selected-state halo sit above its dot, up to about 40 units for the
-  // anchor town at its largest type size, not below or beside it.
-  const PAD = { top: 60, bottom: 30, left: 45, right: 45 };
+  // Padding: measured from the town list, not guessed. content/site.json
+  // is a file a client edits directly, and a name added or lengthened
+  // there does not by itself trigger a re-run of this script, so a fixed
+  // padding tuned to today's seven names is exactly the kind of thing that
+  // clips silently the day someone renames one. labelExtent (see
+  // map-label-metrics.mjs, the same module audit-map-fit.mjs uses to
+  // verify this after the fact) estimates each town's actual worst-case
+  // label reach from its name and font size; the padding on every side is
+  // the largest reach any town in the current list actually needs.
+  const extents = towns.map(labelExtent);
+  const PAD = {
+    top: Math.ceil(Math.max(...extents.map((e) => e.top))),
+    bottom: Math.ceil(Math.max(...extents.map((e) => e.bottom))),
+    left: Math.ceil(Math.max(...extents.map((e) => e.left))),
+    right: Math.ceil(Math.max(...extents.map((e) => e.right))),
+  };
   const fitX = contentBox.minX - PAD.left;
   const fitY = contentBox.minY - PAD.top;
   const VIEW_W = Math.round(contentBox.maxX - contentBox.minX + PAD.left + PAD.right);

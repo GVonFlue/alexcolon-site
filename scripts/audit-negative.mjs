@@ -15,6 +15,7 @@ import { spawn } from "node:child_process";
 import { scan, findStackedFragments, pronounRatio, RULE_SET_KEYS } from "./rules.mjs";
 import { auditHtml } from "./html-checks.mjs";
 import { killTree } from "./kill-tree.mjs";
+import { checkMapFit } from "./map-fit-check.mjs";
 
 let failures = 0;
 let ran = 0;
@@ -122,6 +123,40 @@ console.log("============================");
   assert(
     "contrast script exits non-zero on failure",
     src.includes("process.exit(1)") && src.includes("failures > 0"),
+  );
+}
+
+console.log("\nNegative tests: map fit");
+console.log("=======================");
+{
+  // A check that cannot fail is decorative, the same rule as everything
+  // else in this file. checkMapFit is what scripts/audit-map-fit.mjs runs
+  // for real; this proves it actually catches a label that no longer
+  // fits, not just that it prints "pass" against whatever content happens
+  // to be checked in.
+  const realTowns = JSON.parse(
+    readFileSync(new URL("../content/site.json", import.meta.url).pathname, "utf8"),
+  ).serviceAreas;
+  const map = await import(new URL("../lib/generated/wichitaMap.ts", import.meta.url).href);
+
+  const clean = checkMapFit(realTowns, map);
+  assert(
+    "the real seven-town list fits the currently generated map",
+    clean.ok,
+    clean.violations.join("; "),
+  );
+
+  // Same position as the town that already needed the most padding (Rose
+  // Hill), a name long enough that no plausible padding would absorb it.
+  const withFakeLongName = [
+    ...realTowns,
+    { name: "Northwestminsterborough Heights", lat: 37.5589, lon: -97.1275 },
+  ];
+  const dirty = checkMapFit(withFakeLongName, map);
+  assert(
+    "a deliberately long fake town name fails the map fit check",
+    dirty.ok === false && dirty.violations.some((v) => v.includes("Northwestminsterborough")),
+    dirty.ok ? "check passed on a name it should have caught" : dirty.violations.join("; "),
   );
 }
 
