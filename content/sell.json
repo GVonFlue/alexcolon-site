@@ -28,6 +28,12 @@
       "image": null
     },
     {
+      "type": "assistant",
+      "eyebrow": "Before you list",
+      "heading": "Ask Wick what selling actually costs",
+      "intro": "Wick knows what leaves your account when a house sells here, in what order, and what the automated number on your screen usually gets wrong. Ask before you talk to Alex, and it will say so the moment it does not know something."
+    },
+    {
       "type": "prose",
       "heading": "Why the number on your screen is usually wrong",
       "body": [
@@ -43,6 +49,10 @@
         "This does not predict what your house will sell for, because nobody can do that from a web page. It only totals what you are already spending while you decide. Put your own figures in and the arithmetic is the arithmetic."
       ],
       "calculator": "none"
+    },
+    {
+      "type": "contactStrip",
+      "line": "Already know you want a number on your house? Skip the reading."
     },
     {
       "type": "tool",

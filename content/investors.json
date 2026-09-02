@@ -28,6 +28,12 @@
       "image": null
     },
     {
+      "type": "assistant",
+      "eyebrow": "Before you run the numbers",
+      "heading": "Ask Wick about rental math",
+      "intro": "Wick knows where rental math on this page usually goes wrong, the rent estimate and the carrying cost, and can walk through either before you send Alex an address. It says so the moment it does not know something."
+    },
+    {
       "type": "prose",
       "heading": "Where most rental math goes wrong",
       "body": [
@@ -43,6 +49,10 @@
         "If the number at the bottom is negative, it says so in the same size type as everything else."
       ],
       "tool": "rentalCashflow"
+    },
+    {
+      "type": "contactStrip",
+      "line": "Already have an address? Skip the tool and send it to Alex."
     },
     {
       "type": "steps",

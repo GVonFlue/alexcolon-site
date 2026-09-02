@@ -28,6 +28,12 @@
       "image": null
     },
     {
+      "type": "assistant",
+      "eyebrow": "Before you talk to a lender",
+      "heading": "Ask Wick about the VA process",
+      "intro": "Wick knows the two places a VA purchase actually differs from any other, eligibility and the appraisal, and can walk you through either one. Ask before you call a lender, and it will say so the moment it does not know something."
+    },
+    {
       "type": "prose",
       "heading": "The two places a VA purchase actually differs",
       "body": [
@@ -61,6 +67,10 @@
           "detail": "Sellers weigh certainty as heavily as price. An offer that explains why your dates are firm and shows the financing is already moving reads as lower risk, not higher."
         }
       ]
+    },
+    {
+      "type": "contactStrip",
+      "line": "Already have a report date? Send it to Alex directly."
     },
     {
       "type": "tool",

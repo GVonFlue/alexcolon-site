@@ -15,7 +15,7 @@
       "ctas": [
         {
           "label": "Ask about a specific area",
-          "href": "#ask",
+          "href": "#contact",
           "kind": "give",
           "emphasis": "primary"
         },
@@ -27,6 +27,13 @@
         }
       ],
       "image": null
+    },
+
+    {
+      "type": "assistant",
+      "eyebrow": "Before you pick a town",
+      "heading": "Ask Wick about the towns",
+      "intro": "Wick knows which of the seven towns Alex works, roughly where they sit relative to Wichita, and can point you at the page that answers a buying or selling question about any of them. Ask before you narrow it down yourself."
     },
 
     {
@@ -42,6 +49,11 @@
         "It does not rank these places or tell you which one is better, because that is not a question anybody can answer for someone else, and because characterizing who lives in a neighborhood is something a licensed agent is not permitted to do.",
         "What Alex can tell you is factual and specific. What houses have recently sold for on a given street, how long they sat, what the taxes run, what a commute actually takes at the hour you would be driving it, and what tends to turn up on inspections of houses of a particular age. Ask about the thing you actually want to know and you will get that."
       ]
+    },
+
+    {
+      "type": "contactStrip",
+      "line": "Already know which town? Tell Alex directly."
     },
 
     {

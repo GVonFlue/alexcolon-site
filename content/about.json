@@ -15,7 +15,7 @@
       "ctas": [
         {
           "label": "Ask Alex something",
-          "href": "#ask",
+          "href": "#contact",
           "kind": "give",
           "emphasis": "primary"
         },

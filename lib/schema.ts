@@ -271,6 +271,16 @@ export const Band = z.discriminatedUnion("type", [
     type: z.literal("conversion"),
     magnetId: z.string().min(1),
   }),
+  /**
+   * A compact, visually distinct door between two content bands: a tappable
+   * phone, a text link, one line of copy. Deliberately not a third form: the
+   * doctrine wants two or more genuinely distinct paths, and a second and
+   * third form on the same page is one path repeated, not two.
+   */
+  z.object({
+    type: z.literal("contactStrip"),
+    line: z.string().min(1),
+  }),
   z.object({
     type: z.literal("proof"),
     heading: z.string().min(1),

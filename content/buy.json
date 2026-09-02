@@ -28,6 +28,12 @@
       "image": null
     },
     {
+      "type": "assistant",
+      "eyebrow": "Before you talk to a lender",
+      "heading": "Ask Wick a question first",
+      "intro": "Wick knows the buying process on this page cold: pre approval, what money moves when, what happens at inspection. Ask before you call a lender or Alex, and it will say so the moment it does not know something."
+    },
+    {
       "type": "steps",
       "heading": "The order things actually happen in",
       "intro": "Six stages, and the money leaves your account at three of them. Knowing which three is most of what makes this manageable.",
@@ -65,6 +71,10 @@
         "Earnest money goes first, at the offer, and it is credited back to you at closing rather than spent. The inspection is paid at the time of the inspection. Closing costs come last and they are the largest of the three, and your lender is required to put them in writing before you get there.",
         "The exact figures depend on the price of the house and the loan you use, which is why nobody honest will quote them to you off a web page. What you can do right now is ask a lender for the numbers on a specific price, and ask Alex to sanity check what comes back."
       ]
+    },
+    {
+      "type": "contactStrip",
+      "line": "Already talked to a lender and just have a question for Alex?"
     },
     {
       "type": "tool",
