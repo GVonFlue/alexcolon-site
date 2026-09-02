@@ -177,6 +177,42 @@ function multiPath(paths) {
   return paths.join(" ");
 }
 
+/**
+ * Finds where the Arkansas and Little Arkansas actually meet, so the
+ * downtown skyline silhouette can anchor on the real confluence instead of
+ * a remembered or estimated coordinate. Computed as the midpoint of the
+ * closest pair of vertices between the two rivers' AREAWATER polygons,
+ * which is a good approximation of a confluence for two channels wide
+ * enough to be mapped as polygons rather than centerlines. Data-derived,
+ * not drawn from memory, the same rule the rest of this file follows.
+ */
+function findConfluence(riverAreaFeatures) {
+  const arkansas = riverAreaFeatures.filter((f) => f.properties.FULLNAME === "Arkansas Riv");
+  const little = riverAreaFeatures.filter((f) => f.properties.FULLNAME === "Little Arkansas Riv");
+  let best = null;
+  let bestDist = Infinity;
+  const ringsOfFeature = (f) => (f.geometry.type === "Polygon" ? f.geometry.coordinates : f.geometry.coordinates.flat(1));
+  for (const a of arkansas) {
+    for (const ring of ringsOfFeature(a)) {
+      for (const [alon, alat] of ring) {
+        for (const l of little) {
+          for (const lring of ringsOfFeature(l)) {
+            for (const [llon, llat] of lring) {
+              const d = (alon - llon) ** 2 + (alat - llat) ** 2;
+              if (d < bestDist) {
+                bestDist = d;
+                best = { lon: (alon + llon) / 2, lat: (alat + llat) / 2 };
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if (!best) throw new Error("Could not locate an Arkansas / Little Arkansas confluence in the clipped data.");
+  return best;
+}
+
 function main() {
   mkdirSync(CACHE_DIR, { recursive: true });
   mkdirSync(WORK_DIR, { recursive: true });
@@ -296,6 +332,10 @@ function main() {
 
   const boundaryPaths = ringsOf(wichitaPlace.features).map(ringPath);
 
+  const confluenceLonLat = findConfluence(riverArea.features);
+  const confluence = project(confluenceLonLat.lon, confluenceLonLat.lat);
+  log(`confluence at ${confluenceLonLat.lon.toFixed(5)}, ${confluenceLonLat.lat.toFixed(5)} -> (${confluence.x.toFixed(1)}, ${confluence.y.toFixed(1)})`);
+
   for (const r of roads) {
     if (r.segments === 0) {
       throw new Error(`No PRISECROADS segments matched "${r.label}" (${r.test}) inside the clip bbox.`);
@@ -347,6 +387,15 @@ export const BOUNDS = {
   latMax: ${BBOX.latMax},
 };
 
+/**
+ * Where the Arkansas and the Little Arkansas actually meet, in this
+ * module's coordinate space: the midpoint of the closest pair of vertices
+ * between the two rivers' AREAWATER polygons (see findConfluence in the
+ * build script). This is what the downtown skyline silhouette anchors on,
+ * so it sits where the real confluence is rather than an eyeballed spot.
+ */
+export const CONFLUENCE = ${JSON.stringify(confluence)};
+
 /** Projects a lon/lat pair into this module's SVG coordinate space. */
 export function project(lon: number, lat: number): { x: number; y: number } {
   ${PROJECT_SRC.trim()}
@@ -368,8 +417,10 @@ export const ROAD_PATHS: RoadPath[] = ${JSON.stringify(
     2,
   )};
 
-/** The Wichita municipal boundary, from PLACE. Stroke only: never filled,
- * never used to shade an area. */
+/** The Wichita municipal boundary, from PLACE: one closed polygon ring per
+ * piece of the city limit. Whether and how this is painted (stroke, a flat
+ * uniform fill, or both) is a fair-housing-checked styling decision made
+ * where it is used, not here; see ServiceAreaMap.tsx. */
 export const MUNICIPAL_BOUNDARY_PATHS: string[] = ${JSON.stringify(boundaryPaths)};
 `;
 
