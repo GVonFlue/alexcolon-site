@@ -5,7 +5,6 @@
   "h1": "The seven towns Alex works",
   "job": "Let a visitor confirm in one glance that Alex covers where they are, then ask their specific question about that place.",
   "primaryPrinciple": "Cognitive fluency. State the coverage plainly and get out of the way.",
-
   "bands": [
     {
       "type": "hero",
@@ -28,20 +27,34 @@
       ],
       "image": null
     },
-
     {
       "type": "assistant",
       "eyebrow": "Before you pick a town",
-      "heading": "Ask Wick about the towns",
-      "intro": "Wick knows which of the seven towns Alex works, roughly where they sit relative to Wichita, and can point you at the page that answers a buying or selling question about any of them. Ask before you narrow it down yourself."
+      "heading": "Ask Lark about the towns",
+      "intro": "Lark knows which of the seven towns Alex works, which county each sits in, and what the town cards on this page can and cannot tell you. Ask before you narrow it down yourself.",
+      "chips": [
+        {
+          "label": "Which county is each town in?",
+          "prompt": "Which county is each of the seven towns Alex works in, and how far out from Wichita are they?",
+          "kind": "info"
+        },
+        {
+          "label": "Why will you not rank the towns?",
+          "prompt": "Why will you not tell me which of these towns is the best one to live in?",
+          "kind": "info"
+        },
+        {
+          "label": "Ask Alex about a specific street",
+          "prompt": "I have a specific street or address in mind and I would like Alex to tell me what he knows about it.",
+          "kind": "conversion"
+        }
+      ]
     },
-
     {
       "type": "areaMap",
       "heading": "Where these sit relative to each other",
       "intro": "Wichita in the middle, with the six surrounding towns placed roughly where they fall. Useful if you are moving here and the names do not mean anything to you yet."
     },
-
     {
       "type": "prose",
       "heading": "What this page deliberately does not do",
@@ -50,17 +63,14 @@
         "What Alex can tell you is factual and specific. What houses have recently sold for on a given street, how long they sat, what the taxes run, what a commute actually takes at the hour you would be driving it, and what tends to turn up on inspections of houses of a particular age. Ask about the thing you actually want to know and you will get that."
       ]
     },
-
     {
       "type": "contactStrip",
       "line": "Already know which town? Tell Alex directly."
     },
-
     {
       "type": "conversion",
       "magnetId": "general"
     },
-
     {
       "type": "faq",
       "heading": "Moving here from somewhere else",
@@ -79,7 +89,6 @@
         }
       ]
     },
-
     {
       "type": "closingCta",
       "heading": "Ask about the street you are actually looking at",

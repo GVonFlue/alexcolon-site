@@ -30,8 +30,25 @@
     {
       "type": "assistant",
       "eyebrow": "Before you run the numbers",
-      "heading": "Ask Wick about rental math",
-      "intro": "Wick knows where rental math on this page usually goes wrong, the rent estimate and the carrying cost, and can walk through either before you send Alex an address. It says so the moment it does not know something."
+      "heading": "Ask Lark about rental math",
+      "intro": "Lark knows where rental math on this page usually goes wrong, the rent estimate and the carrying cost, and can walk through either before you send Alex an address. It says so the moment it does not know something.",
+      "chips": [
+        {
+          "label": "What belongs in the carry?",
+          "prompt": "What belongs in the full monthly carrying cost of a rental, beyond principal and interest?",
+          "kind": "info"
+        },
+        {
+          "label": "Why are rent estimates wrong?",
+          "prompt": "Why is a national rent estimator usually wrong for a specific Kansas address, and what should I use instead?",
+          "kind": "info"
+        },
+        {
+          "label": "Have Alex run an address",
+          "prompt": "I have an address I am looking at and I would like Alex to work the rent, the carry and what is left.",
+          "kind": "conversion"
+        }
+      ]
     },
     {
       "type": "prose",

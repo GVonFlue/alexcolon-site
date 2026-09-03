@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { validSourceTags } from "./content";
+import { deploymentKind, isProductionDeployment } from "./origin";
 
 /**
  * The single code path every captured lead travels, whether it came from a form
@@ -154,7 +155,20 @@ function sinks(): Sink[] {
  * lead. If every sink is down the full payload goes to the log in one
  * recoverable line. That is a net, not a floor.
  */
-export async function captureLead(lead: LeadInput, meta: Meta): Promise<CaptureResult> {
+/**
+ * Stamp the deployment onto the source tag unless this is production.
+ *
+ * Applied here, after validation, rather than at the call sites: a decorated
+ * tag would fail the allowlist check on the way in, and doing it at the sink
+ * boundary means every surface (both forms and the assistant, present and
+ * future) gets it without having to remember to.
+ */
+export function tagForEnvironment(sourceTag: string): string {
+  return isProductionDeployment ? sourceTag : `${sourceTag} [${deploymentKind}]`;
+}
+
+export async function captureLead(input: LeadInput, meta: Meta): Promise<CaptureResult> {
+  const lead: LeadInput = { ...input, sourceTag: tagForEnvironment(input.sourceTag) };
   const delivered: string[] = [];
   const failed: string[] = [];
   const active = sinks().filter((s) => s.enabled);

@@ -124,3 +124,28 @@ export const isIndexable: boolean = (() => {
 export function absoluteUrl(path: string): string {
   return `${siteOrigin}${path === "/" ? "" : path}`;
 }
+
+/**
+ * What kind of deployment this is, in one word, for lead source tagging.
+ *
+ * "preview" is the one that matters. A preview deployment is a real, working
+ * site with real, working forms, and every lead somebody generates while
+ * clicking around one lands in the same Sheet as a real lead from the real
+ * domain. That has burned this shop before: a round of internal testing on a
+ * preview URL puts a dozen fake rows in the live sheet, indistinguishable from
+ * the genuine ones, and the client finds them.
+ *
+ * lib/leads.ts stamps this onto every source tag that is not production, after
+ * the tag has been validated against the allowlist, so a preview row is
+ * obvious at a glance and can be filtered out in one pass.
+ */
+export type DeploymentKind = "production" | "preview" | "development" | "local";
+
+export const deploymentKind: DeploymentKind = (() => {
+  if (!onVercel) return "local";
+  if (vercelEnv === "production") return "production";
+  if (vercelEnv === "preview") return "preview";
+  return "development";
+})();
+
+export const isProductionDeployment = deploymentKind === "production";

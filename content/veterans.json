@@ -30,8 +30,25 @@
     {
       "type": "assistant",
       "eyebrow": "Before you talk to a lender",
-      "heading": "Ask Wick about the VA process",
-      "intro": "Wick knows the two places a VA purchase actually differs from any other, eligibility and the appraisal, and can walk you through either one. Ask before you call a lender, and it will say so the moment it does not know something."
+      "heading": "Ask Lark about the VA process",
+      "intro": "Lark knows the two places a VA purchase actually differs from any other, eligibility and the appraisal, and can walk you through either one. Ask before you call a lender, and it will say so the moment it does not know something.",
+      "chips": [
+        {
+          "label": "What does the VA appraisal check?",
+          "prompt": "What does a VA appraisal look for beyond value, and which condition items tend to hold one up?",
+          "kind": "info"
+        },
+        {
+          "label": "How do I get my Certificate of Eligibility?",
+          "prompt": "What is the Certificate of Eligibility, how do I request one, and why should I start it before I am house hunting?",
+          "kind": "info"
+        },
+        {
+          "label": "Send Alex my report date",
+          "prompt": "I have a report date and I would like Alex to work the schedule backward from it and get back to me.",
+          "kind": "conversion"
+        }
+      ]
     },
     {
       "type": "prose",

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { site } from "@/lib/content";
+import { assistantSourceTag, site } from "@/lib/content";
 import { captureLead } from "@/lib/leads";
 import {
+  ASSISTANT_ROUTES,
   captureTool,
   captureToolResult,
   offlineMessage,
@@ -22,12 +23,24 @@ const MAX_TOKENS = 500;
 
 type Msg = { role: "user" | "assistant"; content: unknown };
 
+/**
+ * How many times the model may be handed the capture tool across one
+ * conversation.
+ *
+ * Two. The brief's bound, enforced on the server rather than trusted to the
+ * system prompt: an instruction not to ask a third time is a strong nudge, and
+ * removing the tool from the request is a guarantee. Counted from the
+ * transcript the client sends rather than held in server memory, because a
+ * serverless function does not have any.
+ */
+const MAX_CAPTURE_TURNS = 2;
+
 export async function POST(req: Request) {
   if (!originAllowed(req)) {
     return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
   }
 
-  let body: { messages?: Msg[]; sessionId?: string };
+  let body: { messages?: Msg[]; sessionId?: string; route?: string; captureTurns?: number };
   try {
     body = (await req.json()) as typeof body;
   } catch {
@@ -63,6 +76,24 @@ export async function POST(req: Request) {
   const sessionId = String(body.sessionId ?? "").slice(0, 100);
   const externalRef = sessionId ? `chat:${sessionId}` : undefined;
 
+  /**
+   * Which page the visitor is on. Validated against the known routes rather
+   * than interpolated: this string reaches the system prompt and the source
+   * tag, and an unvalidated one is an injection point into both.
+   */
+  const claimed = String(body.route ?? "/");
+  const route = ASSISTANT_ROUTES.includes(claimed) ? claimed : "/";
+
+  /**
+   * The capture bound. The client reports how many times it has already been
+   * asked; the server clamps it and simply stops offering the tool once the
+   * budget is spent. A client that lies by sending 0 forever gets at most one
+   * extra ask per request, and cannot conjure a lead, because the server still
+   * refuses to record one without a name and a way to reach them.
+   */
+  const spent = Math.max(0, Math.min(MAX_CAPTURE_TURNS, Number(body.captureTurns) || 0));
+  const mayCapture = spent < MAX_CAPTURE_TURNS;
+
   async function callModel(msgs: Msg[]) {
     const res = await fetch(API, {
       method: "POST",
@@ -74,8 +105,8 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         model: MODEL,
         max_tokens: MAX_TOKENS,
-        system: systemPrompt(),
-        tools: [captureTool],
+        system: systemPrompt(route),
+        tools: mayCapture ? [captureTool] : [],
         messages: msgs,
       }),
       signal: AbortSignal.timeout(25000),
@@ -105,8 +136,8 @@ export async function POST(req: Request) {
             phone: input.phone ?? "",
             message: input.summary ?? "",
             detail: input.requestedTime ? `Requested time: ${input.requestedTime}` : "",
-            sourceTag: site.assistant.sourceTag,
-            route: "/assistant",
+            sourceTag: assistantSourceTag(route),
+            route,
             externalRef,
           },
           {
@@ -147,6 +178,12 @@ export async function POST(req: Request) {
       ok: true,
       reply: reply || offlineMessage(),
       captured,
+      /**
+       * Echoed back so the client can carry the count into the next request.
+       * A capture that succeeded spends the whole budget: there is nothing
+       * left to ask for.
+       */
+      captureTurns: captured ? MAX_CAPTURE_TURNS : spent + (toolUse ? 1 : 0),
     });
   } catch (err) {
     console.error("[chat] model call failed:", err);

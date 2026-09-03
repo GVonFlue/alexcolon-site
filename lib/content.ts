@@ -67,10 +67,35 @@ export function magnet(id: string): LeadMagnet {
   return found;
 }
 
-/** Every valid source tag. The API rejects anything not on this list. */
+/**
+ * The assistant's source tag for a given route.
+ *
+ * One tag for the whole assistant told us a lead came from the chat and
+ * nothing else. Per route it tells us which page's conversation produced it,
+ * which is the difference between "the assistant works" and knowing that the
+ * veterans page's assistant produces leads and the investors page's does not.
+ *
+ * The route is appended rather than replacing the base tag so every assistant
+ * lead still sorts together in the Sheet under one prefix.
+ */
+export function assistantSourceTag(route: string): string {
+  const clean = route === "/" ? "/" : route.replace(/\/+$/, "");
+  return `${site.assistant.sourceTag} ${clean}`;
+}
+
+/**
+ * Every valid source tag. The API rejects anything not on this list, so a tag
+ * cannot be spoofed into the Sheet by posting a made-up one.
+ *
+ * The environment marker lib/leads.ts adds to preview and local traffic is
+ * deliberately NOT in here: it is stamped on server side after validation, so
+ * a client cannot pass itself off as production by sending an undecorated tag,
+ * and cannot poison the allowlist by sending a decorated one.
+ */
 export const validSourceTags: readonly string[] = [
   ...magnets.map((m) => m.sourceTag),
   site.assistant.sourceTag,
+  ...allPages.map((p) => assistantSourceTag(p.route)),
 ];
 
 /** Just the names, for copy and for the assistant's prompt. */

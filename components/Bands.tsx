@@ -180,7 +180,14 @@ export function Bands({ page }: { page: PageContent }) {
                   name={site.assistant.name}
                   siteName={site.siteName}
                   introduction={site.assistant.introduction}
-                  chips={site.assistant.chips}
+                  // This route's own chips if it has them, the site-wide set
+                  // if it does not. The same three chips on all eight routes
+                  // is the tell that the assistant is decoration.
+                  chips={band.chips ?? site.assistant.chips}
+                  route={page.route}
+                  // Read on the server, so the first paint tells the truth
+                  // about whether anything is going to answer. See Assistant.
+                  initialConfigured={Boolean(process.env.ANTHROPIC_API_KEY)}
                   goodAt={site.assistant.goodAt}
                   phoneDisplay={site.phone.display}
                   telHref={telHref()}

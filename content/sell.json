@@ -30,8 +30,25 @@
     {
       "type": "assistant",
       "eyebrow": "Before you list",
-      "heading": "Ask Wick what selling actually costs",
-      "intro": "Wick knows what leaves your account when a house sells here, in what order, and what the automated number on your screen usually gets wrong. Ask before you talk to Alex, and it will say so the moment it does not know something."
+      "heading": "Ask Lark what selling actually costs",
+      "intro": "Lark knows what leaves your account when a house sells here, in what order, and what the automated number on your screen usually gets wrong. Ask before you talk to Alex, and it will say so the moment it does not know something.",
+      "chips": [
+        {
+          "label": "What comes out of the sale price?",
+          "prompt": "When a house sells around Wichita, what actually comes out of the sale price before the money reaches me?",
+          "kind": "info"
+        },
+        {
+          "label": "Why is the online estimate off?",
+          "prompt": "Why is the automated estimate of my home's value usually wrong, and what would change the number in either direction?",
+          "kind": "info"
+        },
+        {
+          "label": "Have Alex value my house",
+          "prompt": "I would like Alex to put a real number on my house and send me the comparable sales he used.",
+          "kind": "conversion"
+        }
+      ]
     },
     {
       "type": "prose",

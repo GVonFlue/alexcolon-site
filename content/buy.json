@@ -30,8 +30,25 @@
     {
       "type": "assistant",
       "eyebrow": "Before you talk to a lender",
-      "heading": "Ask Wick a question first",
-      "intro": "Wick knows the buying process on this page cold: pre approval, what money moves when, what happens at inspection. Ask before you call a lender or Alex, and it will say so the moment it does not know something."
+      "heading": "Ask Lark a question first",
+      "intro": "Lark knows the buying process on this page cold: pre approval, what money moves when, what happens at inspection. Ask before you call a lender or Alex, and it will say so the moment it does not know something.",
+      "chips": [
+        {
+          "label": "What do I need saved up front?",
+          "prompt": "What money does a buyer actually need up front around Wichita, and at which point does each piece leave my account?",
+          "kind": "info"
+        },
+        {
+          "label": "What happens at the inspection?",
+          "prompt": "Walk me through what happens at the inspection and the appraisal, and which findings are worth reopening a deal over.",
+          "kind": "info"
+        },
+        {
+          "label": "Have Alex look at my situation",
+          "prompt": "I am thinking about buying and I would like Alex to look at my situation and get back to me.",
+          "kind": "conversion"
+        }
+      ]
     },
     {
       "type": "steps",

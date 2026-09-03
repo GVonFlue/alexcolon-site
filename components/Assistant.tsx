@@ -2,32 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AccentHeadline, Eyebrow, H2 } from "./ui";
+import { Lark, type LarkState } from "./Lark";
 
 type Chip = { label: string; prompt: string; kind: "info" | "conversion" };
 type Turn = { role: "user" | "assistant"; content: string };
-
-/**
- * A small, abstract mark identifying the assistant, not a mascot. No face, no
- * character design, nothing anthropomorphic: three concentric arcs standing
- * for a signal, which is what a status dot already means everywhere else on
- * this site. Inventing an actual character is a brand decision that is
- * Alex's to make, not this build's, which is also why this stays an abstract
- * mark rather than adopting the reference's own illustrated mascot.
- */
-function AssistantMark() {
-  return (
-    <span
-      aria-hidden="true"
-      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-navy text-cream shadow-[0_10px_24px_-10px_rgba(23,42,58,0.5)]"
-    >
-      <svg viewBox="0 0 24 24" className="h-7 w-7">
-        <circle cx="12" cy="12" r="2.3" fill="currentColor" />
-        <circle cx="12" cy="12" r="6.4" fill="none" stroke="currentColor" strokeOpacity="0.55" strokeWidth="1.5" />
-        <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeOpacity="0.3" strokeWidth="1.5" />
-      </svg>
-    </span>
-  );
-}
 
 /**
  * Embedded in the page body in the top third, named, first person, with a live
@@ -56,6 +34,8 @@ export function Assistant({
   goodAt,
   phoneDisplay,
   telHref,
+  route,
+  initialConfigured,
 }: {
   eyebrow?: string;
   heading: string;
@@ -67,6 +47,25 @@ export function Assistant({
   goodAt: string[];
   phoneDisplay: string;
   telHref: string;
+  /** Which page this instance is on. Sent with every request. */
+  route: string;
+  /**
+   * Whether the server had an API key when it rendered this page.
+   *
+   * The component used to start on "checking" and learn the truth from a probe
+   * after mount, on the principle that it must never claim a readiness it has
+   * not verified. That principle is right and it is kept, but "checking" was
+   * the wrong default: the server knows the answer at render time, and
+   * withholding it meant the honest not-connected copy existed only in
+   * client-rendered HTML, so a visitor with slow JS, a crawler, or anyone
+   * reading the served markup saw a widget that looked live and was not.
+   *
+   * So the first paint now carries the server's own answer, and the probe
+   * stays, because a statically prerendered page bakes this value in and a key
+   * added afterwards without a rebuild would leave it stale. First paint is
+   * correct, and the probe corrects it if the deployment has drifted.
+   */
+  initialConfigured: boolean;
 }) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
@@ -78,8 +77,18 @@ export function Assistant({
    * earned. A visitor who types a real question and then gets told the thing is
    * not connected has been misled by the label.
    */
-  const [status, setStatus] = useState<"checking" | "ready" | "offline">("checking");
+  const [status, setStatus] = useState<"checking" | "ready" | "offline">(
+    initialConfigured ? "ready" : "offline",
+  );
   const [sessionId, setSessionId] = useState("");
+  /**
+   * How many times Lark has been handed the capture tool. Carried in the
+   * request so the server can stop offering it after two, which is the bound
+   * on asking a visitor for their details. See app/api/chat/route.ts.
+   */
+  const [captureTurns, setCaptureTurns] = useState(0);
+  /** Set briefly after a reply lands, so Lark leans toward the message. */
+  const [answering, setAnswering] = useState(false);
   const logRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -130,10 +139,17 @@ export function Assistant({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           sessionId,
+          route,
+          captureTurns,
           messages: next.map((t) => ({ role: t.role, content: t.content })),
         }),
       });
-      const data = (await res.json()) as { reply?: string; offline?: boolean };
+      const data = (await res.json()) as {
+        reply?: string;
+        offline?: boolean;
+        captureTurns?: number;
+      };
+      if (typeof data.captureTurns === "number") setCaptureTurns(data.captureTurns);
       // The reply itself is the second source of truth, in case the key was
       // removed between mount and this request.
       setStatus(data.offline ? "offline" : "ready");
@@ -148,6 +164,9 @@ export function Assistant({
       ]);
     } finally {
       setBusy(false);
+      // Lark leans toward the message it just delivered, then settles.
+      setAnswering(true);
+      window.setTimeout(() => setAnswering(false), 1800);
       requestAnimationFrame(() => {
         logRef.current?.scrollTo({ top: logRef.current.scrollHeight });
       });
@@ -162,6 +181,21 @@ export function Assistant({
         : busy
           ? "thinking"
           : "ready";
+
+  /**
+   * Lark's state, derived from the same status the label reads from, so the
+   * bird and the words can never disagree.
+   *
+   * "disconnected" is the one that earns its place. With no ANTHROPIC_API_KEY
+   * the widget used to sit on "checking" and a visitor had no way to tell it
+   * was simply unconfigured rather than slow. Lark perches, stops moving and
+   * dims, the composer is disabled rather than accepting a question nobody
+   * will answer, and the copy says so in plain words with the phone number.
+   */
+  const larkState: LarkState =
+    status === "offline" ? "disconnected" : busy ? "thinking" : answering ? "answering" : "idle";
+
+  const offline = status === "offline";
 
   return (
     <div className="mx-auto max-w-[42rem]">
@@ -204,7 +238,9 @@ export function Assistant({
       */}
       <div className="mt-8 overflow-hidden rounded-2xl border border-navy/10 bg-paper text-left shadow-[0_30px_70px_-30px_rgba(0,0,0,0.55)]">
         <div className="flex items-center gap-4 border-b border-line bg-navy/[0.02] px-6 py-5 sm:px-7">
-          <AssistantMark />
+          <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-navy shadow-[0_10px_24px_-10px_rgba(23,42,58,0.5)]">
+            <Lark state={larkState} size={38} seed={`card-${route}`} />
+          </span>
           <div className="min-w-0">
             <div className="flex items-center gap-2.5">
               <span className="truncate text-[1.15rem] font-extrabold tracking-[-0.01em] text-navy">
@@ -230,6 +266,23 @@ export function Assistant({
             the way an actual chat product does. Nothing here is boxed off
             from anything else; spacing does the separating, not rules.
           */}
+          {/*
+            Said plainly, in the place a visitor is looking, rather than left
+            for them to infer from a status word. This is the difference
+            between a widget that looks broken and one that is honest about
+            not being switched on yet.
+          */}
+          {offline && (
+            <p className="mb-4 rounded-lg border border-navy/15 bg-navy/[0.04] px-4 py-3 text-[0.95rem] leading-[1.6] text-ink">
+              {name} is not connected yet, so it cannot answer questions on this site right
+              now. Alex can. Call or text{" "}
+              <a href={telHref} className="figure font-semibold underline underline-offset-4">
+                {phoneDisplay}
+              </a>
+              , or use any of the forms on this page.
+            </p>
+          )}
+
           <div
             ref={logRef}
             role="log"
@@ -269,7 +322,7 @@ export function Assistant({
                 key={c.label}
                 type="button"
                 onClick={() => send(c.prompt)}
-                disabled={busy}
+                disabled={busy || offline}
                 className={`inline-flex min-h-[44px] items-center rounded-full border px-4 text-left text-[0.9rem] disabled:opacity-60 ${
                   c.kind === "conversion"
                     ? "border-navy bg-navy text-cream font-semibold"
@@ -295,12 +348,13 @@ export function Assistant({
               id="assistant-input"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question"
+              placeholder={offline ? `${name} is not connected yet` : "Ask a question"}
+              disabled={offline}
               className="min-h-[40px] min-w-0 flex-1 bg-transparent text-[1rem] text-ink placeholder:text-subtle/70 focus:outline-none"
             />
             <button
               type="submit"
-              disabled={busy || !input.trim()}
+              disabled={busy || offline || !input.trim()}
               className="inline-flex min-h-[40px] shrink-0 items-center justify-center rounded-full bg-navy px-5 text-[0.95rem] font-semibold text-cream transition-opacity disabled:opacity-40"
             >
               Ask

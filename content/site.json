@@ -318,8 +318,8 @@
     "needed": "One photograph of Alex. The professional shoot is pending, so this band withholds itself until a real image exists. No stock substitute."
   },
   "assistant": {
-    "name": "Wick",
-    "introduction": "Wick is an assistant on this site, not Alex. It answers questions about buying and selling in the Wichita area, and hands you to Alex the moment you want a person.",
+    "name": "Lark",
+    "introduction": "Lark is an assistant on this site, not Alex. It is a western meadowlark, which is the Kansas state bird, and it answers questions about buying and selling in the Wichita area. It hands you to Alex the moment you want a person.",
     "chips": [
       {
         "label": "What does it cost to buy here?",
@@ -338,11 +338,11 @@
       }
     ],
     "bookingUrl": null,
-    "sourceTag": "Colon - Site Assistant",
+    "sourceTag": "Colon - Lark Assistant",
     "goodAt": [
       "Buying questions",
       "Selling questions",
-      "General questions",
+      "The seven towns",
       "Hands you to Alex"
     ]
   }

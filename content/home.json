@@ -32,8 +32,8 @@
     {
       "type": "assistant",
       "eyebrow": "Before you talk to anyone",
-      "heading": "Ask Wick a question first",
-      "intro": "Wick answers questions about buying and selling around Wichita. It says so when it does not know something, and it hands you to Alex the moment you would rather have a person."
+      "heading": "Ask Lark a question first",
+      "intro": "Lark answers questions about buying and selling around Wichita. It says so when it does not know something, and it hands you to Alex the moment you would rather have a person."
     },
     {
       "type": "pickYourDoor",

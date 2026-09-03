@@ -111,6 +111,18 @@ export const Compliance = z.object({
 });
 export type Compliance = z.infer<typeof Compliance>;
 
+/**
+ * A starter chip on the assistant. `prompt` is what is actually sent when it
+ * is pressed, which is why it is a full sentence rather than the short label
+ * the visitor sees.
+ */
+export const AssistantChip = z.object({
+  label: z.string().min(1),
+  prompt: z.string().min(1),
+  kind: z.enum(["info", "conversion"]),
+});
+export type AssistantChip = z.infer<typeof AssistantChip>;
+
 export const SiteConfig = z.object({
   agentName: z.string().min(1),
   /** Site is domain agnostic until cutover. Read from SITE_ORIGIN at runtime. */
@@ -197,16 +209,8 @@ export const SiteConfig = z.object({
     name: z.string().min(1),
     /** The bot is never presented as Alex. It says what it is. */
     introduction: z.string().min(1),
-    /** Two informational, one conversion. */
-    chips: z
-      .array(
-        z.object({
-          label: z.string().min(1),
-          prompt: z.string().min(1),
-          kind: z.enum(["info", "conversion"]),
-        }),
-      )
-      .length(3),
+    /** Two informational, one conversion. The fallback for a route with none. */
+    chips: AssistantChip.array().length(3),
     /**
      * There is no calendar integration. Until a booking URL exists the
      * assistant is forbidden from saying an appointment is booked, confirmed,
@@ -255,8 +259,22 @@ export const Band = z.discriminatedUnion("type", [
     type: z.literal("assistant"),
     eyebrow: z.string().min(1).optional(),
     /**
+     * This route's own starter chips. Optional: a route without them falls
+     * back to site.assistant.chips.
+     *
+     * They are per route because the same three chips on all eight routes is
+     * the tell that the assistant is decoration. Somebody on /veterans with a
+     * report date and somebody on /investors with an address want different
+     * first questions, and the chip row is the cheapest place to prove the
+     * thing knows which page it is on.
+     *
+     * Same shape and same rule as the site-wide set: exactly three, two
+     * informational and one conversion.
+     */
+    chips: AssistantChip.array().length(3).optional(),
+    /**
      * Must contain the assistant's name (site.assistant.name) as a literal
-     * substring, e.g. "Ask Wick before you talk to anyone": the component
+     * substring, e.g. "Ask Lark before you talk to anyone": the component
      * finds it and renders it in the accent color the same way a hero's
      * accentPhrase works. If the name is not found the heading still renders,
      * just without the highlight, the same silent-plain fallback
