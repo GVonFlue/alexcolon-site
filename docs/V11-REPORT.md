@@ -1,7 +1,7 @@
 # v1.1 delivery report
 
 Visual and interaction upgrade, plus the integrations. Branch
-`v11-visual-interaction`, six commits from `b798945`.
+`v11-visual-interaction`, eight commits from `b798945`.
 
 **A note on the starting point before anything else.** The brief described a
 v1.1 build that was correct but plain. The repo was at v6. Several premises in
@@ -338,10 +338,18 @@ All run against the final commit.
 No horizontal scroll at 320, 360, 390, 414, 768, 1024, 1280 or 1440, on all
 eight routes. No console errors at any width.
 
-Named checks: map hover/select drift **0.00px**, growth 1.833x, `aria-pressed`
-true, CTA present. Map keyboard: focus opens, Escape closes, Enter selects.
-Kansas lockup: header 1.42x, footer 1.40x. Reduced motion: nothing animating,
-nothing hidden, all eight routes.
+Named checks, all passing in Chromium:
+
+- Map hover/select: drift **0.00px**, growth 1.833x, `aria-pressed` true, CTA present
+- Map keyboard: focus opens the panel, Escape closes it, Enter selects
+- Kansas lockup: header 1.42x, footer 1.40x, cap 2x
+- Keyboard walk, lead form 6 controls, buyer guide form 6, valuation form 7,
+  all reachable and all painting a visible focus ring
+- Assistant keyboard: not connected, so the composer is correctly disabled, the
+  offline copy is present, and the phone number is reachable from the keyboard.
+  The **connected** branch of that check has never run, because there is no API
+  key here
+- Reduced motion: nothing animating, nothing hidden, all eight routes
 
 ### Lighthouse
 
@@ -409,6 +417,10 @@ validation, and, at the source level, that the refusals and the capture bound
 are present in the tool result. **The system prompt has never been exercised
 against the model.** Whether Lark actually refuses a "which town is best"
 question in practice is unverified.
+
+**The assistant's connected keyboard path is untested.** The keyboard check is
+state aware and asserts the correct thing for each state, but only the
+not-connected branch has ever executed here.
 
 **The count-up has never animated a real figure**, because `site.numbers` is
 empty. The component is built and typechecked; it has not been seen counting.

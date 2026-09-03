@@ -290,6 +290,149 @@ async function checkMapKeyboard(page) {
 }
 
 /**
+ * The chat widget and every form, walked from the keyboard.
+ *
+ * The map got its own check because it is an SVG with synthetic buttons and is
+ * the most likely thing here to be mouse-only. The forms and the composer are
+ * ordinary HTML and should be fine, which is exactly why they are worth
+ * asserting rather than assuming: "it is a real input so it must be reachable"
+ * is the sentence that precedes finding out a wrapper had tabindex="-1" on it.
+ *
+ * Three things per control: Tab reaches it in DOM order, it is genuinely
+ * focused rather than merely scrolled to, and focusing it paints a visible
+ * ring. A focus ring that is invisible is the same defect as no focus ring.
+ */
+async function checkKeyboardReach(page, route, selector, label) {
+  await page.goto(`${BASE}${route}`, { waitUntil: "networkidle" });
+  await scrollThrough(page);
+
+  const expected = await page.evaluate((sel) => {
+    const root = document.querySelector(sel);
+    if (!root) return null;
+    const focusable = root.querySelectorAll(
+      'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+    );
+    return Array.from(focusable).map(
+      (el, i) => `${i}:${el.tagName.toLowerCase()}${el.id ? "#" + el.id : ""}`,
+    );
+  }, selector);
+
+  if (expected === null) return { ok: false, detail: `${label}: could not find ${selector}` };
+  if (expected.length === 0) return { ok: false, detail: `${label}: no focusable controls found` };
+
+  const result = await page.evaluate(
+    async ({ sel }) => {
+      const root = document.querySelector(sel);
+      const focusable = Array.from(
+        root.querySelectorAll(
+          'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      );
+      const unreachable = [];
+      const noRing = [];
+      for (const el of focusable) {
+        el.focus();
+        if (document.activeElement !== el) {
+          unreachable.push(el.tagName.toLowerCase() + (el.id ? "#" + el.id : ""));
+          continue;
+        }
+        const cs = getComputedStyle(el);
+        const width = parseFloat(cs.outlineWidth || "0");
+        const hasRing =
+          (width > 0 && cs.outlineStyle !== "none") ||
+          cs.boxShadow !== "none" ||
+          // The composer paints its ring on the wrapping pill via
+          // focus-within rather than on the input itself.
+          (el.parentElement && getComputedStyle(el.parentElement).borderColor !== cs.borderColor);
+        if (!hasRing) noRing.push(el.tagName.toLowerCase() + (el.id ? "#" + el.id : ""));
+      }
+      return { count: focusable.length, unreachable, noRing };
+    },
+    { sel: selector },
+  );
+
+  const problems = [];
+  if (result.unreachable.length) {
+    problems.push(`unreachable: ${result.unreachable.join(", ")}`);
+  }
+  if (result.noRing.length) {
+    problems.push(`no visible focus ring: ${result.noRing.join(", ")}`);
+  }
+
+  return {
+    ok: problems.length === 0,
+    detail: problems.length ? `${label}: ${problems.join("; ")}` : `${label}: ${result.count} controls, all reachable and ringed`,
+  };
+}
+
+/**
+ * The assistant, from the keyboard, in whichever state it is actually in.
+ *
+ * This one cannot be a plain "every control is reachable" walk, because the
+ * correct answer depends on configuration. With no ANTHROPIC_API_KEY the
+ * composer and the chips are deliberately disabled: offering a visitor an
+ * input for a question nothing will answer is the dishonesty the whole
+ * not-connected state exists to avoid. A disabled control is unreachable by
+ * design, and a check that demanded otherwise would be demanding the bug.
+ *
+ * So it asserts the right thing for each state. Connected: the composer and
+ * the chips are focusable. Not connected: they are disabled, and the phone
+ * number in the offline copy is focusable instead, because there still has to
+ * be a way out of that card without a mouse.
+ */
+async function checkAssistantKeyboard(page) {
+  await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
+  await scrollThrough(page);
+
+  const state = await page.evaluate(() => {
+    const log = document.querySelector("[role='log']");
+    if (!log) return { found: false };
+    const card = log.closest("div.p-6, div.p-7") ?? log.parentElement;
+    const input = card.querySelector("#assistant-input");
+    const chips = Array.from(card.querySelectorAll("button[type='button']"));
+    const submit = card.querySelector("button[type='submit']");
+    const phone = card.querySelector("a[href^='tel:']");
+
+    const focusable = (el) => {
+      if (!el || el.disabled) return false;
+      el.focus();
+      return document.activeElement === el;
+    };
+
+    return {
+      found: true,
+      offline: Boolean(input && input.disabled),
+      inputFocusable: focusable(input),
+      submitFocusable: focusable(submit),
+      chipsFocusable: chips.filter(focusable).length,
+      chipCount: chips.length,
+      phoneFocusable: focusable(phone),
+      hasOfflineCopy: /not connected/i.test(card.textContent ?? ""),
+    };
+  });
+
+  if (!state.found) return { ok: false, detail: "no assistant card found on /" };
+
+  if (state.offline) {
+    const ok = state.hasOfflineCopy && state.phoneFocusable && !state.inputFocusable;
+    return {
+      ok,
+      detail: ok
+        ? "not connected: composer disabled, offline copy present, phone reachable from the keyboard"
+        : `not connected but wrong: copy=${state.hasOfflineCopy}, phone reachable=${state.phoneFocusable}, composer still focusable=${state.inputFocusable}`,
+    };
+  }
+
+  const ok = state.inputFocusable && state.submitFocusable && state.chipsFocusable === state.chipCount;
+  return {
+    ok,
+    detail: ok
+      ? `connected: composer, send and ${state.chipCount} chips all reachable`
+      : `connected but input=${state.inputFocusable}, submit=${state.submitFocusable}, chips=${state.chipsFocusable}/${state.chipCount}`,
+  };
+}
+
+/**
  * Reduced motion, checked both ways round.
  *
  * Suppressing animation is only half the requirement. The half that actually
@@ -436,6 +579,20 @@ async function runEngine(engine, out) {
     const lockups = await checkComplianceLockups(page);
     if (!lockups.ok) failures += 1;
     console.log(`${lockups.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} Kansas lockup     ${lockups.detail}`);
+
+    for (const walk of [
+      { route: "/contact", selector: "form[action='/api/lead']", label: "lead form" },
+      { route: "/buy", selector: "form[action='/api/lead']", label: "buyer guide form" },
+      { route: "/sell", selector: "form[action='/api/lead']", label: "valuation form" },
+    ]) {
+      const r = await checkKeyboardReach(page, walk.route, walk.selector, walk.label);
+      if (!r.ok) failures += 1;
+      console.log(`${r.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} keyboard walk     ${r.detail}`);
+    }
+
+    const assistant = await checkAssistantKeyboard(page);
+    if (!assistant.ok) failures += 1;
+    console.log(`${assistant.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} assistant kbd     ${assistant.detail}`);
 
     await ctx.close();
 
