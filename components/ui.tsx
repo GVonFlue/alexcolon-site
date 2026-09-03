@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Cta } from "@/lib/schema";
 import { Reveal } from "./Reveal";
+import { BandTexture } from "./BandTexture";
 
 /**
  * Button styling encodes rule 3 of the nine checks. The gold accent is a filled
@@ -93,12 +94,17 @@ const TONES = {
 
 export type SectionTone = keyof typeof TONES;
 
+/** The tones that are a dark ground, and therefore get grain and texture. */
+const DARK_TONES: SectionTone[] = ["navy", "navyWash"];
+
 export function Section({
   children,
   tone = "cream",
   pad,
   className = "",
   id,
+  stagger = false,
+  texture,
 }: {
   children: React.ReactNode;
   tone?: SectionTone;
@@ -112,22 +118,55 @@ export function Section({
   pad?: string;
   className?: string;
   id?: string;
+  /** Stagger this band's own direct children on reveal. Opt in per band. */
+  stagger?: boolean;
+  /**
+   * Draw the map geometry motif behind this band. Dark tones only: at the
+   * opacity this runs at it is invisible on cream and would only cost a
+   * needless SVG in the markup.
+   */
+  texture?: "rivers" | "roads" | "boundary" | "full";
 }) {
+  const dark = DARK_TONES.includes(tone);
+
   return (
     // Reveal is the site's one scroll-reveal pattern, applied here and only
     // here so every band gets it the same way instead of each call site
     // reinventing it. See Reveal.tsx for why the hero is unaffected.
-    <Reveal id={id} className={`${TONES[tone]} ${className}`}>
+    //
+    // `relative` and `isolate` exist for the two decorative layers below: the
+    // grain pseudo-element and the geometry texture both position against this
+    // box, and isolate keeps their z-index from escaping into the page.
+    <Reveal
+      id={id}
+      stagger={stagger}
+      className={`relative isolate ${TONES[tone]} ${dark ? "grain" : ""} ${className}`}
+    >
+      {dark && texture && <BandTexture variant={texture} />}
       {/*
        * Cut from py-16/20/24 (up to 96px a side, 192px between two adjacent
        * bands) to this. Premium is not the same as empty: there was enough
        * dead space between some bands to fit another one in it.
+       *
+       * z-10 puts the content above the grain and the geometry motif, both of
+       * which sit at z-0 on the section itself.
        */}
-      <div className={`mx-auto w-full max-w-[76rem] px-5 sm:px-8 ${pad ?? "py-11 sm:py-14 lg:py-16"}`}>
+      <div className={`relative z-10 mx-auto w-full max-w-[76rem] px-5 sm:px-8 ${pad ?? "py-11 sm:py-14 lg:py-16"}`}>
         {children}
       </div>
     </Reveal>
   );
+}
+
+/**
+ * The hairline gold rule that opens a section. The one decorative use of the
+ * accent colour on this site, allowed because it is a 2px hairline at partial
+ * alpha in the whitespace above a heading and cannot be mistaken for a
+ * control. It appears nowhere else: not beside body copy, not under a card,
+ * not as a divider.
+ */
+export function SectionRule({ className = "" }: { className?: string }) {
+  return <span aria-hidden="true" className={`rule-gold mb-6 ${className}`} />;
 }
 
 /**

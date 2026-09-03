@@ -41,7 +41,24 @@ export function Footer() {
       <div className="mx-auto w-full max-w-[76rem] px-5 py-14 sm:px-8">
         <div className="grid gap-10 md:grid-cols-[1.1fr_1fr]">
           <div>
-            <p className="text-[1.15rem] font-semibold tracking-[-0.015em]">{site.agentName}</p>
+            {/* The same Kansas lockup as the header, sizes registered in
+                lib/compliance-type.ts and measured in scripts/shots.mjs. */}
+            <div data-compliance-lockup="footer identity block">
+              <p
+                data-compliance-part="agent"
+                className="text-[1.15rem] font-semibold tracking-[-0.015em]"
+              >
+                {site.agentName}
+              </p>
+              {site.compliance.brokerageName.value && (
+                <p
+                  data-compliance-part="brokerage"
+                  className="mt-1 text-[0.82rem] font-medium text-dim"
+                >
+                  {site.compliance.brokerageName.value}
+                </p>
+              )}
+            </div>
             <p className="mt-3 text-[0.98rem] leading-relaxed text-dim">{site.tagline}</p>
 
             <div className="mt-6 flex flex-col gap-1">

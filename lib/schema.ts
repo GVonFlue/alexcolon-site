@@ -137,6 +137,43 @@ export const SiteConfig = z.object({
         lat: z.number(),
         lon: z.number(),
         anchor: z.boolean().optional(),
+        /**
+         * The town card's contents, and nothing beyond this list.
+         *
+         * The list is closed on purpose. Every field here is a fact about a
+         * place: which county it is in, how far away it is, what the district
+         * is called, when the town was incorporated, where its own website is.
+         * None of them is a characterization, a rating, or a statement about
+         * who lives anywhere, and no field exists that could hold one, which
+         * is a stronger guarantee than a rule that catches bad wording after
+         * somebody has already written it. scripts/rules.mjs carries the
+         * wording rule as well, scoped to exactly this data.
+         *
+         * schoolDistrict is the field to be most careful with. The district
+         * NAME is a fact and may be published. District quality, ratings,
+         * rankings and comparisons are fair housing exposure and may not, in
+         * this field or anywhere near it.
+         *
+         * Every one is a MaybeFact, so an unverified fact is null with a
+         * pending note naming who supplies it, and the card renders that row
+         * as nothing rather than as a placeholder.
+         */
+        facts: z.object({
+          county: MaybeFact,
+          /** Approximate driving distance and an honest drive time downtown. */
+          driveToDowntown: MaybeFact,
+          /** The district's name only. Never a rating or a characterization. */
+          schoolDistrict: MaybeFact,
+          /** The era of the housing stock, stated as fact, not as appeal. */
+          housingEra: MaybeFact,
+          yearIncorporated: MaybeFact,
+          /** The city's own website. An absolute URL in `value`. */
+          website: MaybeFact,
+          /** Whether the South Central Kansas MLS covers it. */
+          mlsCoverage: MaybeFact,
+          /** One factual, verifiable note, or null. */
+          note: MaybeFact,
+        }),
       }),
     )
     .min(1),

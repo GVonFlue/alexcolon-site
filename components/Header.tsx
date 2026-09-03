@@ -34,11 +34,14 @@ export function Header({
   telHref,
   smsHref,
   agentName,
+  brokerageName,
 }: {
   phoneDisplay: string;
   telHref: string;
   smsHref: string;
   agentName: string;
+  /** Null only if the brokerage name is somehow unverified; then no lockup. */
+  brokerageName: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -53,11 +56,37 @@ export function Header({
     // section already gets.
     <header className="on-dark sticky top-0 z-50 border-b border-cream/12 bg-navy/92 backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-[76rem] items-center gap-4 px-5 py-3 sm:px-8">
+        {/*
+          The Kansas lockup. K.S.A. 58-3086 requires the supervising broker's
+          business name in a readable and identifiable manner, and the
+          licensee's own name must not be given greater prominence. Up to v6
+          the brokerage appeared only in the footer compliance line, which is
+          on the page but not adjacent to his name; here they are one block.
+
+          The two font sizes are registered in lib/compliance-type.ts, which
+          throws at module load if the agent name ever exceeds twice the
+          brokerage name, and scripts/shots.mjs measures what the browser
+          actually computed so the constant and the rendering cannot drift.
+        */}
         <Link
           href="/"
-          className="flex min-h-[44px] shrink-0 items-center text-[1.02rem] font-semibold tracking-[-0.015em] text-cream"
+          data-compliance-lockup="sticky header wordmark"
+          className="flex min-h-[44px] shrink-0 flex-col justify-center leading-tight"
         >
-          {agentName}
+          <span
+            data-compliance-part="agent"
+            className="text-[1.02rem] font-semibold tracking-[-0.015em] text-cream"
+          >
+            {agentName}
+          </span>
+          {brokerageName && (
+            <span
+              data-compliance-part="brokerage"
+              className="hidden text-[0.72rem] font-medium tracking-[0.01em] text-dim sm:block"
+            >
+              {brokerageName}
+            </span>
+          )}
         </Link>
 
         <nav aria-label="Main" className="ml-auto hidden lg:block">

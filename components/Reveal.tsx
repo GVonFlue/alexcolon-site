@@ -3,48 +3,55 @@
 import { useEffect, useRef, useState } from "react";
 
 /**
- * The one scroll-reveal pattern on the site. Applied to section-level
- * containers only (Section wraps every band in it, see ui.tsx), never to
- * individual cards, list items or headings inside a band: "scattered
- * decorative motion", the doctrine's own name for fade-ups on every element,
- * is exactly what this avoids by living in exactly one place.
+ * The one scroll-reveal primitive on the site.
+ *
+ * Applied to section-level containers only (Section wraps every band in it,
+ * see ui.tsx), never to individual cards, headings or list items. A band opts
+ * its own direct children into a 60ms positional stagger by passing
+ * `stagger`, which is the only way a child element on this site is ever
+ * animated on scroll: the delay comes from CSS nth-child in globals.css, not
+ * from a per-item prop, so no call site can invent its own timing.
+ *
+ * ONCE ONLY. The observer disconnects on its first intersection and the
+ * revealed state is never unset. Re-triggering on scroll back is the specific
+ * thing that makes a site feel cheap, and it is also what turns a long page
+ * into a flickering one on a trackpad.
  *
  * Correctness comes first. The server-rendered, no-JS default is fully
- * visible, real content, so a crawler, a screen reader, or a visitor whose
- * JS never loads sees the whole page immediately; nothing here can gate
- * usability or delay the fold. Only after mount, and only for a section that
- * is not already in or near the viewport, does this briefly hide it and
- * cross-fade it back in the first time it is scrolled to, once, via
- * IntersectionObserver rather than a scroll listener or a scroll library. A
- * section already in view at mount (the hero, and often the band right
- * under it) is left alone entirely, which is also what keeps this from
- * fighting with the hero's own load-time stagger.
+ * visible, real content: `hidden` starts false and only an effect can set it,
+ * so a crawler, a screen reader, a print, or a visitor whose JS never loads
+ * sees the whole page immediately. Nothing here can gate usability or delay
+ * the fold.
  *
- * Reduced motion is honored twice: the effect below never hides anything
- * when the visitor has asked for reduced motion (JS), and globals.css kills
- * every transition duration site-wide as a second, independent line of
- * defense (CSS) in case this check is ever bypassed.
+ * WHAT CHANGED IN v1.1, and why. The previous version carried a 60ms timer
+ * that revealed a hidden section whether or not it had ever intersected. That
+ * was added to fix a real bug (shots.mjs captures a full page in one shot and
+ * does not reliably fire an IntersectionObserver, so every band below the fold
+ * screenshotted at opacity 0), but it fixed it by defeating the feature: 60ms
+ * after mount every section on the page was revealed, so the reveal only ever
+ * played for bands already within a screen of the fold. The scroll reveal was
+ * effectively dead code on every long route.
  *
- * A timed fallback backs the observer up: if a section is hidden and 60ms
- * pass without it ever intersecting, it reveals anyway. A page captured in
- * one shot rather than genuinely scrolled through, a full page screenshot
- * tool doing its own resize, print, or a crawler that renders without
- * simulating scroll, none of them are guaranteed to ever fire an
- * intersection, and content that only ever appears on a scroll nobody
- * performs is exactly the "gates usability" failure this component exists
- * to avoid. This was caught by this site's own shots.mjs, whose full-page
- * capture left everything below the fold at zero opacity; 60ms is far
- * below anything a real screenshot, crawl, or print takes to run, but is
- * still enough behind the earlier already-in-view check that a genuine
- * scroll almost always wins the race and gets the real, visible reveal.
+ * The fix belongs in the verification tool, not in the component: shots.mjs
+ * now scrolls the page the way a person does before it captures. What remains
+ * here are four guards that reveal without ever being on a timer, each of them
+ * a real condition under which an intersection may genuinely never arrive:
+ *
+ *   1. reduced motion requested        never hide anything, at all
+ *   2. no IntersectionObserver         never hide anything, at all
+ *   3. the document does not scroll    an observer would never fire
+ *   4. the page is about to print      reveal everything first
  */
 export function Reveal({
   className = "",
   id,
+  stagger = false,
   children,
 }: {
   className?: string;
   id?: string;
+  /** Stagger this section's own direct children by 60ms each. */
+  stagger?: boolean;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLElement>(null);
@@ -53,32 +60,42 @@ export function Reveal({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    // Already visible, or close to it: never hide, so there is no flash and
-    // nothing above (or barely below) the fold waits on a scroll to appear.
-    const rect = el.getBoundingClientRect();
-    if (rect.top < window.innerHeight * 0.85) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (typeof IntersectionObserver === "undefined") return;
+
+    // A document shorter than its own viewport can never be scrolled, so an
+    // observer on a section below the fold would never fire. There is no
+    // "below the fold" to reveal into either, so there is nothing to hide.
+    if (document.documentElement.scrollHeight <= window.innerHeight + 4) return;
+
+    // Already visible, or within a screen of it: never hide, so there is no
+    // flash, nothing above the fold waits on a scroll, and this never fights
+    // with the hero's own load-time entrance.
+    if (el.getBoundingClientRect().top < window.innerHeight * 0.9) return;
 
     setHidden(true);
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHidden(false);
-          io.disconnect();
-          clearTimeout(fallback);
-        }
-      },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
-    );
-    const fallback = setTimeout(() => {
+
+    const reveal = () => {
       setHidden(false);
       io.disconnect();
-    }, 60);
+      window.removeEventListener("beforeprint", reveal);
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) reveal();
+      },
+      { threshold: 0.08, rootMargin: "0px 0px -6% 0px" },
+    );
     io.observe(el);
+
+    // Print produces no scroll and no intersection. Reveal first, then print.
+    window.addEventListener("beforeprint", reveal);
+
     return () => {
       io.disconnect();
-      clearTimeout(fallback);
+      window.removeEventListener("beforeprint", reveal);
     };
   }, []);
 
@@ -86,9 +103,11 @@ export function Reveal({
     <section
       ref={ref}
       id={id}
-      className={`${className} transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-        hidden ? "translate-y-3 opacity-0" : "translate-y-0 opacity-100"
-      }`}
+      // data-reveal lets scripts/shots.mjs assert that every section actually
+      // reached its revealed state after scrolling, rather than the screenshot
+      // silently capturing a page of empty bands again.
+      data-reveal={hidden ? "hidden" : "shown"}
+      className={`${className} ${stagger ? "stagger" : ""} ${hidden ? "reveal" : "reveal-in"}`}
     >
       {children}
     </section>
