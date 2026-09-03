@@ -521,12 +521,12 @@ within hundredths of a degree of where the actual sculpture sits. That is
 not a coincidence worth taking credit for; it is what happens when the
 method (real polygon data, not memory) is right.
 
-## Wick, rebuilt to the reference's own format
+## The assistant, rebuilt to the reference's own format
 
 The reference presents Scout as a centered column with the section's own
 header above it and the capability chips above the card, not a full width
-band with the avatar stranded on the left. Wick now matches that shape:
-eyebrow, a heading that highlights "Wick" the same way a hero's
+band with the avatar stranded on the left. It now matches that shape:
+eyebrow, a heading that highlights its own name the same way a hero's
 accentPhrase highlights a word, one line of intro, the capability chips
 centered above a card that is itself constrained to roughly 672px rather
 than the full band. The card gained a proper header bar (avatar, name,
@@ -798,3 +798,221 @@ common case, rather than anything about the map's data or drawing; not
 done here because it needs real testing across actual tall-narrow
 viewports to get the clamp right rather than a guessed value, the same
 discipline this pass's other two fixes were about.
+
+---
+
+# v1.1
+
+The brief for this pass was to make a correct site feel world class rather than
+correct-but-plain, and to wire the integrations. It arrived describing a v1.1
+build; the repo was at v6, so several of its premises were already fixed (the
+map was not inert, a reveal primitive existed, motion was a named system) and
+several were exactly as described (SITE_ORIGIN fell back to localhost,
+`twitter:card` was `summary` with no image on every route, the assistant still
+carried its old name, there was no numbers band and no hero variation). The
+pass was run
+against the brief as the target state, not against its description of the
+starting one.
+
+## The three live defects, first
+
+**Canonicals pointed at localhost.** `SITE_ORIGIN` was unset in production and
+every route emitted `canonical: http://localhost:3000` while meta robots said
+index, follow. `lib/origin.ts` now resolves SITE_ORIGIN, then the Vercel
+production domain, then `VERCEL_URL`, then localhost, and it is loud about it:
+a banner in the build log when it has to fall back on Vercel, and a thrown
+error when nothing resolves there at all. The brief asked for `VERCEL_URL` as
+the fallback; the project's stable production domain sits above it because
+`VERCEL_URL` carries a build hash and changes every deploy, so using it for a
+canonical would emit a different one on every push.
+
+**A preview could be indexed.** noindex is host-conditional now. It is off on
+every production deployment, including one with SITE_ORIGIN still unset, and
+off entirely away from Vercel, so the only host that disallows itself is a
+preview or development deployment. That narrowness is the point: app/robots.ts
+already warned, correctly, that a leftover noindex launching a site invisible
+to Google is the worse of the two failures, and this must never become that.
+
+**Every link preview was a bare line of text.** `twitter:card` was `summary`
+with no image anywhere. Alex's primary action is a text message, and a text
+message renders a link preview, so for most people the card is literally the
+first thing they will ever see of this site. There is a generated card now, at
+1200x630, plus per-route variants for the four audience routes. It carries his
+name, the brokerage, the seven towns and Lark, and no claim of any kind,
+because there is no verified claim to make.
+
+## Where the depth came from, and the number that constrained all of it
+
+No new hue. The navy became a real ramp (deep, base, glow, lift) and gold gained
+low-alpha hairlines and a pale champagne tint for dark gradient stops. Full
+strength `#B89A67` is still the primary action and nothing else, with one
+recorded exception: Lark's breast.
+
+`navy-lift` is the brief's own `#22475E` and it needed a rule attached rather
+than just adopting it. Gold as text on it measures 3.69:1, which fails AA, so
+it is a raised card surface only and never the ground under the one gold accent
+phrase a page carries. `audit-contrast.mjs` holds gold-on-navy-lift in its
+FORBIDDEN list so a future edit cannot reintroduce it quietly.
+
+That number then constrained the whole layered-gradient idea, and the auditor
+is what found it. The first version of the dark field put the two decorative
+washes on top of a base that already peaked at `navy-glow`, and the build
+failed: the accent phrase measured 4.03:1 where the champagne bloom overlapped
+the brightest point. `navy-glow` had already been chosen in v4 as the brightest
+ground gold tolerates at all, so there was no headroom above it, and no
+combination of the two decorative alphas cleared 4.5. The fix was to lower the
+base rather than dim the decoration: the base tops out at flat navy and the
+decorative lift raises it back toward the same ceiling instead of past it. The
+brightest composited ground any text can land on is `#203646`, gold measures
+4.68:1 on it, and that exact composite is now a checked pair rather than an
+argument in a comment.
+
+Depth otherwise comes from four things, none of which is a colour: grain at 5
+percent on dark surfaces, warm navy-tinted elevation on cream instead of grey
+shadow, a light top edge instead of a black shadow on dark cards, and the
+geometry motif.
+
+**The geometry motif is the piece worth keeping.** Dark bands carry the real
+rivers, highways and city limit the map is drawn from, at three to five
+percent. It costs nothing, because the paths are already in the bundle, and it
+is the cheapest thing on this build that makes the page read as being about
+this city rather than as a clean template that could belong to any agent
+anywhere. The test is that removing it should make a band look flatter without
+anyone being able to say what was taken away.
+
+## Typography
+
+Archivo for display, Inter kept for text, JetBrains Mono kept for figures.
+
+Up to v6 the honest description of every heading here was "the body face set
+larger", which v3 had recorded as a deliberate departure from the
+cream-plus-serif-revival tell and which had quietly become the reason the fold
+read as competent rather than designed. Inter is an excellent text face and a
+characterless display one: at 900 weight and -0.04em it goes soft and generic.
+Archivo is a grotesque with squared terminals, narrower apertures and a
+genuinely different rhythm, so the headings change voice without touching the
+body copy that has to stay quiet.
+
+It keeps both constraints the choice sits inside. It is not a serif, so the
+tell named in section 6 is still avoided, and it is not a geometric sans, so
+the headings are not the circles and straight lines every AI-built site reaches
+for. Tracking now scales with size (-0.025em generally, -0.04em on the hero)
+rather than one flat value, because -0.04em on a 1.9rem H2 reads as a printing
+fault. Full fallback stack, so the page is correct before the webfont arrives
+and correct if it never does.
+
+## The reveal primitive, and the bug hiding inside the previous fix
+
+v5 added a scroll reveal and then, correctly, caught its own bug: a full-page
+screenshot does not fire an IntersectionObserver, so every band below the fold
+captured at opacity 0. The fix was a 60ms timer that revealed a hidden section
+whether or not it had ever intersected.
+
+That fixed the screenshot by removing the feature. Sixty milliseconds after
+mount, every section on the page was revealed, so the reveal only ever played
+for bands already within a screen of the fold and was dead code on every long
+route. Nothing failed, which is why it survived a pass.
+
+The timer is gone. What remains are four guards that are conditions rather than
+clocks: reduced motion, no IntersectionObserver, a document too short to
+scroll, and `beforeprint`. The screenshot problem was moved to where it
+belonged, which is the tool: `shots.mjs` scrolls the page the way a person does
+before it captures, and asserts afterwards that no band is still hidden. Making
+that work required forcing instant scrolling in the harness, because
+`scroll-behavior: smooth` turns every `scrollTo` into an animation and a loop
+of them fights itself.
+
+## The map, and the constraint that placed Lark
+
+The map already had real geometry and real hover states. What it did not have
+was anything to say: the copy under it promised "select a town to ask Alex
+something specific about it" and selecting one produced a link.
+
+Each town now carries a closed set of eight facts, closed in the schema as well
+as in the component, so there is no field that could hold a characterization
+even if someone wanted to add one. Twenty-seven of the fifty-six fields carry a
+verified value with its source; twenty-nine are null with a pending note naming
+who supplies them. Nothing was filled in from memory, and two of the nulls are
+worth naming as method rather than as gaps: Maize's incorporation year is
+withheld because the city's own site and other accounts contradict each other,
+and Wichita's and Park City's school districts are withheld because addresses
+inside both fall into more than one district, so a single name published
+against either would be wrong for a real number of houses.
+
+Hover, keyboard focus and tap all open the same panel, which took two pieces of
+state rather than one: an unlocked panel follows the pointer and the focus
+ring, a locked one was opened deliberately and stays. Without the lock, a tap
+on a device that also synthesises a mouseleave opens the panel and immediately
+shuts it.
+
+**Lark's position on the map is a constraint, not a composition choice**, and
+it is the honest answer to "why is the bird off to one side". Every town's
+label sits directly above its dot, and the viewBox is padded to exactly the
+label extent the current seven towns need: Derby has 26 units of clearance
+below its dot and Park City six above its label. There is no room in any
+direction to grow that envelope without regenerating the geometry from the
+TIGER shapefiles. So Lark stands in the one gap that already exists, below the
+label's descenders and inside the bottom allowance already reserved for the dot
+and its halo, and `audit-map-fit` stays green without its formula changing.
+
+## Lark
+
+A western meadowlark: Kansas state bird, gold breast over a warm brown back
+that is Alex's own two colours mixed rather than a new hue. It is a bird, which
+is the rule that matters, since the README's own constraint is that the
+assistant can never be mistaken for Alex. It also avoids every cliche Alex
+named at intake, since there is no key, no door and no handshake anywhere in it.
+
+The one full-strength use of gold on this site that is not a call to action.
+Recorded rather than quietly taken: the palette rule is that gold means "act
+here", and a gold-breasted bird spends a little of that signal. It is accepted
+because the breast is the identifying feature of the species, a champagne tint
+reads as a sparrow, and the mark never appears in a button-shaped surface.
+
+The state that earns its keep is "not connected". With no API key the widget
+used to sit on "checking" forever and a visitor had no way to tell it was
+simply unconfigured rather than slow. Lark perches, stops moving and dims, the
+composer and chips are disabled rather than accepting a question nobody will
+answer, and the copy says so in plain words with the phone number. That state
+is server rendered now: the component still never claims a readiness it has not
+verified, but "checking" was the wrong default, because the server knows the
+answer at render time and withholding it meant the honest copy existed only in
+client-rendered HTML. A test caught that.
+
+## The mandatory self critique
+
+**Is the depth designed, or is it three effects stacked on the same layout?**
+Designed, and the evidence is that the constraint pushed back. The gradient
+layering could not be added as decoration: it forced the base tone down, and
+that is a change to the ground the whole site is painted on rather than
+something laid over it. The same is true of the geometry motif, which is reused
+data rather than a texture, and of the hero variants, which are a table that
+structurally cannot reach the type scale. What is closest to decoration is the
+grain: it is genuinely just a noise overlay, and it is only defensible because
+it is doing the one job nothing else does.
+
+**Does the town card justify the map being the signature element?** Mostly not
+yet, and that is a content problem this pass could not solve by working harder.
+Half of every card is withheld. The three fields a visitor most wants,
+how far it is, how long the drive really takes, and what the houses are like,
+are exactly the three that could not be sourced without inventing them. A card
+that says Butler County, Andover USD 385, 1957 and "covered by the MLS" is
+true, and it is thinner than the interaction around it implies. The design is
+built so that changes the day Alex sends the rest, and the honest statement
+today is that the mechanism is finished and the content is not.
+
+**What is the single worst thing remaining?** The hero's second column on
+`/buy`, `/sell`, `/veterans` and `/investors`, which is the same hole v4 and v5
+both named and neither closed. The variants give those four routes their own
+light and their own geometry, which is a real improvement over four identical
+openings, but at desktop width the column where the homepage shows the map is
+still empty on all four. Closing it needs a real, page-specific object per
+route rather than atmosphere, which is a features change rather than a visual
+one, and it is now the third pass to say so.
+
+**Would this same pass have happened for any other agent?** The navy ramp, the
+grain, the elevation model and the type change, yes. What could not transfer is
+the geometry motif, which is this client's own seven towns and two rivers, and
+the town cards, whose entire design is organised around which facts about a
+place a licensed agent is allowed to state. On a build with no fair housing
+exposure the card would just be a card.
