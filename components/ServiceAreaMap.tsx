@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { useId, useState } from "react";
-import { Glyph } from "./ui";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { LarkPerch } from "./Lark";
+import { TownPanel, type TownFacts } from "./TownPanel";
 import {
   CONFLUENCE,
   MUNICIPAL_BOUNDARY_PATHS,
@@ -54,7 +54,13 @@ import {
  * shape is not.
  */
 
-export type Town = { name: string; lat: number; lon: number; anchor?: boolean };
+export type Town = {
+  name: string;
+  lat: number;
+  lon: number;
+  anchor?: boolean;
+  facts?: TownFacts;
+};
 
 function labelAnchor(x: number): "start" | "middle" | "end" {
   if (x < VIEW_W * 0.14) return "start";
@@ -91,6 +97,15 @@ function mapCoordVars(p: { x: number; y: number }): React.CSSProperties {
  * frame does not.
  */
 const MAP_DELAY = { rivers: "0ms", roads: "220ms", context: "400ms", towns: "480ms" } as const;
+
+/**
+ * The town marks drop in one after another rather than as a block, starting
+ * once the ground underneath them has finished drawing. 70ms apart: enough to
+ * read as seven separate arrivals, short enough that the last one lands well
+ * under a second after the first. Once, on the map's first appearance, because
+ * .pin-drop is a plain CSS animation with no iteration and nothing re-arms it.
+ */
+const TOWN_STAGGER_MS = 70;
 
 /**
  * A flat, two-tone skyline silhouette anchored on the real river confluence
@@ -167,20 +182,64 @@ function DowntownSkyline() {
 export function ServiceAreaMap({
   towns,
   compact = false,
+  phoneE164,
 }: {
   towns: Town[];
   compact?: boolean;
+  /** For the SMS deep link on a town card. */
+  phoneE164: string;
 }) {
-  const [selected, setSelected] = useState<string | null>(null);
+  /**
+   * One piece of state for what the panel is showing, and one for whether it
+   * was opened deliberately.
+   *
+   * The brief requires hover, keyboard focus and tap to open the same panel,
+   * with tap primary because a phone has no hover. Two states is what makes
+   * all three coexist without fighting: an unlocked panel follows the pointer
+   * and the focus ring around and closes itself when they leave, and a locked
+   * one was opened on purpose and stays until it is dismissed. Without the
+   * lock, tapping a mark on a device that also synthesises a mouseleave would
+   * open the panel and immediately shut it again.
+   */
+  const [active, setActive] = useState<string | null>(null);
+  const [locked, setLocked] = useState(false);
   const glowId = useId();
+  const figureRef = useRef<HTMLElement>(null);
+
+  const close = useCallback(() => {
+    setActive(null);
+    setLocked(false);
+  }, []);
+
+  // Escape closes, from anywhere, which is the behaviour a keyboard user will
+  // try first. Outside pointerdown closes too, and pointerdown rather than
+  // click so a tap that starts outside the map dismisses without waiting for
+  // the tap to complete.
+  useEffect(() => {
+    if (!active) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    const onDown = (e: PointerEvent) => {
+      if (!figureRef.current?.contains(e.target as Node)) close();
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [active, close]);
+
+  const activeTown = towns.find((t) => t.name === active) ?? null;
 
   return (
-    <figure className={compact ? "m-0" : "mt-10"}>
+    <figure ref={figureRef} className={compact ? "m-0" : "mt-10"}>
       <svg
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         className="h-auto w-full"
         role="group"
-        aria-label={`A map of the Wichita area showing the Arkansas and Little Arkansas rivers, the main highways, the city limit, and the ${towns.length} towns Alex works. Select a town to ask him about it.`}
+        aria-label={`A map of the Wichita area showing the Arkansas and Little Arkansas rivers, the main highways, the city limit, and the ${towns.length} towns Alex works. Select a town for facts about it and a way to ask him something specific.`}
       >
         <defs>
           {/* A real soft halo rather than a flat outline ring, reused for
@@ -191,11 +250,7 @@ export function ServiceAreaMap({
         </defs>
 
         {/* Rivers first: the widest, most identifying shapes on the ground,
-            so everything else draws on top of them. A soft fill for the
-            channel plus a slightly brighter stroke, both cream, both
-            verified against navy-glow in the contrast auditor. Drawn in
-            (stroke sweeping on via dash offset) rather than just appearing,
-            the first move in the map's one entrance sequence. */}
+            so everything else draws on top of them. */}
         <g className="map-in text-cream" style={{ animationDelay: MAP_DELAY.rivers }} aria-hidden="true">
           {RIVER_AREA_PATHS.map((d, i) => (
             <path key={`ra${i}`} d={d} fill="currentColor" fillOpacity={0.3} stroke="currentColor" strokeOpacity={0.55} strokeWidth={1.4} />
@@ -205,11 +260,10 @@ export function ServiceAreaMap({
           ))}
         </g>
 
-        {/* The city limit: a real, jagged, annexation-drawn boundary, not a
-            circle standing in for one. A flat, uniform, low-opacity fill
-            plus the dashed outline it always had; see the fair housing note
-            in the file header for why one flat wash on a single closed
-            shape does not cross into exposure. */}
+        {/* The city limit: a real, jagged, annexation-drawn boundary. A flat,
+            uniform, low-opacity fill plus the dashed outline; see the fair
+            housing note in the file header for why one flat wash on a single
+            closed shape does not cross into exposure. */}
         <g className="map-in text-cream" style={{ animationDelay: MAP_DELAY.context }} aria-hidden="true">
           {MUNICIPAL_BOUNDARY_PATHS.map((d, i) => (
             <path key={`bf${i}`} d={d} fill="currentColor" fillOpacity={0.045} stroke="none" />
@@ -237,15 +291,31 @@ export function ServiceAreaMap({
 
         <DowntownSkyline />
 
-        <g className="map-in" style={{ animationDelay: MAP_DELAY.towns }}>
-          {towns.map((t) => {
+        <g>
+          {towns.map((t, i) => {
             const p = project(t.lon, t.lat);
             const isAnchor = Boolean(t.anchor);
-            const isOn = selected === t.name;
+            const isOn = active === t.name;
             const glowing = isAnchor || isOn;
             const ta = labelAnchor(p.x);
             const dx = ta === "start" ? -1 : ta === "end" ? 1 : 0;
             const r = isAnchor ? 11 : isOn ? 10 : 6;
+
+            const open = () => {
+              setActive(t.name);
+            };
+            const leave = () => {
+              if (!locked) setActive((cur) => (cur === t.name ? null : cur));
+            };
+            const toggle = () => {
+              if (isOn && locked) {
+                close();
+              } else {
+                setActive(t.name);
+                setLocked(true);
+              }
+            };
+
             return (
               <g
                 key={t.name}
@@ -253,20 +323,49 @@ export function ServiceAreaMap({
                 tabIndex={0}
                 aria-pressed={isOn}
                 aria-label={`Ask about ${t.name}`}
-                onClick={() => setSelected(isOn ? null : t.name)}
+                onPointerEnter={(e) => {
+                  // Touch fires pointerenter immediately before the tap. Let
+                  // the click handler own that case so a tap does not open on
+                  // enter and then toggle straight back shut.
+                  if (e.pointerType === "mouse") open();
+                }}
+                onPointerLeave={(e) => {
+                  if (e.pointerType === "mouse") leave();
+                }}
+                onFocus={open}
+                onBlur={leave}
+                onClick={toggle}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    setSelected(isOn ? null : t.name);
+                    toggle();
                   }
                 }}
-                className="group cursor-pointer focus:outline-none [&:focus-visible_circle.hit]:stroke-cream"
+                className="pin-drop group cursor-pointer focus:outline-none [&:focus-visible_circle.hit]:stroke-cream"
+                style={{ animationDelay: `${480 + i * TOWN_STAGGER_MS}ms` }}
               >
                 {/* A 44px target at every rendered size, invisible but hittable. */}
                 <circle className="hit" cx={p.x} cy={p.y} r={26} fill="transparent" strokeWidth={2} />
+
+                {/* Only the active mark pulses. One ring, expanding and fading
+                    out, and it starts and ends on its resting value so a
+                    reduced-motion visitor is left with nothing showing rather
+                    than a ring frozen mid-expansion. */}
+                {isOn && (
+                  <circle
+                    className="pin-pulse text-cream"
+                    cx={p.x}
+                    cy={p.y}
+                    r={r + 4}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                    style={{ transformOrigin: `${p.x}px ${p.y}px` }}
+                  />
+                )}
+
                 {/* The halo: always in the DOM so hover can fade it in with a
-                    transition instead of popping, held fully on for the
-                    anchor and the selected town. */}
+                    transition instead of popping. */}
                 <circle
                   cx={p.x}
                   cy={p.y}
@@ -277,12 +376,10 @@ export function ServiceAreaMap({
                     glowing ? "opacity-100" : "opacity-0 group-hover:opacity-70"
                   }`}
                 />
+
                 {/* The lift: a small scale-up on hover, pivoted on the dot's
                     own coordinate via the .mark-scale CSS variables rather
-                    than transform-box: fill-box (see globals.css for why:
-                    fill-box's reference-box resolution has real cross-engine
-                    history and threw the mark across the map in WebKit
-                    rather than lifting it in place). */}
+                    than transform-box: fill-box (see globals.css for why). */}
                 <g
                   className="mark-scale transition-transform duration-150 ease-out group-hover:[--ms:1.1] group-focus-visible:[--ms:1.1]"
                   style={mapCoordVars(p)}
@@ -328,28 +425,51 @@ export function ServiceAreaMap({
             );
           })}
         </g>
+
+        {/*
+          Lark perches on the active mark. Drawn last so it sits above every
+          other layer, and outside the mark's own <g> so it is not inside a
+          role="button" and cannot be announced as part of it.
+
+          The offset is not a style choice, it is the only place the bird
+          fits. Every town's label sits directly above its dot, and the
+          viewBox is padded to exactly the label extent the seven current
+          towns need: Derby has 26 units of clearance below its dot and Park
+          City has six above its label, so there is no room in any direction
+          to grow the envelope without regenerating the map geometry from the
+          TIGER shapefiles. Standing Lark down and to the right puts it in the
+          one gap that already exists: below the label's descenders, inside
+          the 26 unit bottom allowance scripts/map-label-metrics.mjs already
+          reserves for the dot and its halo, and well inside the label's own
+          horizontal reach. It costs the map nothing and audit-map-fit stays
+          green without its formula changing.
+        */}
+        {activeTown &&
+          (() => {
+            const p = project(activeTown.lon, activeTown.lat);
+            return <LarkPerch x={p.x + 22} y={p.y + 22} lift={0} size={54} seed={activeTown.name} />;
+          })()}
       </svg>
 
-      {/* Reserved height, so selecting a town does not shove the page around. */}
-      <div className="mt-5 min-h-[52px]">
-        {selected ? (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            <p className="text-[0.98rem] text-dim">
-              Looking at <span className="font-semibold text-cream">{selected}</span>?
-            </p>
-            <Link
-              href={`/contact?about=${encodeURIComponent(selected)}`}
-              className="cta-secondary group inline-flex min-h-[44px] items-center justify-center rounded-full border border-navy/55 px-4 text-[0.93rem] font-semibold text-navy transition-[border-color,background-color] duration-150 hover:border-navy hover:bg-navy/[0.04]"
-              data-cta-kind="give"
-              data-cta-emphasis="secondary"
-            >
-              Ask Alex about {selected}
-              <Glyph />
-            </Link>
-          </div>
+      {/*
+        The panel. Rendered under the map rather than floating over it: an
+        overlay would cover the very marks a visitor is comparing, and on a
+        360px phone it would cover the whole drawing. aria-live announces the
+        town to a screen reader when hover or focus changes it, without moving
+        focus, which would trap a keyboard user walking the seven marks.
+      */}
+      <div className="mt-5" aria-live="polite">
+        {activeTown ? (
+          <TownPanel
+            town={activeTown.name}
+            facts={activeTown.facts ?? {}}
+            phoneE164={phoneE164}
+            onClose={close}
+          />
         ) : (
-          <p className="text-[0.93rem] text-dim">
-            Select a town to ask Alex something specific about it.
+          <p className="min-h-[52px] text-[0.93rem] text-dim">
+            Hover, tab to, or tap a town for the facts about it and a way to ask Alex
+            something specific.
           </p>
         )}
       </div>

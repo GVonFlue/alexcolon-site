@@ -16,37 +16,275 @@
       "name": "Wichita",
       "lat": 37.6872,
       "lon": -97.3301,
-      "anchor": true
+      "anchor": true,
+      "facts": {
+        "county": {
+          "value": "Sedgwick County",
+          "source": "Sedgwick County's own list of incorporated cities and school districts, sedgwickcounty.org/about-sedgwick-county/municipalities-school-districts-meeting-schedules/, which names this city as an incorporated city of the county."
+        },
+        "driveToDowntown": {
+          "value": null,
+          "pending": "Approximate driving distance and an honest door-to-door drive time to downtown Wichita. Deliberately not taken from a mapping API: the useful number is what the drive actually takes at the hour someone would make it, which varies, and a free-flow figure published as fact would be the kind of small lie this build does not ship. Needed from Alex, who drives these every week."
+        },
+        "schoolDistrict": {
+          "value": null,
+          "pending": "The district name for Wichita. Left null on purpose rather than filled with USD 259: Sedgwick County's own list names ten unified school districts in the county, and addresses inside Wichita city limits fall into several of them, so a single district name published against this town would be wrong for a real number of houses. Needed from Alex, or drop the row for this town."
+        },
+        "housingEra": {
+          "value": null,
+          "pending": "The typical era of the housing stock, stated as a fact about when the housing was built and nothing more. No public dataset states this per city at a quality this build would publish, and it must carry no characterization of the housing or of who lives in it. Needed from Alex."
+        },
+        "yearIncorporated": {
+          "value": null,
+          "pending": "Year of incorporation. No source consulted for this build states it in a form worth publishing. Needed from Alex or Garrett, with a citation."
+        },
+        "website": {
+          "value": "https://www.wichita.gov",
+          "source": "Fetched and confirmed as the City of Wichita's official website."
+        },
+        "mlsCoverage": {
+          "value": "Covered by the South Central Kansas MLS",
+          "source": "Published service area of the South Central Kansas MLS: 18 counties including Sedgwick and Butler, stated by the association that operates the MLS. Alex holds the membership, so confirm with him before this is relied on."
+        },
+        "note": {
+          "value": null,
+          "pending": "One factual, verifiable note about this town, or nothing. Nothing has been written here rather than padding the card: a note that is merely true and dull is worse than an empty row, and a note that is interesting because it characterizes the place is a fair housing problem. Needed from Alex or Garrett."
+        }
+      }
     },
     {
       "name": "Maize",
       "lat": 37.7756,
-      "lon": -97.467
+      "lon": -97.467,
+      "facts": {
+        "county": {
+          "value": "Sedgwick County",
+          "source": "Sedgwick County's own list of incorporated cities and school districts, sedgwickcounty.org/about-sedgwick-county/municipalities-school-districts-meeting-schedules/, which names this city as an incorporated city of the county."
+        },
+        "driveToDowntown": {
+          "value": null,
+          "pending": "Approximate driving distance and an honest door-to-door drive time to downtown Wichita. Deliberately not taken from a mapping API: the useful number is what the drive actually takes at the hour someone would make it, which varies, and a free-flow figure published as fact would be the kind of small lie this build does not ship. Needed from Alex, who drives these every week."
+        },
+        "schoolDistrict": {
+          "value": "Maize USD 266",
+          "source": "Named in Sedgwick County's own municipalities and school districts list, and confirmed against the district's own site, usd266.com. District boundaries do not follow city limits; the panel says so."
+        },
+        "housingEra": {
+          "value": null,
+          "pending": "The typical era of the housing stock, stated as a fact about when the housing was built and nothing more. No public dataset states this per city at a quality this build would publish, and it must carry no characterization of the housing or of who lives in it. Needed from Alex."
+        },
+        "yearIncorporated": {
+          "value": null,
+          "pending": "Year of incorporation. Two sources disagree: the city's own site states 140 years incorporated, which points at roughly 1886, while other accounts give 1915. A contradiction is exactly the case for publishing nothing. Needed from the City of Maize or from Alex, with a citation."
+        },
+        "website": {
+          "value": "https://maizeks.gov",
+          "source": "Fetched and confirmed as the City of Maize's official website. The older cityofmaize.org redirects here."
+        },
+        "mlsCoverage": {
+          "value": "Covered by the South Central Kansas MLS",
+          "source": "Published service area of the South Central Kansas MLS: 18 counties including Sedgwick and Butler, stated by the association that operates the MLS. Alex holds the membership, so confirm with him before this is relied on."
+        },
+        "note": {
+          "value": null,
+          "pending": "One factual, verifiable note about this town, or nothing. Nothing has been written here rather than padding the card: a note that is merely true and dull is worse than an empty row, and a note that is interesting because it characterizes the place is a fair housing problem. Needed from Alex or Garrett."
+        }
+      }
     },
     {
       "name": "Park City",
       "lat": 37.7994,
-      "lon": -97.32
+      "lon": -97.32,
+      "facts": {
+        "county": {
+          "value": "Sedgwick County",
+          "source": "Sedgwick County's own list of incorporated cities and school districts, sedgwickcounty.org/about-sedgwick-county/municipalities-school-districts-meeting-schedules/, which names this city as an incorporated city of the county."
+        },
+        "driveToDowntown": {
+          "value": null,
+          "pending": "Approximate driving distance and an honest door-to-door drive time to downtown Wichita. Deliberately not taken from a mapping API: the useful number is what the drive actually takes at the hour someone would make it, which varies, and a free-flow figure published as fact would be the kind of small lie this build does not ship. Needed from Alex, who drives these every week."
+        },
+        "schoolDistrict": {
+          "value": null,
+          "pending": "The district name for Park City. Left null rather than guessed: no district is named for the city, and addresses in it fall into more than one of the districts Sedgwick County lists. Needed from Alex, or drop the row for this town."
+        },
+        "housingEra": {
+          "value": null,
+          "pending": "The typical era of the housing stock, stated as a fact about when the housing was built and nothing more. No public dataset states this per city at a quality this build would publish, and it must carry no characterization of the housing or of who lives in it. Needed from Alex."
+        },
+        "yearIncorporated": {
+          "value": null,
+          "pending": "Year of incorporation. Not stated on the city's own website and not otherwise verified for this build. Needed from Alex or Garrett, with a citation."
+        },
+        "website": {
+          "value": "https://www.parkcityks.gov",
+          "source": "Fetched and confirmed as the City of Park City's official website."
+        },
+        "mlsCoverage": {
+          "value": "Covered by the South Central Kansas MLS",
+          "source": "Published service area of the South Central Kansas MLS: 18 counties including Sedgwick and Butler, stated by the association that operates the MLS. Alex holds the membership, so confirm with him before this is relied on."
+        },
+        "note": {
+          "value": null,
+          "pending": "One factual, verifiable note about this town, or nothing. Nothing has been written here rather than padding the card: a note that is merely true and dull is worse than an empty row, and a note that is interesting because it characterizes the place is a fair housing problem. Needed from Alex or Garrett."
+        }
+      }
     },
     {
       "name": "Goddard",
       "lat": 37.6597,
-      "lon": -97.5753
+      "lon": -97.5753,
+      "facts": {
+        "county": {
+          "value": "Sedgwick County",
+          "source": "Sedgwick County's own list of incorporated cities and school districts, sedgwickcounty.org/about-sedgwick-county/municipalities-school-districts-meeting-schedules/, which names this city as an incorporated city of the county."
+        },
+        "driveToDowntown": {
+          "value": null,
+          "pending": "Approximate driving distance and an honest door-to-door drive time to downtown Wichita. Deliberately not taken from a mapping API: the useful number is what the drive actually takes at the hour someone would make it, which varies, and a free-flow figure published as fact would be the kind of small lie this build does not ship. Needed from Alex, who drives these every week."
+        },
+        "schoolDistrict": {
+          "value": "Goddard USD 265",
+          "source": "Named in Sedgwick County's own municipalities and school districts list. District boundaries do not follow city limits; the panel says so."
+        },
+        "housingEra": {
+          "value": null,
+          "pending": "The typical era of the housing stock, stated as a fact about when the housing was built and nothing more. No public dataset states this per city at a quality this build would publish, and it must carry no characterization of the housing or of who lives in it. Needed from Alex."
+        },
+        "yearIncorporated": {
+          "value": null,
+          "pending": "Year of incorporation. Not stated on the city's own website and not otherwise verified for this build. Needed from Alex or Garrett, with a citation."
+        },
+        "website": {
+          "value": "https://www.goddardks.gov",
+          "source": "Fetched and confirmed as the City of Goddard's official website."
+        },
+        "mlsCoverage": {
+          "value": "Covered by the South Central Kansas MLS",
+          "source": "Published service area of the South Central Kansas MLS: 18 counties including Sedgwick and Butler, stated by the association that operates the MLS. Alex holds the membership, so confirm with him before this is relied on."
+        },
+        "note": {
+          "value": null,
+          "pending": "One factual, verifiable note about this town, or nothing. Nothing has been written here rather than padding the card: a note that is merely true and dull is worse than an empty row, and a note that is interesting because it characterizes the place is a fair housing problem. Needed from Alex or Garrett."
+        }
+      }
     },
     {
       "name": "Andover",
       "lat": 37.7142,
-      "lon": -97.1353
+      "lon": -97.1353,
+      "facts": {
+        "county": {
+          "value": "Butler County",
+          "source": "Butler County's own list of the county's 13 incorporated cities, bucoks.gov/196/Cities, which names this city."
+        },
+        "driveToDowntown": {
+          "value": null,
+          "pending": "Approximate driving distance and an honest door-to-door drive time to downtown Wichita. Deliberately not taken from a mapping API: the useful number is what the drive actually takes at the hour someone would make it, which varies, and a free-flow figure published as fact would be the kind of small lie this build does not ship. Needed from Alex, who drives these every week."
+        },
+        "schoolDistrict": {
+          "value": "Andover USD 385",
+          "source": "Confirmed against the district's own site, usd385.org, which publishes as Andover Public Schools. District boundaries do not follow city limits; the panel says so."
+        },
+        "housingEra": {
+          "value": null,
+          "pending": "The typical era of the housing stock, stated as a fact about when the housing was built and nothing more. No public dataset states this per city at a quality this build would publish, and it must carry no characterization of the housing or of who lives in it. Needed from Alex."
+        },
+        "yearIncorporated": {
+          "value": "1957",
+          "source": "The City of Andover's own published history: incorporated as a third class city on 4 February 1957, with a population of 166 at the time."
+        },
+        "website": {
+          "value": "https://www.andoverks.gov",
+          "source": "Fetched and confirmed as the City of Andover's official website, and the address Butler County links to. The older andoverks.com redirects here."
+        },
+        "mlsCoverage": {
+          "value": "Covered by the South Central Kansas MLS",
+          "source": "Published service area of the South Central Kansas MLS: 18 counties including Sedgwick and Butler, stated by the association that operates the MLS. Alex holds the membership, so confirm with him before this is relied on."
+        },
+        "note": {
+          "value": null,
+          "pending": "One factual, verifiable note about this town, or nothing. Nothing has been written here rather than padding the card: a note that is merely true and dull is worse than an empty row, and a note that is interesting because it characterizes the place is a fair housing problem. Needed from Alex or Garrett."
+        }
+      }
     },
     {
       "name": "Derby",
       "lat": 37.5453,
-      "lon": -97.2683
+      "lon": -97.2683,
+      "facts": {
+        "county": {
+          "value": "Sedgwick County",
+          "source": "Sedgwick County's own list of incorporated cities and school districts, sedgwickcounty.org/about-sedgwick-county/municipalities-school-districts-meeting-schedules/, which names this city as an incorporated city of the county."
+        },
+        "driveToDowntown": {
+          "value": null,
+          "pending": "Approximate driving distance and an honest door-to-door drive time to downtown Wichita. Deliberately not taken from a mapping API: the useful number is what the drive actually takes at the hour someone would make it, which varies, and a free-flow figure published as fact would be the kind of small lie this build does not ship. Needed from Alex, who drives these every week."
+        },
+        "schoolDistrict": {
+          "value": "Derby USD 260",
+          "source": "Named in Sedgwick County's own municipalities and school districts list as USD 260, Derby Public Schools. District boundaries do not follow city limits; the panel says so."
+        },
+        "housingEra": {
+          "value": null,
+          "pending": "The typical era of the housing stock, stated as a fact about when the housing was built and nothing more. No public dataset states this per city at a quality this build would publish, and it must carry no characterization of the housing or of who lives in it. Needed from Alex."
+        },
+        "yearIncorporated": {
+          "value": null,
+          "pending": "Year of incorporation. The city's own website returned no published statement of it to this build. Needed from Alex or Garrett, with a citation."
+        },
+        "website": {
+          "value": "https://www.derbyks.gov",
+          "source": "Probed and confirmed as the City of Derby's official website."
+        },
+        "mlsCoverage": {
+          "value": "Covered by the South Central Kansas MLS",
+          "source": "Published service area of the South Central Kansas MLS: 18 counties including Sedgwick and Butler, stated by the association that operates the MLS. Alex holds the membership, so confirm with him before this is relied on."
+        },
+        "note": {
+          "value": null,
+          "pending": "One factual, verifiable note about this town, or nothing. Nothing has been written here rather than padding the card: a note that is merely true and dull is worse than an empty row, and a note that is interesting because it characterizes the place is a fair housing problem. Needed from Alex or Garrett."
+        }
+      }
     },
     {
       "name": "Rose Hill",
       "lat": 37.5589,
-      "lon": -97.1275
+      "lon": -97.1275,
+      "facts": {
+        "county": {
+          "value": "Butler County",
+          "source": "Butler County's own list of the county's 13 incorporated cities, bucoks.gov/196/Cities, which names this city. The city's own website also states it is in southwest Butler County."
+        },
+        "driveToDowntown": {
+          "value": null,
+          "pending": "Approximate driving distance and an honest door-to-door drive time to downtown Wichita. Deliberately not taken from a mapping API: the useful number is what the drive actually takes at the hour someone would make it, which varies, and a free-flow figure published as fact would be the kind of small lie this build does not ship. Needed from Alex, who drives these every week."
+        },
+        "schoolDistrict": {
+          "value": "Rose Hill USD 394",
+          "source": "Confirmed against the district's own site, usd394.com, which publishes as Rose Hill Schools USD 394. District boundaries do not follow city limits; the panel says so."
+        },
+        "housingEra": {
+          "value": null,
+          "pending": "The typical era of the housing stock, stated as a fact about when the housing was built and nothing more. No public dataset states this per city at a quality this build would publish, and it must carry no characterization of the housing or of who lives in it. Needed from Alex."
+        },
+        "yearIncorporated": {
+          "value": null,
+          "pending": "Year of incorporation. The city's own website says established in 1955, which is not the same claim as incorporated in 1955, and this field must not blur the two. Needed from the City of Rose Hill or from Alex, with a citation."
+        },
+        "website": {
+          "value": "https://www.cityofrosehill.com",
+          "source": "Fetched and confirmed as the City of Rose Hill's official website, and the address Butler County links to."
+        },
+        "mlsCoverage": {
+          "value": "Covered by the South Central Kansas MLS",
+          "source": "Published service area of the South Central Kansas MLS: 18 counties including Sedgwick and Butler, stated by the association that operates the MLS. Alex holds the membership, so confirm with him before this is relied on."
+        },
+        "note": {
+          "value": null,
+          "pending": "One factual, verifiable note about this town, or nothing. Nothing has been written here rather than padding the card: a note that is merely true and dull is worse than an empty row, and a note that is interesting because it characterizes the place is a fair housing problem. Needed from Alex or Garrett."
+        }
+      }
     }
   ],
   "social": [],

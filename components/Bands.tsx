@@ -108,7 +108,7 @@ function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1:
         {featured && (
           <div className="hero-in lg:pl-4" style={{ animationDelay: "280ms" }}>
             <div className="rounded-2xl border border-cream/10 bg-navy-deep p-6 shadow-[0_30px_70px_-24px_rgba(0,0,0,0.6)] sm:p-8 lg:-rotate-1 lg:translate-x-2">
-              <ServiceAreaMap towns={site.serviceAreas} compact />
+              <ServiceAreaMap towns={site.serviceAreas} compact phoneE164={site.phone.e164} />
             </div>
           </div>
         )}
@@ -346,7 +346,7 @@ export function Bands({ page }: { page: PageContent }) {
                   <H2 className="text-cream">{band.heading}</H2>
                   <p className="mt-4 text-[1.02rem] leading-[1.7] text-dim">{band.intro}</p>
                 </div>
-                <ServiceAreaMap towns={site.serviceAreas} />
+                <ServiceAreaMap towns={site.serviceAreas} phoneE164={site.phone.e164} />
                 <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2">
                   {site.serviceAreas.map((a) => (
                     <li key={a.name} className="label text-dim">

@@ -12,7 +12,7 @@
  */
 import { readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
-import { scan, findStackedFragments, pronounRatio, RULE_SET_KEYS } from "./rules.mjs";
+import { scan, scanArea, findStackedFragments, pronounRatio, RULE_SET_KEYS } from "./rules.mjs";
 import { auditHtml } from "./html-checks.mjs";
 import { killTree } from "./kill-tree.mjs";
 import { checkMapFit } from "./map-fit-check.mjs";
@@ -63,6 +63,87 @@ assert(
     ),
   ),
 );
+
+/**
+ * The area-scoped rule set, which guards the town cards.
+ *
+ * Every phrase the brief forbids by name is tested here individually rather
+ * than as one combined sentence, because a single sentence containing all six
+ * would pass this test with five of the six rules broken.
+ */
+console.log("\nNegative tests: fair housing on service area data");
+console.log("================================================");
+
+function areaCatches(label, text) {
+  const hits = scanArea(text);
+  assert(
+    `area rules catch ${label}`,
+    hits.some((h) => h.ruleSet === "areaClaims"),
+    `got [${hits.map((h) => h.ruleSet).join(", ") || "nothing"}]`,
+  );
+}
+
+areaCatches("a safety claim about a town", "It is a safe town to buy in.");
+areaCatches("family friendly", "A family friendly place to look at houses.");
+areaCatches("up and coming", "This part of town is up and coming.");
+areaCatches("desirable", "One of the more desirable places in the county.");
+areaCatches("good schools", "It has good schools and a short commute.");
+areaCatches("quiet", "A quiet town about fifteen minutes out.");
+areaCatches("a district rating", "The district is highly rated for test scores.");
+areaCatches("a ranking", "Ranked the nicest town in the county last year.");
+areaCatches("a claim about who lives there", "Mostly young families and retirees live here.");
+areaCatches("a characterization dressed as description", "A charming, vibrant little downtown.");
+
+/**
+ * And the facts the cards are actually allowed to carry must all pass. A rule
+ * that fires on a county name or a district name would make the whole field
+ * set unpublishable, which is the failure mode that matters most here.
+ */
+const AREA_CLEAN = [
+  "Sedgwick County",
+  "Butler County",
+  "Maize USD 266",
+  "Andover USD 385",
+  "Rose Hill USD 394",
+  "Derby USD 260",
+  "Goddard USD 265",
+  "Covered by the South Central Kansas MLS",
+  "1957",
+  "https://www.andoverks.gov",
+  "About 12 miles from downtown Wichita, roughly 20 minutes outside rush hour.",
+  "Most of the housing stock was built between 1995 and 2010.",
+];
+for (const c of AREA_CLEAN) {
+  const hits = scanArea(c);
+  assert(
+    `area rules accept a real fact: "${c.slice(0, 46)}${c.length > 46 ? "..." : ""}"`,
+    hits.length === 0,
+    hits.map((h) => `${h.ruleSet}:${h.phrase}`).join(", "),
+  );
+}
+
+/**
+ * The rule has to actually be wired to the data, not merely exist. This reads
+ * the real content file, injects a forbidden characterization into the first
+ * town's note, and confirms the scan that audit-copy.mjs runs would reject it.
+ */
+{
+  const real = JSON.parse(
+    readFileSync(new URL("../content/site.json", import.meta.url).pathname, "utf8"),
+  );
+  const town = real.serviceAreas?.[0];
+  assert("every service area carries a facts object", Boolean(town && town.facts));
+  const published = Object.values(town?.facts ?? {}).filter((f) => typeof f.value === "string");
+  assert(
+    "the real town facts pass the area rules",
+    published.every((f) => scanArea(f.value).length === 0),
+  );
+  const injected = "A quiet and desirable place with good schools.";
+  assert(
+    "an injected characterization in a town fact is caught",
+    scanArea(injected).some((h) => h.ruleSet === "areaClaims"),
+  );
+}
 
 // And these are strings the auditor MUST accept. A rule that fires on clean copy
 // is worse than no rule, because it trains everyone to ignore the output.

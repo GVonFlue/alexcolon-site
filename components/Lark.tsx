@@ -258,3 +258,55 @@ export function Lark({
     </svg>
   );
 }
+
+/**
+ * Lark, perched on a point inside an existing SVG.
+ *
+ * This is the moment that ties the site's two signature elements together: the
+ * map is the thing that is true only of this client, the assistant is the thing
+ * Alex asked for at intake, and until now they had nothing to do with each
+ * other. Selecting a town lands the bird on that town's mark.
+ *
+ * Rendered as a `<g>` rather than a nested `<svg>` so it inherits the parent's
+ * coordinate system directly and cannot introduce a second viewport. The
+ * transform puts the bird's feet, which sit at (32, 56) in its own 64 unit box,
+ * on the point given, then lifts it by the mark's radius so it stands on top of
+ * the dot instead of inside it.
+ *
+ * Under reduced motion the blanket query in globals.css zeroes every keyframe,
+ * and because all four of Lark's animations begin and end on the resting pose,
+ * what is left is a bird perched naturally and completely still.
+ */
+export function LarkPerch({
+  x,
+  y,
+  size = 52,
+  lift = 10,
+  state = "idle",
+  seed = "perch",
+}: {
+  x: number;
+  y: number;
+  size?: number;
+  /** Distance above the point to stand, usually the mark's radius. */
+  lift?: number;
+  state?: LarkState;
+  seed?: string;
+}) {
+  const s = size / 64;
+  const phase = (hash(seed) % 1700) / 1000;
+  const idPrefix = `perch-${hash(seed).toString(36)}`;
+
+  return (
+    <g
+      aria-hidden="true"
+      className={`lark lark-${state}`}
+      style={{ ["--lark-phase" as string]: `-${phase.toFixed(3)}s` }}
+      transform={`translate(${x - 32 * s} ${y - 56 * s - lift}) scale(${s})`}
+    >
+      <g className="lark-body" style={{ transformOrigin: "32px 34px" }}>
+        <LarkDrawing seed={seed} idPrefix={idPrefix} />
+      </g>
+    </g>
+  );
+}

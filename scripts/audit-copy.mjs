@@ -6,7 +6,7 @@
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { scan, pronounRatio } from "./rules.mjs";
+import { scan, scanArea, pronounRatio } from "./rules.mjs";
 
 const CONTENT_DIR = new URL("../content/", import.meta.url).pathname;
 
@@ -97,6 +97,67 @@ for (const file of files) {
 }
 
 /**
+ * The service area facts, scanned with the stricter area-scoped rule set.
+ *
+ * These need their own pass for two reasons. The walk above only descends into
+ * PROSE_KEYS, and a town fact's text lives under `value`, which is not one, so
+ * without this the entire town card dataset would ship unscanned. And the town
+ * cards are the surface where a fair housing violation is most likely to be
+ * introduced by someone trying to make a card more interesting, so they get
+ * the strict list rather than the general one.
+ *
+ * `source` and `pending` stay exempt, the same as everywhere else: they are
+ * notes to us about what is missing and they never reach a visitor.
+ */
+console.log("\nService area facts, strict fair housing rules");
+console.log("--------------------------------------------");
+let areaProblems = 0;
+let areaChecked = 0;
+for (const area of site.serviceAreas ?? []) {
+  const facts = area.facts ?? {};
+  const hits = [];
+  for (const [field, fact] of Object.entries(facts)) {
+    if (!fact || typeof fact.value !== "string") continue;
+    areaChecked += 1;
+    for (const v of scanArea(fact.value, { allowRealtor })) {
+      hits.push({ field, ...v, text: fact.value });
+    }
+  }
+  if (hits.length) {
+    areaProblems += hits.length;
+    failures += hits.length;
+    console.log(`FAIL  ${area.name}`);
+    for (const h of hits) console.log(`      [${h.ruleSet}] "${h.phrase}"  at facts.${h.field}: ${h.text}`);
+  } else {
+    const withValue = Object.values(facts).filter((f) => f && typeof f.value === "string").length;
+    const withheld = Object.values(facts).length - withValue;
+    console.log(`pass  ${String(area.name).padEnd(11)} ${withValue} published, ${withheld} withheld`);
+  }
+}
+
+/**
+ * The areas route's own prose gets the strict list too. It is the page the
+ * town cards live on, so a characterization in a heading above them is the
+ * same violation as one inside them.
+ */
+{
+  const areasJson = JSON.parse(readFileSync(join(CONTENT_DIR, "areas.json"), "utf8"));
+  const strings = [];
+  walk(areasJson, [], strings);
+  const hits = [];
+  for (const { path, text } of strings) {
+    for (const v of scanArea(text, { allowRealtor })) hits.push({ path, ...v });
+  }
+  if (hits.length) {
+    failures += hits.length;
+    console.log(`FAIL  areas.json prose`);
+    for (const h of hits) console.log(`      [${h.ruleSet}] "${h.phrase}"  at ${h.path}`);
+  } else {
+    console.log(`pass  areas.json prose`);
+  }
+}
+
+/**
  * Pronoun ratio, per page. This is a personal brand build, so the doctrine's
  * exception applies and the target is judged rather than enforced at 4:1. Third
  * person references to Alex count as neither, which is correct: "he" is not the
@@ -123,7 +184,7 @@ for (const file of files) {
 }
 
 console.log(
-  `\n${checked} strings checked. ${failures} failure(s), ${ratioWarnings} ratio warning(s).`,
+  `\n${checked} strings checked, plus ${areaChecked} service area facts (${areaProblems} area failure(s)). ${failures} failure(s), ${ratioWarnings} ratio warning(s).`,
 );
 
 if (failures > 0) {

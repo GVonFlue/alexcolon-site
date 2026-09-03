@@ -91,6 +91,107 @@ export const FAIR_HOUSING = words([
   "nice area",
 ]);
 
+/**
+ * Fair housing, scoped to the service area data and the areas route.
+ *
+ * The general FAIR_HOUSING list above runs against every string on the site.
+ * This one is narrower and stricter, and it exists because the town cards
+ * introduced a new and unusually dangerous surface: a structured card, per
+ * place, that a future editor will be tempted to make interesting. The moment
+ * a town card says a place is quiet, or desirable, or good for families, the
+ * site is steering, and steering is the specific thing a licensed agent may
+ * not do.
+ *
+ * So the words the brief names by hand (safe, family friendly, up and coming,
+ * desirable, good schools, quiet) are here even where the general list already
+ * covers a longer phrase containing them, and the bare adjectives are caught
+ * rather than only the two-word forms. Alongside them sit the two families of
+ * claim that are the same violation wearing different clothes: any rating,
+ * ranking or comparison of a district or a place, and any statement about who
+ * lives somewhere.
+ *
+ * These run against the town fact values in content/site.json and against the
+ * copy on the areas route. They are deliberately not part of the default scan:
+ * a rule this aggressive would fire on legitimate prose elsewhere (a buyer's
+ * page may reasonably say "flood safety", an about page may say "professional"),
+ * and a rule that fires on clean copy trains everyone to ignore the output.
+ */
+export const AREA_CLAIMS = words([
+  // Named in the brief, as bare words, not only inside longer phrases.
+  "safe",
+  "unsafe",
+  "family friendly",
+  "up and coming",
+  "desirable",
+  "undesirable",
+  "good schools",
+  "quiet",
+  // Any rating, ranking or comparison. A district NAME is a fact; a district
+  // judgement is exposure, and so is ranking one town against another.
+  "rated",
+  "rating",
+  "ranked",
+  "ranking",
+  "top rated",
+  "highly rated",
+  "high performing",
+  "award winning",
+  "test scores",
+  "best place",
+  "great place",
+  "nicest",
+  "most popular",
+  "sought after",
+  "hidden gem",
+  "prestigious",
+  "exclusive",
+  "upscale",
+  "affordable area",
+  // Any statement about who lives anywhere, in any direction, however kind.
+  "affluent",
+  "wealthy",
+  "working class",
+  "blue collar",
+  "white collar",
+  "young families",
+  "retirees",
+  "empty nesters",
+  "professionals live",
+  "residents are",
+  "people who live here",
+  "neighbors are",
+  "good for families",
+  "great for kids",
+  "perfect for",
+  "ideal for",
+  // Atmosphere words that are characterizations dressed as description.
+  "charming",
+  "sleepy",
+  "bustling",
+  "vibrant",
+  "trendy",
+  "quaint",
+  "cozy community",
+]);
+
+/**
+ * Runs the general rule set plus the area-scoped one. Returns the same shape
+ * `scan` does, so a caller can treat the two identically.
+ */
+export function scanArea(text, opts = {}) {
+  const found = scan(text, opts);
+  for (const rule of AREA_CLAIMS) {
+    if (rule.re.test(text)) {
+      found.push({
+        ruleSet: "areaClaims",
+        label: "fair housing, service area data",
+        phrase: rule.phrase,
+      });
+    }
+  }
+  return found;
+}
+
 /** Hard stop 4. Gated on confirmed NAR membership, which is not confirmed. */
 export const REALTOR_MARK = [{ phrase: "REALTOR", re: /(^|[^a-z0-9])realtors?(®|\b)/i }];
 
@@ -180,4 +281,10 @@ export function scan(text, { only = null, allowRealtor = false } = {}) {
   return found;
 }
 
-export const RULE_SET_KEYS = [...Object.keys(RULE_SETS), "fragments"];
+/**
+ * Every rule set the negative tests must prove can fail. areaClaims is in the
+ * list even though it is not part of the default `scan`, because "this rule
+ * exists" and "this rule can fail" are different claims and only the second
+ * one is worth anything.
+ */
+export const RULE_SET_KEYS = [...Object.keys(RULE_SETS), "fragments", "areaClaims"];
