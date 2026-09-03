@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { LarkPerch } from "./Lark";
-import { TownPanel, type TownFacts } from "./TownPanel";
+import { TownPanel, fullPanelMinHeight, type TownFacts } from "./TownPanel";
 import {
   CONFLUENCE,
   MUNICIPAL_BOUNDARY_PATHS,
@@ -234,7 +234,11 @@ export function ServiceAreaMap({
   const activeTown = towns.find((t) => t.name === active) ?? null;
 
   return (
-    <figure ref={figureRef} className={compact ? "m-0" : "mt-10"}>
+    // `relative` is load bearing, not cosmetic: it is the containing block for
+    // the fact panel, which is out of flow specifically so that hovering a town
+    // cannot change this figure's height. See TownPanel.tsx for the measured
+    // feedback loop that made this necessary.
+    <figure ref={figureRef} className={`relative ${compact ? "m-0" : "mt-10"}`}>
       <svg
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
         className="h-auto w-full"
@@ -344,8 +348,31 @@ export function ServiceAreaMap({
                 className="pin-drop group cursor-pointer focus:outline-none [&:focus-visible_circle.hit]:stroke-cream"
                 style={{ animationDelay: `${480 + i * TOWN_STAGGER_MS}ms` }}
               >
-                {/* A 44px target at every rendered size, invisible but hittable. */}
-                <circle className="hit" cx={p.x} cy={p.y} r={26} fill="transparent" strokeWidth={2} />
+                {/*
+                  The hit target. Fixed size, never transformed, and a sibling
+                  of the visual mark rather than its parent, so hovering can
+                  never change the shape of the thing being hovered. That is
+                  the property that keeps a hover from cancelling itself.
+
+                  r=72 in map units, not 26. The old value carried the comment
+                  "a 44px target at every rendered size" and did not deliver it
+                  at any size: measured in the browser, 26 units came out at
+                  25.4px in the desktop hero and would have been under 17px on a
+                  390px phone, which is where a touch target actually matters
+                  because touch is the only input there.
+
+                  The binding case is the narrowest viewport, so the radius is
+                  set from it: at 390px the map renders about 300px wide against
+                  a 964 unit viewBox, so 72 units measures 44.9px. The same
+                  radius is ~70px in the desktop hero and ~172px on /areas,
+                  which is generous but invisible and costs nothing.
+
+                  Overlap was checked rather than assumed: the closest pair of
+                  towns is Derby and Rose Hill at 213 units, and the widest any
+                  two of these circles can be is 144 units combined, so no two
+                  hit areas touch anywhere on the map even at this radius.
+                */}
+                <circle className="hit" cx={p.x} cy={p.y} r={72} fill="transparent" strokeWidth={2} />
 
                 {/* Only the active mark pulses. One ring, expanding and fading
                     out, and it starts and ends on its resting value so a
@@ -452,22 +479,57 @@ export function ServiceAreaMap({
       </svg>
 
       {/*
-        The panel. Rendered under the map rather than floating over it: an
-        overlay would cover the very marks a visitor is comparing, and on a
-        360px phone it would cover the whole drawing. aria-live announces the
-        town to a screen reader when hover or focus changes it, without moving
-        focus, which would trap a keyboard user walking the seven marks.
+        The panel and the resting hint, both absolutely positioned inside the
+        figure, so the figure is exactly as tall as the map whatever is showing
+        and hover cannot move a single pixel of layout.
+
+        It floats over the drawing's lower left, which is the emptiest corner of
+        this particular map on every breakpoint (Goddard is the only mark out
+        there and it sits above this box). pointer-events-none on the wrapper
+        means a pointer resting over a town that happens to be under the panel
+        still belongs to the town: without it the panel becomes the event
+        target, fires mouseleave on the mark beneath it, and the loop restarts
+        by a different route than the one that was just fixed.
+
+        aria-live announces the town when hover or focus changes it, without
+        moving focus, which would trap a keyboard user walking the seven marks.
       */}
-      <div className="mt-5" aria-live="polite">
+      <div
+        // inset-0, not bottom-0. Anchoring to the bottom edge left this wrapper
+        // sized to its own content, so when the hint was replaced by the taller
+        // panel the wrapper's top edge moved and the browser recorded a real
+        // layout shift, out of flow or not. The geometry never moved a pixel
+        // and CLS was still 0.0065 per hover. A box pinned on all four sides
+        // cannot change size, and the content is bottom-aligned inside it.
+        className="pointer-events-none absolute inset-0 z-10 flex items-end p-3 sm:p-4"
+        aria-live="polite"
+      >
         {activeTown ? (
-          <TownPanel
-            town={activeTown.name}
-            facts={activeTown.facts ?? {}}
-            phoneE164={phoneE164}
-            onClose={close}
-          />
+          <div
+            className={compact ? "" : "max-w-[24rem]"}
+            // Every town's card is the same height, so moving from one town to
+            // the next never moves the card's top edge. Derived from the town
+            // data, not typed in: see fullPanelMinHeight.
+            style={compact ? undefined : { minHeight: fullPanelMinHeight(towns) }}
+          >
+            <TownPanel
+              // Keyed by town, so moving from one town to the next replaces the
+              // card instead of rearranging it in place. Towns publish
+              // different numbers of facts, so a reused subtree left rows and
+              // the CTA sitting at different heights and the browser recorded
+              // each of those as a moved element: 0.032 of layout shift across
+              // fourteen hovers, inside a card whose own box never changed.
+              // It is a different card, so it is rendered as one.
+              key={activeTown.name}
+              town={activeTown.name}
+              facts={activeTown.facts ?? {}}
+              phoneE164={phoneE164}
+              onClose={close}
+              compact={compact}
+            />
+          </div>
         ) : (
-          <p className="min-h-[52px] text-[0.93rem] text-dim">
+          <p className="max-w-[26rem] text-[0.88rem] leading-snug text-dim sm:text-[0.93rem]">
             Hover, tab to, or tap a town for the facts about it and a way to ask Alex
             something specific.
           </p>
