@@ -52,7 +52,7 @@ Variables screen, never in the repo.
 
 | Variable | What it does | Missing behaviour |
 | --- | --- | --- |
-| `SITE_ORIGIN` | Canonical origin, no trailing slash | Falls back to localhost |
+| `SITE_ORIGIN` | Canonical origin, no trailing slash | Falls back to the Vercel production domain, then to `VERCEL_URL`, and prints a loud banner in the build log. Only falls back to localhost off Vercel. See `lib/origin.ts` |
 | `ALLOWED_ORIGINS` | Comma separated origin allowlist for the API routes | Origin check logs a warning and does not run |
 | `LEAD_SHEET_WEBHOOK_URL` | Apps Script endpoint that appends a row. **The source of truth.** | Sink skipped, warning logged |
 | `LEAD_SHEET_SHARED_SECRET` | Shared secret the Apps Script checks | Sent empty |
@@ -61,10 +61,32 @@ Variables screen, never in the repo.
 | `NOTIFY_EMAIL_ENDPOINT` / `NOTIFY_EMAIL_TO` | Instant notification. Speed to lead depends on this | Sink skipped |
 | `ANTHROPIC_API_KEY` | The assistant | Assistant says it is not connected and gives the phone number |
 | `ANTHROPIC_MODEL` | Defaults to `claude-haiku-4-5` | Uses the default |
-| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limiting | **Rate limiting does not run.** Loud warning on every guarded request |
+| `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` | Rate limiting | **Rate limiting does not run.** Loud warning on every guarded request. Read the warning below before setting `ANTHROPIC_API_KEY` |
 
-Set the Anthropic Console spend limit before the key goes live. It is the real
-backstop and it takes two minutes.
+### Read this before you turn the assistant on
+
+**Rate limiting does not run without Upstash.** There is no in-memory fallback,
+and there deliberately is not one: serverless functions do not share memory
+between invocations, so an in-memory limiter would silently do nothing while
+looking like it worked, which is worse than none at all.
+
+What that means in practice: the moment you set `ANTHROPIC_API_KEY`, the chat
+endpoint is a public URL that calls a paid API, and if Upstash is not configured
+there is nothing stopping one person from calling it in a loop. Nobody has to
+be malicious for this to cost money; a crawler is enough.
+
+So all three of these go in during the same session, not one now and the rest
+later:
+
+1. The Anthropic Console spend cap. Set it before the key exists anywhere.
+2. `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`.
+3. `ANTHROPIC_API_KEY`, last.
+
+If you only have time to do one of them today, do none of them. The site
+degrades honestly with no key: Lark says plainly that it is not connected, the
+composer is disabled rather than accepting a question nobody will answer, and
+the phone number is right there. That is a perfectly good state to sit in for a
+week. A public unlimited endpoint is not.
 
 ---
 
@@ -134,7 +156,17 @@ One code path, `lib/leads.ts`. Forms and the assistant both go through
 - A downstream failure is never shown to the visitor.
 - If every sink is down, the full payload goes to the log in one recoverable
   line tagged `[lead][RECOVERABLE]`.
-- Every lead carries an explicit source tag. Unknown tags are rejected.
+- Every lead carries an explicit source tag, one per surface: five form tags and
+  one assistant tag per route. Unknown tags are rejected.
+- **Preview traffic is marked.** On any deployment that is not production, the
+  source tag arrives with the deployment appended (`... [preview]`) and a
+  `deployment` field is sent alongside it. The marker is added server side after
+  validation, so it cannot be spoofed in either direction. Filter on the field,
+  not the tag. This exists because a preview deployment has real working forms,
+  and every lead generated while testing one used to land in the live Sheet
+  indistinguishable from a genuine one.
+- The full request shape is documented in `docs/lead-payload.md`, written so the
+  CRM can be built against it without reading `lib/leads.ts`.
 - External record IDs are strings and are never parsed.
 - Spam controls are a honeypot plus a three second minimum on form. No CAPTCHA.
 - Forms work with JavaScript disabled: real `<form action>`, 303 to `/thanks`.
@@ -145,17 +177,42 @@ One code path, `lib/leads.ts`. Forms and the assistant both go through
 
 ## The assistant
 
-Named Wick. Server side only, `app/api/chat/route.ts`, Claude Haiku.
+Named **Lark**, a western meadowlark, which is the Kansas state bird. Server side
+only, `app/api/chat/route.ts`, Claude Haiku.
 
-- It is never presented as Alex and says so in its own introduction.
+- It is never presented as Alex and says so in its own introduction. It is a
+  bird, so it cannot be mistaken for him, which is the rule that matters.
+- The mascot is `components/Lark.tsx`: inline animated SVG, no library, no raster
+  asset. Every fill is navy, cream, gold, or a measured blend of the two, so it
+  cannot pull the palette anywhere the site does not already go. All jitter is
+  seeded from a constant hash rather than `Math.random`, so the server and the
+  client render identical markup.
+- Four states: idle, thinking, answering, and not connected. Every one of them
+  begins and ends on the resting pose, which is what lets the blanket
+  `prefers-reduced-motion` rule leave a bird perched naturally rather than one
+  frozen mid-blink.
+- **Knowledge comes from config and content only.** The system prompt reads the
+  seven town fact sets, the four audience lanes, the buyer's guide outline and
+  the FAQ out of `content/*.json` at request time, so a copy edit changes what
+  Lark knows in the same commit it changes what the page says. Only verified
+  facts reach it: a null field is absent, so it cannot state something the site
+  is withholding.
+- **Chips are per route.** `/veterans` and `/investors` do not get the same three
+  starter questions. A route can override `assistant.chips` in its own content
+  file; one that does not falls back to the site-wide set.
 - Capture is a tool call, never parsed from free text.
+- **Bounded to two capture turns.** Past the bound the server stops sending the
+  tool at all rather than merely discouraging a third ask.
 - **There is no calendar integration.** The system prompt and the tool result both
   forbid saying an appointment is booked, confirmed, scheduled, held, or on the
   calendar. It passes a requested time along. Set `assistant.bookingUrl` in
   `site.json` when a real booking URL exists, and not one second before.
 - Fair housing constraints are restated in the tool result, not only in the system
-  prompt, so the model cannot drift out of them mid conversation.
-- With no API key it says it is not connected and gives the correct phone number.
+  prompt, so the model cannot drift out of them mid conversation. So are the
+  no-calendar rule, the no-invented-figures rule and the capture bound.
+- With no API key it says it is not connected, in words, in the card, and gives
+  the correct phone number. That state is server rendered, so it is true in the
+  markup before any JavaScript runs.
 
 ---
 
@@ -169,11 +226,67 @@ nowhere decorative, including on the map.
 The signature element is `components/ServiceAreaMap.tsx`: the seven towns plotted
 from their real coordinates. Change the towns and the drawing changes.
 
-Typography is loaded with a stylesheet link plus preconnect. Switching to
-`next/font` self hosting is a contained change in `app/layout.tsx` and scores
-marginally better; it could not be verified from the build container, which has no
-egress to Google Fonts. Every rule declares a full fallback stack, so the page is
-correct before the webfont arrives and correct if it never does.
+Typography is **Archivo** for display, **Inter** for text, **JetBrains Mono** for
+eyebrows, labels and figures.
+
+Archivo is new in v1.1 and it replaces "the display face is the body face set
+larger", which was the honest description of every heading up to v6. Inter is an
+excellent text face and a characterless display one: at 900 weight and tight
+tracking it goes soft, which was most of why the fold read as competent rather
+than designed. Archivo is a grotesque with squared terminals and a different
+rhythm, so the headings change voice without touching the body copy. It keeps
+both rules that constrain the choice: not a serif, so the cream-plus-serif
+revival tell is still avoided, and not a geometric sans.
+
+Loaded with a stylesheet link plus preconnect. Switching to `next/font` self
+hosting is a contained change in `app/layout.tsx` and scores marginally better.
+Every rule declares a full fallback stack, so the page is correct before the
+webfont arrives and correct if it never does.
+
+---
+
+## The leads Sheet
+
+`deploy/leads-apps-script.gs` is the receiver, complete, as one file. Paste it in
+fresh over the placeholder Apps Script gives you; there is nothing else to add.
+The request shape it expects is in `docs/lead-payload.md`.
+
+1. Create a Google Sheet. Name the first tab **Leads**.
+2. **Extensions > Apps Script.** Delete the placeholder `myFunction`, paste the
+   whole of `deploy/leads-apps-script.gs`, and save.
+3. **Project Settings > Script Properties > Add script property:**
+   - `SHARED_SECRET` = a long random string. Generate one with
+     `openssl rand -hex 32`.
+   - `NOTIFY_EMAIL` = Alex's address, if you want the Sheet itself to mail him
+     on every new row. Optional, and it is a belt to the site's own notify sink
+     rather than a replacement for it.
+
+   The secret goes in Script Properties and nowhere else. Not in the file, not
+   in the repo.
+4. **Deploy > New deployment > Web app.**
+   - Execute as: **Me**
+   - Who has access: **Anyone**
+
+   "Anyone" is required, because Vercel calls this without a Google identity.
+   The shared secret is what actually guards it, which is the whole reason step
+   3 matters.
+5. Copy the `/exec` URL. That is `LEAD_SHEET_WEBHOOK_URL`. Put the same secret in
+   `LEAD_SHEET_SHARED_SECRET` on Vercel. Set both for **every** environment you
+   want leads from, production included.
+6. In the Apps Script editor, run `testAppend()` once. It creates the header row
+   and triggers the authorization prompt, which you have to approve by hand.
+   Delete the test row afterwards.
+7. Submit a real form on the deployed site and confirm the row lands with the
+   right source tag.
+
+**Re-deploying after an edit:** Deploy > Manage deployments > edit the existing
+deployment > Version: **New version**. Creating a *new* deployment gives you a
+new URL while the site keeps posting to the old one, which is a silent way to
+lose every lead until somebody notices.
+
+**Preview rows are tinted.** Any row whose `deployment` is not `production`
+lands with a warm background, so nobody mistakes a test submission for a real
+lead while skimming. Filter on the `deployment` column to drop them.
 
 ---
 
@@ -186,5 +299,11 @@ correct before the webfont arrives and correct if it never does.
 4. Remove any deployment protection or preview-only setting as part of the cutover,
    not after. A leftover noindex launches a site invisible to Google and nobody
    notices for weeks. `npm run audit:rendered` checks for one.
+
+   The site's own noindex is host-conditional and needs no cutover step: a
+   Vercel preview or development deployment disallows itself, and a production
+   deployment does not, whether or not `SITE_ORIGIN` is set yet. See
+   `lib/origin.ts`. Set `SITE_ORIGIN` anyway, or every canonical points at the
+   deployment URL instead of the domain.
 5. Run `npm run audit:all` against the deployed URL's content, then walk every form
    and confirm the row lands in the Sheet with the right source tag.

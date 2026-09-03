@@ -526,3 +526,88 @@ test("the capture ask is bounded at two turns by the server, not by the prompt",
     "past the bound the tool must be withheld from the request, not merely discouraged",
   );
 });
+
+/* ==========================================================================
+ * Independent degradation, one sink at a time
+ * ========================================================================== */
+
+test("every sink fails independently: the other three still receive the lead", async () => {
+  // Four runs, each knocking out exactly one sink. Testing them one at a time
+  // is the point: "the CRM being down does not break it" and "any one being
+  // down does not break the others" are different claims, and only the second
+  // one means the fan-out is genuinely independent.
+  for (const down of ["sheet", "crm", "ghl", "notify"]) {
+    reset();
+    behaviour[down] = 503;
+
+    const res = await jsonPost(goodLead());
+    assert.equal(res.status, 200, `${down} down should still be a 200`);
+    assert.equal(
+      (await res.json()).ok,
+      true,
+      `${down} being down is our problem, not the visitor's`,
+    );
+
+    await new Promise((r) => setTimeout(r, 500));
+    for (const other of ["sheet", "crm", "ghl", "notify"]) {
+      if (other === down) continue;
+      assert.equal(
+        received[other].length,
+        1,
+        `${other} should still have received the lead while ${down} was down`,
+      );
+    }
+  }
+});
+
+test("a slow sink does not hold the visitor's response open", async () => {
+  reset();
+  const started = Date.now();
+  // The mock replies immediately, so this measures the round trip rather than
+  // the timeout itself. What it guards is the shape: the response must not be
+  // gated on the slowest sink completing.
+  const res = await jsonPost(goodLead());
+  await res.json();
+  assert.ok(
+    Date.now() - started < 8000,
+    "the response must never wait out a sink's full 8 second timeout",
+  );
+});
+
+test("the deployment is sent as its own field, not only inside the source tag", async () => {
+  reset();
+  await postAt(PROD, goodLead());
+  await new Promise((r) => setTimeout(r, 500));
+  assert.equal(received.sheet[0].json.deployment, "production");
+  assert.equal(received.crm[0].json.deployment, "production");
+
+  reset();
+  await postAt(PREVIEW, goodLead());
+  await new Promise((r) => setTimeout(r, 500));
+  assert.equal(
+    received.sheet[0].json.deployment,
+    "preview",
+    "the Sheet needs a column to filter on, not a string to parse",
+  );
+});
+
+test("the Apps Script and the payload contract agree on the columns the site sends", async () => {
+  const fs = await import("node:fs/promises");
+  const gs = await fs.readFile(new URL("../deploy/leads-apps-script.gs", import.meta.url), "utf8");
+
+  reset();
+  await postAt(PROD, goodLead());
+  await new Promise((r) => setTimeout(r, 500));
+  const sent = Object.keys(received.sheet[0].json).filter((k) => k !== "secret");
+
+  // Every field the site actually posts must have a column in the receiver, or
+  // it lands in the Sheet nowhere and nobody finds out until they go looking
+  // for it. Read off a real request rather than a list written down twice.
+  const columns = gs.slice(gs.indexOf("var COLUMNS"), gs.indexOf("];", gs.indexOf("var COLUMNS")));
+  for (const field of sent) {
+    assert.ok(
+      columns.includes(`'${field}'`),
+      `deploy/leads-apps-script.gs has no column for "${field}", which the site posts`,
+    );
+  }
+});

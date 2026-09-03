@@ -1,9 +1,15 @@
 /**
  * Google Apps Script: the lead Sheet receiver.
  *
- * This is the other end of LEAD_SHEET_WEBHOOK_URL. The Sheet is the source of
- * truth on a ProyTech build, which makes this the highest priority sink: the CRM
- * and GHL can both be down and the lead is still safe as long as this runs.
+ * This is the other end of LEAD_SHEET_WEBHOOK_URL, and it is the whole thing:
+ * one file, paste it in fresh over the placeholder Apps Script gives you and
+ * there is nothing else to add. The request shape it expects is documented in
+ * docs/lead-payload.md, which is written so the CRM can be built against it
+ * without reading any of this.
+ *
+ * The Sheet is the source of truth on a ProyTech build, which makes this the
+ * highest priority sink: the CRM and GHL can both be down and the lead is
+ * still safe as long as this runs.
  *
  * ---------------------------------------------------------------------------
  * SETUP, once
@@ -34,6 +40,7 @@ var SHEET_NAME = 'Leads';
 
 var COLUMNS = [
   'receivedAt',
+  'deployment',
   'sourceTag',
   'name',
   'email',
@@ -61,7 +68,7 @@ function doPost(e) {
       console.error('SHARED_SECRET is not set in Script Properties. Rejecting.');
       return json({ ok: false, error: 'not configured' });
     }
-    if (String(body.secret || '') !== expected) {
+    if (!secretsMatch_(String(body.secret || ''), expected)) {
       console.warn('Rejected a post with a bad or missing secret.');
       return json({ ok: false, error: 'forbidden' });
     }
@@ -98,6 +105,7 @@ function doPost(e) {
     }
 
     sheet.appendRow(values);
+    tintIfNotProduction_(sheet, sheet.getLastRow(), String(body.deployment || ''));
 
     /**
      * Speed to lead. Sending from here rather than from a separate endpoint
@@ -126,6 +134,39 @@ function doPost(e) {
 function doGet() {
   // No data is ever served from here.
   return json({ ok: false, error: 'method not allowed' });
+}
+
+/**
+ * Compare the secret without short-circuiting on the first differing byte.
+ *
+ * Apps Script has no timing-safe compare, and the realistic threat here is low:
+ * this endpoint is a URL nobody has, and the round trip through Google's
+ * infrastructure buries microsecond differences in tens of milliseconds of
+ * noise. It is written this way anyway because it costs three lines, and
+ * "the network noise probably hides it" is a worse thing to have written down
+ * than a loop that does not leak in the first place.
+ */
+function secretsMatch_(given, expected) {
+  if (given.length !== expected.length) return false;
+  var diff = 0;
+  for (var i = 0; i < given.length; i++) {
+    diff |= given.charCodeAt(i) ^ expected.charCodeAt(i);
+  }
+  return diff === 0;
+}
+
+/**
+ * Preview and local rows are tinted so nobody mistakes one for a real lead
+ * while skimming. The site sends `deployment` as its own field and also stamps
+ * it onto the source tag; this keys on the field, because parsing it back out
+ * of a tag works right up until somebody renames a tag.
+ */
+function tintIfNotProduction_(sheet, rowIndex, deployment) {
+  if (!deployment || deployment === 'production') return;
+  sheet
+    .getRange(rowIndex, 1, 1, COLUMNS.length)
+    .setBackground('#FFF4E5')
+    .setFontColor('#7A5A20');
 }
 
 function getSheet_() {
@@ -176,7 +217,8 @@ function testAppend() {
         phone: '',
         message: 'Written by testAppend()',
         detail: '',
-        sourceTag: 'Colon - General Question',
+        sourceTag: 'Colon - General Question [local]',
+        deployment: 'local',
         route: '/contact',
         receivedAt: new Date().toISOString(),
         ip: '127.0.0.1',
@@ -196,13 +238,17 @@ function notifyOnNewLead_(body) {
   if (!to) return;
   MailApp.sendEmail({
     to: to,
-    subject: 'New lead: ' + (body.sourceTag || 'unknown source'),
+    subject:
+      (body.deployment && body.deployment !== 'production' ? '[' + body.deployment + '] ' : '') +
+      'New lead: ' +
+      (body.sourceTag || 'unknown source'),
     body: [
       'Name:   ' + (body.name || ''),
       'Email:  ' + (body.email || ''),
       'Phone:  ' + (body.phone || '(not given)'),
       'Source: ' + (body.sourceTag || ''),
       'Page:   ' + (body.route || ''),
+      'Env:    ' + (body.deployment || 'unknown'),
       '',
       body.detail || '',
       body.message || '',

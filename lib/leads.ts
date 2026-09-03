@@ -91,6 +91,14 @@ function sinks(): Sink[] {
           secret: process.env.LEAD_SHEET_SHARED_SECRET ?? "",
           ...lead,
           ...meta,
+          /**
+           * The deployment, as its own field rather than only as the suffix on
+           * the source tag. Both carry it, and that is deliberate: the tag is
+           * what a human skimming the Sheet sees, and this is what a filter or
+           * a formula keys on, because parsing a marker back out of a string
+           * is the kind of thing that works until somebody renames a tag.
+           */
+          deployment: deploymentKind,
         }),
     },
     {
@@ -110,6 +118,7 @@ function sinks(): Sink[] {
             landing_route: lead.route,
             external_ref: lead.externalRef ?? null,
             received_at: meta.receivedAt,
+            deployment: deploymentKind,
           },
           { authorization: `Bearer ${process.env.CRM_API_KEY ?? ""}` },
         ),
