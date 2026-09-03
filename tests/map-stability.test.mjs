@@ -107,13 +107,28 @@ const heroGeometry = (page) =>
     };
   });
 
+/**
+ * The visible mark for a town, not simply the first one in the DOM.
+ *
+ * Below md the map is not in the hero at all; it renders in its own section
+ * underneath, and the hero's own copy is display:none. So the homepage carries
+ * two instances of every mark at that width, and `page.$` returns the hidden
+ * one, whose bounding box is null. Selecting by visibility rather than by
+ * document order is what makes the same test meaningful at every breakpoint.
+ */
 async function hitBoxFor(page, town) {
-  const mark = await page.$(`g[aria-label="Ask about ${town}"]`);
-  assert.ok(mark, `no mark for ${town}`);
-  const hit = await mark.$("circle.hit");
-  assert.ok(hit, `${town} has no fixed hit target`);
-  await hit.scrollIntoViewIfNeeded();
-  return { mark, hit, box: await hit.boundingBox() };
+  const marks = await page.$$(`g[aria-label="Ask about ${town}"]`);
+  assert.ok(marks.length > 0, `no mark for ${town}`);
+  for (const mark of marks) {
+    const hit = await mark.$("circle.hit");
+    if (!hit) continue;
+    const box = await hit.boundingBox();
+    if (box && box.width > 0) {
+      await hit.scrollIntoViewIfNeeded();
+      return { mark, hit, box: await hit.boundingBox() };
+    }
+  }
+  assert.fail(`${town} has no visible hit target (${marks.length} instance(s) in the DOM)`);
 }
 
 test("hovering a town changes no hero geometry at all", async () => {
@@ -256,7 +271,12 @@ test("tap shows and tap away dismisses, with nothing moving, at 390px", async ()
   await startCls(page);
 
   const figureHeight = () =>
-    page.evaluate(() => +document.querySelector("figure").getBoundingClientRect().height.toFixed(1));
+    page.evaluate(() => {
+      const fig = [...document.querySelectorAll("figure")].find(
+        (f) => f.getBoundingClientRect().height > 0,
+      );
+      return fig ? +fig.getBoundingClientRect().height.toFixed(1) : 0;
+    });
   const atRest = await figureHeight();
 
   for (const town of TOWNS) {
@@ -270,8 +290,30 @@ test("tap shows and tap away dismisses, with nothing moving, at 390px", async ()
     assert.ok(shown, `tapping ${town} did not show its panel`);
     assert.ok(Math.abs((await figureHeight()) - atRest) < 1, `the figure grew when ${town} was tapped`);
 
-    await page.touchscreen.tap(12, Math.max(60, box.y - 120));
+    /*
+     * Dismiss by tapping an inert point, computed rather than guessed.
+     *
+     * The first version tapped a fixed (12, box.y - 120), which on some towns
+     * landed on the hero's primary CTA and navigated to /buy. The next town's
+     * mark then did not exist and the failure read as "no mark for Goddard",
+     * which is a true statement about a page the test had accidentally left.
+     * This taps just above the map figure, inside its section's own padding,
+     * where there is nothing to activate.
+     */
+    const inert = await page.evaluate(() => {
+      const fig = [...document.querySelectorAll("figure")].find(
+        (f) => f.getBoundingClientRect().height > 0,
+      );
+      const r = fig.getBoundingClientRect();
+      return { x: Math.max(4, r.left + 6), y: Math.max(4, r.top - 14) };
+    });
+    await page.touchscreen.tap(inert.x, inert.y);
     await page.waitForTimeout(280);
+    assert.equal(
+      new URL(page.url()).pathname,
+      "/",
+      `dismissing ${town} navigated away instead of closing the panel`,
+    );
     const gone = await page.evaluate(() => !document.querySelector("[aria-live] .display"));
     assert.ok(gone, `tapping away did not dismiss ${town}`);
   }

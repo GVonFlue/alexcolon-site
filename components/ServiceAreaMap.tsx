@@ -529,9 +529,14 @@ export function ServiceAreaMap({
             />
           </div>
         ) : (
+          /* Two hints, because one sentence cannot serve both sizes. The
+             hero's card renders the map about 286px wide, where the full
+             sentence runs to three lines and covers a third of the drawing it
+             is describing. */
           <p className="max-w-[26rem] text-[0.88rem] leading-snug text-dim sm:text-[0.93rem]">
-            Hover, tab to, or tap a town for the facts about it and a way to ask Alex
-            something specific.
+            {compact
+              ? "Tap a town for the facts."
+              : "Hover, tab to, or tap a town for the facts about it and a way to ask Alex something specific."}
           </p>
         )}
       </div>

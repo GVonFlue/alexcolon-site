@@ -7,7 +7,7 @@ import { Assistant } from "./Assistant";
 import { LeadForm } from "./LeadForm";
 import { CarryCostCalculator } from "./CarryCostCalculator";
 import { Marquee } from "./Marquee";
-import { LineReveal } from "./LineReveal";
+import { Hero } from "./Hero";
 import { CountUp } from "./CountUp";
 import { Headshot } from "./Headshot";
 import { NetProceeds } from "./tools/NetProceeds";
@@ -42,149 +42,6 @@ const DETAIL_FIELD: Record<string, { label: string; placeholder: string }> = {
   "home-value": { label: "Address of the house", placeholder: "Street, city" },
   "rental-analysis": { label: "Address you are looking at", placeholder: "Street, city" },
 };
-
-/**
- * Per-route hero atmosphere.
- *
- * `field` places the light (see .hero-field in globals.css), `texture` picks
- * which of the map's real geometry sits behind it, and `rhythm` is the only
- * spacing that moves. Everything structural is deliberately absent from this
- * table: there is no way to express "a different headline size on /buy" here,
- * which is what keeps the variation to atmosphere.
- *
- * The geometry is chosen to mean something rather than to be different. Buying
- * gets the highways, because a first purchase is a route through stages.
- * Selling gets the city limit, because a seller's question is what their
- * specific place inside it is worth. Veterans gets everything, because a PCS
- * timeline touches all of it at once. Investors gets the highways again but
- * lit from the opposite corner, because the question there is also about
- * getting to and from a specific address.
- */
-const HERO_VARIANTS = {
-  home: {
-    field: { "--hero-x": "50%", "--hero-y": "-8%", "--hero-bloom": "18% 92%" },
-    texture: "rivers",
-    rhythm: "pb-14 pt-6 sm:pb-16 sm:pt-8 lg:pb-20 lg:pt-10",
-  },
-  buying: {
-    field: { "--hero-x": "16%", "--hero-y": "-6%", "--hero-bloom": "86% 88%" },
-    texture: "roads",
-    rhythm: "pb-14 pt-8 sm:pb-16 sm:pt-10 lg:pb-20 lg:pt-14",
-  },
-  selling: {
-    field: { "--hero-x": "84%", "--hero-y": "-6%", "--hero-bloom": "12% 86%" },
-    texture: "boundary",
-    rhythm: "pb-14 pt-8 sm:pb-16 sm:pt-10 lg:pb-20 lg:pt-14",
-  },
-  veterans: {
-    field: { "--hero-x": "26%", "--hero-y": "104%", "--hero-bloom": "72% 8%" },
-    texture: "full",
-    rhythm: "pb-12 pt-8 sm:pb-14 sm:pt-10 lg:pb-16 lg:pt-12",
-  },
-  investors: {
-    field: { "--hero-x": "80%", "--hero-y": "102%", "--hero-bloom": "16% 10%" },
-    texture: "roads",
-    rhythm: "pb-16 pt-8 sm:pb-20 sm:pt-10 lg:pb-24 lg:pt-14",
-  },
-  plain: {
-    field: { "--hero-x": "50%", "--hero-y": "-8%", "--hero-bloom": "20% 90%" },
-    texture: "rivers",
-    rhythm: "pb-14 pt-6 sm:pb-16 sm:pt-8 lg:pb-20 lg:pt-10",
-  },
-} as const;
-
-function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1: boolean }) {
-  const Heading = isH1 ? "h1" : "h2";
-  const featured = band.feature === "areaMap";
-  const v = HERO_VARIANTS[band.variant];
-
-  return (
-    // Dark ground: navy with the radial glow tone, so the fold has depth and
-    // the one accent phrase a page carries can finally be real gold rather
-    // than the darkened, type-safe compromise a light ground forces. Still
-    // less top padding than a standard band, and now overriding the inner
-    // block's padding directly rather than adding to it from outside.
-    <Section
-      tone="navyWash"
-      pad={v.rhythm}
-      texture={v.texture}
-      className="hero-field"
-      style={v.field as React.CSSProperties}
-    >
-      <div
-        className={
-          featured
-            ? "grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16"
-            : ""
-        }
-      >
-        <div className={featured ? "" : "max-w-[52rem]"}>
-          {/*
-            One orchestrated entrance, not five separate ones: eyebrow,
-            headline, support, CTAs and (when present) the map each carry
-            .hero-in with their own delay, a short stagger that finishes
-            under a second and plays once on load. Everything else on the
-            page is still, so this is the one place motion is allowed to be
-            this busy.
-          */}
-          {band.eyebrow && (
-            <div className="hero-in" style={{ animationDelay: "0ms" }}>
-              <Eyebrow tone="dark">{band.eyebrow}</Eyebrow>
-            </div>
-          )}
-          <div className="hero-in" style={{ animationDelay: "70ms" }}>
-            {/*
-              The type scale is identical on every route and is deliberately
-              not part of the variant table: a hero that changes size per page
-              is four layouts, not one layout with four atmospheres.
-            */}
-            <Heading className="display display-xl text-[2.2rem] font-black text-cream sm:text-[3rem] lg:text-[3.7rem] xl:text-[4rem]">
-              <LineReveal
-                text={band.headline}
-                phrase={band.accentPhrase}
-                plain={<AccentHeadline text={band.headline} phrase={band.accentPhrase} dark />}
-              />
-            </Heading>
-          </div>
-          <div className="hero-in" style={{ animationDelay: "140ms" }}>
-            <p className="measure mt-6 text-[1.1rem] leading-[1.68] text-dim">{band.support}</p>
-          </div>
-          {/*
-            Gutenberg. The action sits at the end of the block, in the terminal
-            zone the eye sweeps to, rather than floating mid band.
-            Exactly one primary styled action here, which is the only one in this
-            screenful because the header CTA is secondary styled.
-          */}
-          <div className="hero-in mt-9 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4" style={{ animationDelay: "210ms" }}>
-            {band.ctas.map((c) => (
-              <CtaLink key={c.label} cta={c} />
-            ))}
-          </div>
-        </div>
-
-        {/*
-          The second column, a real object rather than a diagram floating in
-          space: a raised card that is a genuine value step above its ground
-          (navy-deep, not another flat cream card dropped onto navy), offset
-          slightly on large screens for a stacked feel. Without it a desktop
-          hero is a text column beside half a screen of nothing, which reads
-          as unfinished rather than as restraint. The map is also the one
-          element on this site that is true only of this client, so the fold
-          is where it belongs. Last in the hero's own stagger; the map then
-          runs its own further entrance (rivers, then highways, then towns)
-          once it starts fading in, see ServiceAreaMap.tsx.
-        */}
-        {featured && (
-          <div className="hero-in lg:pl-4" style={{ animationDelay: "280ms" }}>
-            <div className="rounded-2xl border border-cream/10 bg-navy-deep p-6 shadow-[0_30px_70px_-24px_rgba(0,0,0,0.6)] sm:p-8 lg:-rotate-1 lg:translate-x-2">
-              <ServiceAreaMap towns={site.serviceAreas} compact phoneE164={site.phone.e164} />
-            </div>
-          </div>
-        )}
-      </div>
-    </Section>
-  );
-}
 
 /**
  * How much of a person's name may be published, per what they agreed to.
@@ -318,7 +175,9 @@ export function Bands({ page }: { page: PageContent }) {
       {page.bands.map((band, i) => {
         switch (band.type) {
           case "hero":
-            return <BandHero key={i} band={band} isH1 />;
+            // The hero is a composition rather than a layout now, so it lives
+            // in its own file instead of another branch of this switch.
+            return <Hero key={i} band={band} isH1 />;
 
           case "assistant":
             // Dark on purpose: this is the direct analog of the reference's

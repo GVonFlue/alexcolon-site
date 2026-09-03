@@ -2,15 +2,15 @@
   "route": "/",
   "title": "Alexander Colón, Wichita Area Real Estate Agent",
   "description": "Straight answers about buying and selling in Wichita, Maize, Derby, Andover, Goddard, Park City, and Rose Hill. Ask a question before you commit to anything.",
-  "h1": "Get real answers about buying or selling here before you commit to anything",
+  "h1": "Relationships first. Real answers from a real guy.",
   "job": "Sort the visitor into the lane that fits them, and answer enough of their question that contacting Alex is the obvious next step.",
   "primaryPrinciple": "Reciprocity. The give comes before the ask.",
   "bands": [
     {
       "type": "hero",
       "eyebrow": "Seven towns around Wichita",
-      "headline": "Get real answers about buying or selling here before you commit to anything",
-      "support": "Alexander Colón is an agent with At Home Wichita Real Estate. He works with first time buyers, service members and veterans, people selling a house, and people buying property to rent out, across seven towns in the Wichita area.",
+      "headline": "Relationships first. Real answers from a real guy.",
+      "support": "Most people do not need a pitch. They need somebody who will tell them straight what a house is actually worth, what the payment really looks like, and whether the timing makes sense for them right now. I would rather you walk away from a bad deal knowing exactly why than sign something you spend three years regretting. First place, VA benefit you earned, a house you have outgrown, or a rental you are trying to make pencil, you get the same thing from me either way: an honest read, and somebody who is still around after closing.",
       "ctas": [
         {
           "label": "Send me the buyer's guide",
@@ -27,8 +27,16 @@
       ],
       "image": null,
       "feature": "areaMap",
-      "accentPhrase": "real answers",
-      "variant": "home"
+      "accentPhrase": "Real answers",
+      "variant": "home",
+      "attribution": "Alexander Colón, agent with At Home Wichita Real Estate.",
+      "portrait": {
+        "src": null,
+        "alt": "Alexander Colón",
+        "needed": "A background-removed portrait PNG at 2x, from Garrett. Until it lands the hero composes itself without a portrait rather than showing a placeholder person. Record the pixel width and height with it so the frame reserves the right box and nothing shifts.",
+        "width": null,
+        "height": null
+      }
     },
     {
       "type": "assistant",

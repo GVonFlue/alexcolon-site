@@ -283,6 +283,24 @@ export const Band = z.discriminatedUnion("type", [
      */
     accentPhrase: z.string().min(1).optional(),
     /**
+     * The line directly under the body, smaller and muted.
+     *
+     * This is a compliance surface as much as a copy one. K.S.A. 58-3086 wants
+     * the supervising broker's business name in a readable and identifiable
+     * manner, and this is the second place in the hero region where it appears
+     * (the header lockup is the first). Both are required to stay: the header
+     * one is the lockup the ratio rule governs, and this one is the sentence a
+     * reader actually reads. Removing either during a redesign is a regulatory
+     * change, not a design one.
+     */
+    attribution: z.string().min(1).nullable().default(null),
+    /**
+     * The portrait for this hero, on the same null convention as every other
+     * image on the site: a null src renders no portrait and no placeholder,
+     * and the composition around it is built to look finished without one.
+     */
+    portrait: ImageSlot.nullable().default(null),
+    /**
      * Which atmosphere this route's hero opens with.
      *
      * All eight routes used to open identically, which is a strange thing for

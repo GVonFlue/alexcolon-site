@@ -368,6 +368,61 @@ body {
 }
 
 /*
+ * The hero portrait's feathered base.
+ *
+ * A background-removed PNG placed on a coloured field reads as a sticker, and
+ * the reason is almost always the bottom edge: a clean horizontal cut where the
+ * crop ended. Masking the lower quarter to transparent dissolves him into the
+ * navy instead, which is the single largest contributor to the composite
+ * reading as one image.
+ *
+ * -webkit-mask-image is not redundant. Safari shipped the unprefixed
+ * mask-image later than the prefixed one and this is the property the whole
+ * effect depends on, so both are declared rather than assuming which build a
+ * visitor is on.
+ */
+.portrait-feather {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 70%, transparent 100%);
+}
+
+/*
+ * A warm rim behind the portrait, picking up the accent that is already in the
+ * palette. The brief suggested rgba(201,169,97,0.28); this uses 184,154,103,
+ * which is the site's actual gold, because "picks up the existing gold accent"
+ * and "a colour close to it" are different things and the second one is how a
+ * palette acquires a sixth value nobody decided on.
+ *
+ * drop-shadow rather than box-shadow on purpose: box-shadow would trace the
+ * element's rectangle and put a glowing box behind a cut-out person.
+ * drop-shadow follows the alpha channel, so it traces his actual silhouette.
+ */
+.portrait-rim {
+  filter: drop-shadow(0 0 60px rgba(184, 154, 103, 0.28));
+}
+
+/*
+ * One grain over the entire hero.
+ *
+ * Separate from the .grain used on ordinary dark bands, and it has to be: this
+ * one sits above the raster portrait and the vector map rather than beneath the
+ * content, because the whole point is that the photograph and the drawing pick
+ * up the same film. Grain under one of them is not shared grain.
+ *
+ * Three percent, one inline turbulence tile, no external asset and no library.
+ * pointer-events:none, absolutely, or it becomes a transparent sheet over the
+ * map that swallows every hover on it.
+ */
+.hero-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='hn'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23hn)'/%3E%3C/svg%3E");
+}
+
+/*
  * Grain. The single most effective thing that separates a designed dark
  * surface from a div with a background colour on it, and it costs one inline
  * SVG turbulence filter, no image request. Very low opacity on purpose: it
