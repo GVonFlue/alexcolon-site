@@ -4,8 +4,12 @@
  * site can exit 0 and be a blank white page on a phone. This renders the real
  * pages in a real browser so somebody can look at them.
  *
- * Also checks the two things that only show up at render time: horizontal
- * overflow at 320, 375, 390, 768 and 1280, and console errors.
+ * Also checks the things that only show up at render time: horizontal overflow
+ * at eight widths, console errors, that every band actually reached its
+ * revealed state, that the Kansas name lockup obeys its font size ratio in the
+ * browser's own computed styles, that the map panel is fully keyboard
+ * operable, and that reduced motion suppresses every animation without
+ * leaving anything invisible.
  *
  * Runs every check in both Chromium and WebKit. Most of this site's traffic
  * is iOS Safari, and Chromium passing has never been evidence WebKit does
@@ -30,7 +34,14 @@ const BASE = `http://127.0.0.1:${PORT}`;
 const OUT = process.env.SHOT_DIR ?? "audit-output";
 
 const ROUTES = ["/", "/buy", "/sell", "/veterans", "/investors", "/areas", "/about", "/contact"];
-const WIDTHS = [320, 375, 390, 768, 1280];
+/**
+ * Eight widths, not five. 360 is the single most common Android width, 414 is
+ * the large-phone class, 1024 is portrait iPad and the exact point the lg
+ * breakpoint takes effect, and 1440 is the laptop the client will look at this
+ * on. A layout that is only ever checked at 375 and 1280 is checked at two
+ * points and inferred everywhere else.
+ */
+const WIDTHS = [320, 360, 390, 414, 768, 1024, 1280, 1440];
 
 // Both default to whatever Playwright resolves on its own. CHROMIUM_PATH
 // exists because the container this originally ran in keeps a prebuilt
@@ -50,7 +61,8 @@ const ENGINES = [
   },
 ];
 
-const ENGINE_TIMEOUT_MS = Number(process.env.SHOT_ENGINE_TIMEOUT_MS ?? 90_000);
+// Eight widths across eight routes, plus four dedicated checks, in one engine.
+const ENGINE_TIMEOUT_MS = Number(process.env.SHOT_ENGINE_TIMEOUT_MS ?? 300_000);
 
 async function waitForServer(timeoutMs = 60000) {
   const start = Date.now();
@@ -86,40 +98,249 @@ async function checkMapInteraction(page, engineName) {
   if (!mark) return { ok: false, detail: "could not find the Andover mark on /areas" };
   await mark.scrollIntoViewIfNeeded();
 
-  const dot = await mark.$("g.mark-scale circle");
-  const hit = await mark.$("circle.hit");
-  if (!dot || !hit) return { ok: false, detail: "mark is missing its dot or hit target" };
+  // Let the band's own reveal finish before measuring anything.
+  //
+  // This cost a real diagnosis rather than a guess. scrollIntoViewIfNeeded
+  // triggers the section's IntersectionObserver, and the reveal transition
+  // moves the band up by 12px over 700ms. Measuring the mark during that
+  // window and again after it produced an 11.8px "drift" that looked exactly
+  // like the transform-box bug this check exists to catch, and was not: the
+  // mark had not moved at all, the band under it had. Measuring relative to
+  // the SVG's own box below makes the check immune to that class of false
+  // positive entirely, and this wait keeps the numbers stable regardless.
+  await page.waitForTimeout(900);
 
-  const before = await dot.boundingBox();
+  const hit = await mark.$("circle.hit");
+  if (!hit) return { ok: false, detail: "mark is missing its hit target" };
+
+  /**
+   * The mark's centre and size in the SVG's own frame, not the viewport's.
+   * Page layout moving underneath the map is not the failure this is looking
+   * for; a mark thrown across the drawing by a mis-resolved transform-origin
+   * is, and that shows up here whether or not the page has moved.
+   */
+  const measure = () =>
+    page.evaluate(() => {
+      const g = document.querySelector('g[aria-label="Ask about Andover"]');
+      const c = g.querySelector("g.mark-scale circle");
+      const svg = g.closest("svg").getBoundingClientRect();
+      const box = c.getBoundingClientRect();
+      return {
+        cx: box.x + box.width / 2 - svg.x,
+        cy: box.y + box.height / 2 - svg.y,
+        size: box.width,
+      };
+    });
+
+  const before = await measure();
   const hitBox = await hit.boundingBox();
-  if (!before || !hitBox) return { ok: false, detail: "could not measure the mark before hovering" };
+  if (!hitBox) return { ok: false, detail: "could not measure the hit target" };
 
   await page.mouse.move(hitBox.x + hitBox.width / 2, hitBox.y + hitBox.height / 2);
-  await page.waitForTimeout(300);
-  const after = await dot.boundingBox();
-  if (!after) return { ok: false, detail: "could not measure the mark after hovering" };
+  await page.waitForTimeout(400);
+  const after = await measure();
 
-  const centerBefore = { x: before.x + before.width / 2, y: before.y + before.height / 2 };
-  const centerAfter = { x: after.x + after.width / 2, y: after.y + after.height / 2 };
-  const drift = Math.hypot(centerAfter.x - centerBefore.x, centerAfter.y - centerBefore.y);
-  const growth = after.width / before.width;
+  const drift = Math.hypot(after.cx - before.cx, after.cy - before.cy);
+  const growth = after.size / before.size;
 
-  // A mark that scales in place drifts by nothing (sub-pixel rounding
-  // aside) and visibly grows. A mark thrown across the map by a
-  // mis-resolved transform-origin drifts by tens or hundreds of pixels;
-  // 2px is a generous allowance for antialiasing, not the bug this guards.
-  const scaledInPlace = drift < 2 && growth > 1.03;
+  // A mark that responds in place drifts by nothing (sub-pixel rounding aside)
+  // and visibly grows. A mark thrown across the map by a mis-resolved
+  // transform-origin drifts by tens or hundreds of pixels. 2px is a generous
+  // allowance for antialiasing, not for the bug this guards.
+  //
+  // Growth is larger than the 1.1 hover scale on purpose now: hovering also
+  // opens the town panel, which makes that town the active one and takes its
+  // dot from r=6 to r=10, so the two effects compound to roughly 1.83x.
+  const respondedInPlace = drift < 2 && growth > 1.03;
 
   await page.mouse.click(hitBox.x + hitBox.width / 2, hitBox.y + hitBox.height / 2);
   await page.waitForTimeout(300);
   const pressed = await mark.getAttribute("aria-pressed");
-  const ctaCount = await page.locator("text=Ask Alex about Andover").count();
+  const ctaCount = await page.locator("text=Text Alex about Andover").count();
   const selects = pressed === "true" && ctaCount > 0;
 
   return {
-    ok: scaledInPlace && selects,
+    ok: respondedInPlace && selects,
     detail: `${engineName}: drift ${drift.toFixed(2)}px, growth ${growth.toFixed(3)}x, aria-pressed=${pressed}, cta=${ctaCount}`,
   };
+}
+
+/**
+ * Scroll the whole page the way a person does, then return to the top.
+ *
+ * A full-page screenshot does not fire an IntersectionObserver, which is how a
+ * previous version of this audit caught every band below the fold rendering at
+ * opacity 0. That was fixed once by putting a 60ms timer in the component,
+ * which revealed everything shortly after mount and quietly killed the reveal
+ * on every long route. The timer is gone and this is the replacement: the tool
+ * does what a visitor does, and the component stays honest.
+ */
+async function scrollThrough(page) {
+  await page.evaluate(async () => {
+    // globals.css sets `html { scroll-behavior: smooth }`, which turns every
+    // scrollTo into an animation. A loop of them then fights itself and the
+    // page never actually reaches the bottom, so no observer ever fires and
+    // every band reports as unrevealed. Force instant scrolling for the
+    // duration and put the declaration back afterwards.
+    const html = document.documentElement;
+    const previous = html.style.scrollBehavior;
+    html.style.scrollBehavior = "auto";
+
+    const step = Math.round(window.innerHeight * 0.8);
+    for (let y = 0; y < html.scrollHeight; y += step) {
+      window.scrollTo({ top: y, behavior: "instant" });
+      await new Promise((r) => requestAnimationFrame(() => setTimeout(r, 40)));
+    }
+    window.scrollTo({ top: 0, behavior: "instant" });
+    await new Promise((r) => setTimeout(r, 300));
+    html.style.scrollBehavior = previous;
+  });
+}
+
+/**
+ * Kansas advertising law, measured rather than asserted.
+ *
+ * K.S.A. 58-3086 requires the supervising broker's name in a readable and
+ * identifiable manner, and the licensee's own name must not be given greater
+ * prominence. lib/compliance-type.ts holds the registered sizes and throws at
+ * module load if the ratio is illegal, but a constant in a TypeScript file is
+ * a claim about the CSS, not the CSS. This reads what the browser actually
+ * computed, which is the only version that can fail for a reason nobody
+ * anticipated: a Tailwind class that did not apply, a font size inherited from
+ * somewhere unexpected, a lockup somebody added and did not register.
+ */
+async function checkComplianceLockups(page) {
+  const results = await page.evaluate(() => {
+    const out = [];
+    for (const lockup of document.querySelectorAll("[data-compliance-lockup]")) {
+      const agent = lockup.querySelector('[data-compliance-part="agent"]');
+      const brokerage = lockup.querySelector('[data-compliance-part="brokerage"]');
+      const px = (el) => (el ? parseFloat(getComputedStyle(el).fontSize) : 0);
+      out.push({
+        where: lockup.getAttribute("data-compliance-lockup"),
+        agent: px(agent),
+        brokerage: px(brokerage),
+        // A brokerage name that is present in the DOM but not displayed is not
+        // "in a readable and identifiable manner", so hidden counts as absent.
+        brokerageVisible: Boolean(brokerage && brokerage.getClientRects().length > 0),
+      });
+    }
+    return out;
+  });
+
+  const problems = [];
+  for (const r of results) {
+    if (!r.brokerageVisible) {
+      problems.push(`${r.where}: the brokerage name is not visible`);
+      continue;
+    }
+    const ratio = r.agent / r.brokerage;
+    if (ratio > 2) {
+      problems.push(
+        `${r.where}: agent name is ${ratio.toFixed(2)}x the brokerage name, the cap is 2x`,
+      );
+    }
+  }
+  return {
+    ok: problems.length === 0 && results.length > 0,
+    detail:
+      results.length === 0
+        ? "no compliance lockups found in the DOM at all"
+        : problems.length
+          ? problems.join("; ")
+          : results
+              .map((r) => `${r.where} ${(r.agent / r.brokerage).toFixed(2)}x`)
+              .join(", "),
+  };
+}
+
+/**
+ * The map panel, driven entirely from the keyboard.
+ *
+ * The brief's accessibility floor: keyboard focus must open the panel, or the
+ * signature element is mouse-only and the whole town card dataset is
+ * unreachable for anyone who does not use one. Escape must close it.
+ */
+async function checkMapKeyboard(page) {
+  await page.goto(`${BASE}/areas`, { waitUntil: "networkidle" });
+  await scrollThrough(page);
+
+  const mark = await page.$('g[aria-label="Ask about Derby"]');
+  if (!mark) return { ok: false, detail: "could not find the Derby mark" };
+
+  await mark.focus();
+  await page.waitForTimeout(300);
+  const openedOnFocus = (await page.locator("text=Text Alex about Derby").count()) > 0;
+
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(300);
+  const closedOnEscape = (await page.locator("text=Text Alex about Derby").count()) === 0;
+
+  // And the panel's own controls have to be reachable once it is open.
+  await mark.focus();
+  await page.waitForTimeout(250);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(250);
+  const pressed = (await mark.getAttribute("aria-pressed")) === "true";
+
+  return {
+    ok: openedOnFocus && closedOnEscape && pressed,
+    detail: `focus opens=${openedOnFocus}, escape closes=${closedOnEscape}, enter selects=${pressed}`,
+  };
+}
+
+/**
+ * Reduced motion, checked both ways round.
+ *
+ * Suppressing animation is only half the requirement. The half that actually
+ * breaks sites is content left invisible because a reveal hid it and the
+ * animation that would have brought it back was disabled. So this asserts both:
+ * nothing is animating, and nothing is stuck at zero opacity.
+ */
+async function checkReducedMotion(browser) {
+  const ctx = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    reducedMotion: "reduce",
+  });
+  const page = await ctx.newPage();
+  const problems = [];
+
+  for (const route of ROUTES) {
+    await page.goto(`${BASE}${route}`, { waitUntil: "networkidle" });
+    // Deliberately no scrolling. Under reduced motion the whole page must be
+    // visible without one, because the reveal must never have hidden anything.
+    const bad = await page.evaluate(() => {
+      const invisible = [];
+      const running = [];
+      for (const el of document.querySelectorAll("section, section *")) {
+        const cs = getComputedStyle(el);
+        if (el.matches("section") && parseFloat(cs.opacity) < 0.99) {
+          invisible.push(el.className.split(" ").slice(0, 2).join(" "));
+        }
+      }
+      for (const el of document.querySelectorAll("*")) {
+        const anims = el.getAnimations ? el.getAnimations() : [];
+        for (const a of anims) {
+          const t = a.effect && a.effect.getTiming ? a.effect.getTiming() : null;
+          // A duration the blanket query has flattened to 0.01ms is suppressed.
+          // Anything still running for a perceptible time is not.
+          if (t && typeof t.duration === "number" && t.duration > 1) {
+            running.push(`${el.tagName.toLowerCase()}:${a.animationName ?? "anim"}`);
+          }
+        }
+      }
+      return { invisible, running: running.slice(0, 5) };
+    });
+    if (bad.invisible.length) {
+      problems.push(`${route}: ${bad.invisible.length} section(s) invisible under reduced motion`);
+    }
+    if (bad.running.length) {
+      problems.push(`${route}: still animating [${bad.running.join(", ")}]`);
+    }
+  }
+
+  await ctx.close();
+  return { ok: problems.length === 0, detail: problems.join("; ") || "nothing animating, nothing hidden" };
 }
 
 async function runEngine(engine, out) {
@@ -148,6 +369,7 @@ async function runEngine(engine, out) {
 
       for (const route of ROUTES) {
         await page.goto(`${BASE}${route}`, { waitUntil: "networkidle" });
+        await scrollThrough(page);
 
         const overflow = await page.evaluate(
           () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -157,6 +379,24 @@ async function runEngine(engine, out) {
         console.log(
           `${ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} ${String(width).padStart(4)}px  ${route.padEnd(12)} overflow ${overflow}px`,
         );
+
+        // Every band must have reached its revealed state after a real scroll.
+        // This is the check that replaces the 60ms timer Reveal used to carry:
+        // that timer revealed everything shortly after mount whether or not it
+        // had been scrolled to, which fixed the screenshot and killed the
+        // feature. Scrolling the page here is what a person does, so it is
+        // what the verification should do.
+        const stillHidden = await page.evaluate(() =>
+          Array.from(document.querySelectorAll("[data-reveal]"))
+            .filter((el) => el.getAttribute("data-reveal") === "hidden")
+            .map((el) => el.className.split(" ").slice(0, 3).join(" ")),
+        );
+        if (stillHidden.length) {
+          failures += 1;
+          console.log(
+            `FAIL  ${engine.name.padEnd(8)} ${String(width).padStart(4)}px  ${route.padEnd(12)} ${stillHidden.length} band(s) never revealed`,
+          );
+        }
 
         if (width === 390 || width === 1280) {
           const name = route === "/" ? "home" : route.slice(1);
@@ -183,10 +423,25 @@ async function runEngine(engine, out) {
     // which the same click() call exercises equivalently for this check.
     const ctx = await browser.newContext({ viewport: { width: 1280, height: 1200 } });
     const page = await ctx.newPage();
+
     const result = await checkMapInteraction(page, engine.name);
     if (!result.ok) failures += 1;
-    console.log(`${result.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} map hover/select   ${result.detail}\n`);
+    console.log(`${result.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} map hover/select   ${result.detail}`);
+
+    const keyboard = await checkMapKeyboard(page);
+    if (!keyboard.ok) failures += 1;
+    console.log(`${keyboard.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} map keyboard      ${keyboard.detail}`);
+
+    await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
+    const lockups = await checkComplianceLockups(page);
+    if (!lockups.ok) failures += 1;
+    console.log(`${lockups.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} Kansas lockup     ${lockups.detail}`);
+
     await ctx.close();
+
+    const reduced = await checkReducedMotion(browser);
+    if (!reduced.ok) failures += 1;
+    console.log(`${reduced.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} reduced motion    ${reduced.detail}\n`);
   } finally {
     await browser.close();
   }
