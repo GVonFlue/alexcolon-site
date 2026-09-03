@@ -36,6 +36,17 @@ export const ImageSlot = z.object({
   alt: z.string(),
   /** Shown in the build report so the client knows exactly what to send. */
   needed: z.string(),
+  /**
+   * The photograph's own pixel dimensions, once there is one.
+   *
+   * Present so the frame can reserve the right box before the image loads and
+   * so the layout can adapt to whatever shape Alex's photographer delivers.
+   * The alternative, a fixed aspect ratio with object-cover, crops him out of
+   * his own picture the moment the shot is a different shape than the one the
+   * layout assumed, and nobody notices until he does.
+   */
+  width: z.number().int().positive().nullable().default(null),
+  height: z.number().int().positive().nullable().default(null),
 });
 export type ImageSlot = z.infer<typeof ImageSlot>;
 
@@ -80,11 +91,28 @@ export type LeadMagnet = z.infer<typeof LeadMagnet>;
 
 export const Testimonial = z.object({
   quote: z.string().min(1),
+  /** The person's name as they gave it. Rendered per `displayAs`, never raw. */
   attribution: z.string().min(1),
   /** Hard stop 3. No permission, no publication. Words are never edited. */
   permissionOnFile: z.literal(true),
+  /**
+   * How much of the name that person agreed to have published.
+   *
+   * Permission to be quoted and permission to be named are two different
+   * permissions, and people routinely grant the first and not the second. A
+   * seller mid-divorce, somebody who bought with a VA loan and would rather
+   * not advertise where they now live, anyone in a small town: all real, all
+   * common. Recording the preference with the quote is what makes it survive
+   * the next person who edits this file, and it means the component never has
+   * to guess.
+   *
+   * Required, with no default. A missing preference is not permission to
+   * publish a full name.
+   */
+  displayAs: z.enum(["full", "firstAndLastInitial", "firstOnly", "initials", "anonymous"]),
   context: z.string().nullable(),
 });
+export type Testimonial = z.infer<typeof Testimonial>;
 
 export const Compliance = z.object({
   /**
@@ -254,6 +282,19 @@ export const Band = z.discriminatedUnion("type", [
      * globals.css) is a separately verified color for that one job.
      */
     accentPhrase: z.string().min(1).optional(),
+    /**
+     * Which atmosphere this route's hero opens with.
+     *
+     * All eight routes used to open identically, which is a strange thing for
+     * a site whose entire structure is "four audiences, four doors". This
+     * changes where the light falls and which of the map's own geometry sits
+     * behind it, and nothing else: the type scale, the CTA pair, the brokerage
+     * lockup and the compliance geometry are identical on every route by
+     * construction, because the variant cannot reach any of them.
+     */
+    variant: z
+      .enum(["home", "buying", "selling", "veterans", "investors", "plain"])
+      .default("plain"),
   }),
   z.object({
     type: z.literal("assistant"),
@@ -339,6 +380,23 @@ export const Band = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("proof"),
     heading: z.string().min(1),
+  }),
+  /**
+   * The numbers band.
+   *
+   * It renders nothing today, and that is the point of building it. Alex has
+   * no verified figures, so site.numbers is an empty array and the whole band
+   * withholds itself: no strip of "500+ Homes Sold, 15 Years Experience, 98%
+   * Satisfaction", every word of which would be invented.
+   *
+   * When he sends real figures with their sources, they appear here with no
+   * code change. Every entry carries its own source, so a figure that cannot
+   * be attributed cannot be published.
+   */
+  z.object({
+    type: z.literal("numbers"),
+    heading: z.string().min(1),
+    intro: z.string().nullable(),
   }),
   /**
    * An interactive tool. Every one of these takes all of its figures from the

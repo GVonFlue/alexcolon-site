@@ -5,7 +5,6 @@
   "h1": "How Alex works, and who he is a poor fit for",
   "job": "Let a visitor decide whether this is the right person, on purpose, before they call.",
   "primaryPrinciple": "Trust is a person. The soft ask, after the visitor has enough to judge.",
-
   "bands": [
     {
       "type": "hero",
@@ -26,9 +25,9 @@
           "emphasis": "secondary"
         }
       ],
-      "image": null
+      "image": null,
+      "variant": "plain"
     },
-
     {
       "type": "trust",
       "heading": "The way he works",
@@ -38,7 +37,11 @@
         "He is hands on from the first conversation through closing. That means you deal with him rather than being passed to a coordinator once the interesting part is over."
       ]
     },
-
+    {
+      "type": "numbers",
+      "heading": "The numbers, once there are numbers",
+      "intro": null
+    },
     {
       "type": "prose",
       "heading": "Who he is a poor fit for",
@@ -47,7 +50,6 @@
         "If you want to be pushed, he will not do that either. He works with people who are a year out from doing anything and he does not chase them in between. If you need someone to create urgency for you, that is a real preference and he is not the one."
       ]
     },
-
     {
       "type": "prose",
       "heading": "How to reach him, and what actually works",
@@ -56,17 +58,14 @@
         "If your question has an address in it, send the address. Nearly every useful answer in this business starts with a specific property rather than a general one."
       ]
     },
-
     {
       "type": "conversion",
       "magnetId": "general"
     },
-
     {
       "type": "proof",
       "heading": "What people say about working with Alex"
     },
-
     {
       "type": "closingCta",
       "heading": "If that sounds like what you want, say hello",

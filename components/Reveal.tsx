@@ -7,8 +7,8 @@ import { useEffect, useRef, useState } from "react";
  *
  * Applied to section-level containers only (Section wraps every band in it,
  * see ui.tsx), never to individual cards, headings or list items. A band opts
- * its own direct children into a 60ms positional stagger by passing
- * `stagger`, which is the only way a child element on this site is ever
+ * its own content block into a 60ms positional stagger by passing `stagger`
+ * to Section, which is the only way a child element on this site is ever
  * animated on scroll: the delay comes from CSS nth-child in globals.css, not
  * from a per-item prop, so no call site can invent its own timing.
  *
@@ -45,13 +45,13 @@ import { useEffect, useRef, useState } from "react";
 export function Reveal({
   className = "",
   id,
-  stagger = false,
+  style,
   children,
 }: {
   className?: string;
   id?: string;
-  /** Stagger this section's own direct children by 60ms each. */
-  stagger?: boolean;
+  /** Passed through for the hero's per-route custom properties. */
+  style?: React.CSSProperties;
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLElement>(null);
@@ -103,11 +103,12 @@ export function Reveal({
     <section
       ref={ref}
       id={id}
+      style={style}
       // data-reveal lets scripts/shots.mjs assert that every section actually
       // reached its revealed state after scrolling, rather than the screenshot
       // silently capturing a page of empty bands again.
       data-reveal={hidden ? "hidden" : "shown"}
-      className={`${className} ${stagger ? "stagger" : ""} ${hidden ? "reveal" : "reveal-in"}`}
+      className={`${className} ${hidden ? "reveal" : "reveal-in"}`}
     >
       {children}
     </section>

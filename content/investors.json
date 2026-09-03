@@ -25,7 +25,8 @@
           "emphasis": "secondary"
         }
       ],
-      "image": null
+      "image": null,
+      "variant": "investors"
     },
     {
       "type": "assistant",

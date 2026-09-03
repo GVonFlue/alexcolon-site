@@ -5,7 +5,6 @@
   "h1": "Get in touch",
   "job": "Remove every reason not to make contact, and offer more than one way to do it.",
   "primaryPrinciple": "Remove friction. Every channel the visitor might prefer, on one screen.",
-
   "bands": [
     {
       "type": "hero",
@@ -26,14 +25,13 @@
           "emphasis": "secondary"
         }
       ],
-      "image": null
+      "image": null,
+      "variant": "plain"
     },
-
     {
       "type": "conversion",
       "magnetId": "general"
     },
-
     {
       "type": "faq",
       "heading": "Before you send it",
@@ -56,7 +54,6 @@
         }
       ]
     },
-
     {
       "type": "closingCta",
       "heading": "Or skip the form entirely",

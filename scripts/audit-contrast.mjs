@@ -15,6 +15,7 @@ const TOKENS = {
   navy: "#172A3A",
   navyDeep: "#0F1D28",
   navyGlow: "#1C3350",
+  navyLift: "#22475E",
   cream: "#F7F4EE",
   ink: "#292D32",
   gold: "#B89A67",
@@ -25,6 +26,12 @@ const TOKENS = {
   line: "#E2DCD0",
   field: "#8A8177",
   negative: "#8C3B2E",
+  champagne: "#D8C9A8",
+  // Lark's two blends, both gold composited over navy-deep at a fixed alpha
+  // and written down rather than computed at paint time, because the same hex
+  // has to be reproduced by Satori for the OG card.
+  larkBack: "#5B5544",
+  larkWing: "#393C38",
 };
 
 function hexToRgb(hex) {
@@ -305,6 +312,134 @@ const PAIRS = [
     kind: "ui",
     decorative: true,
   },
+  // --- v1.1 -----------------------------------------------------------------
+  // navy-lift, the top of the navy ramp. Introduced as a raised surface: the
+  // town panel, the headshot frame, any card that needs to sit above a dark
+  // band. Cream and dim both clear AA on it comfortably. Gold does NOT, at
+  // 3.69:1, which is why gold-on-navy-lift is in the FORBIDDEN list below
+  // rather than here, and why navy-glow rather than navy-lift stays the
+  // brightest stop of any gradient a headline can land on.
+  { what: "town panel and card text, cream on navy-lift", fg: T.cream, bg: T.navyLift, kind: "text" },
+  { what: "town panel labels and supporting copy, dim on navy-lift", fg: T.dim, bg: T.navyLift, kind: "text" },
+  {
+    what: "card-lift top edge highlight, cream at 9 percent on navy-lift",
+    fg: composite(T.cream, 0.09, T.navyLift),
+    bg: T.navyLift,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "town panel row rule, cream at 10 percent on navy-lift",
+    fg: composite(T.cream, 0.1, T.navyLift),
+    bg: T.navyLift,
+    kind: "ui",
+    decorative: true,
+  },
+  // The champagne tint. A pale gold, used only as a low-alpha gradient stop on
+  // dark surfaces and never as type, never on cream or paper. Checked at the
+  // alpha the hero field and the band field actually paint it, over the
+  // brightest ground it can sit on, to confirm it does not lift the composited
+  // background enough to move a text pairing.
+  // The brightest ground any text can land on, once both decorative layers of
+  // the dark field overlap: navy, lifted 25 percent toward navy-lift, then
+  // blushed 3 percent champagne. This composite is the whole reason those two
+  // alphas are what they are. An earlier version ran the base up to navy-glow
+  // with the decorative layers at 55 and 7 percent, and this exact check
+  // failed the build at 4.03:1 for the accent phrase. navy-glow was already
+  // the brightest ground gold tolerates, so the base was lowered rather than
+  // the decoration dimmed.
+  {
+    what: "the dark field's brightest composite, navy lifted 25 percent then blushed 3 percent",
+    fg: composite(T.champagne, 0.03, composite(T.navyLift, 0.25, T.navy)),
+    bg: T.navy,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "headings on the dark field's brightest composite",
+    fg: T.cream,
+    bg: composite(T.champagne, 0.03, composite(T.navyLift, 0.25, T.navy)),
+    kind: "text",
+  },
+  {
+    what: "supporting copy on the dark field's brightest composite",
+    fg: T.dim,
+    bg: composite(T.champagne, 0.03, composite(T.navyLift, 0.25, T.navy)),
+    kind: "text",
+  },
+  {
+    what: "the one accent phrase on the dark field's brightest composite, gold",
+    fg: T.gold,
+    bg: composite(T.champagne, 0.03, composite(T.navyLift, 0.25, T.navy)),
+    kind: "text",
+  },
+  // The hairline gold section rule. Decorative by definition: it is a 2px mark
+  // in the whitespace above a heading, it is not a control, and it carries no
+  // information that is not also in the heading under it. Measured anyway,
+  // because "decorative" is a claim and an unmeasured colour is not checked.
+  {
+    what: "section rule, gold at 78 percent on navy-glow",
+    fg: composite(T.gold, 0.78, T.navyGlow),
+    bg: T.navyGlow,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "section rule, gold at 78 percent on cream",
+    fg: composite(T.gold, 0.78, T.cream),
+    bg: T.cream,
+    kind: "ui",
+    decorative: true,
+  },
+  // The geometry motif behind dark bands. Deliberately at the very bottom of
+  // what is perceptible: if any of these measured as a legible mark it would
+  // be competing with the content rather than sitting under it.
+  {
+    what: "band texture rivers, cream at 5 percent on the dark field's brightest composite",
+    fg: composite(T.cream, 0.05, composite(T.champagne, 0.03, composite(T.navyLift, 0.25, T.navy))),
+    bg: composite(T.champagne, 0.03, composite(T.navyLift, 0.25, T.navy)),
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "grain overlay, white at 5 percent on navy",
+    fg: composite("#FFFFFF", 0.05, T.navy),
+    bg: T.navy,
+    kind: "ui",
+    decorative: true,
+  },
+  // Lark. Every fill is navy, cream, gold, or one of two gold-over-navy-deep
+  // blends, so the mascot cannot pull the palette anywhere the site does not
+  // already go. Decorative: it is a mark beside a name that is also written
+  // out, never the only carrier of any information.
+  {
+    what: "Lark's breast, gold on the navy card mark",
+    fg: T.gold,
+    bg: T.navy,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "Lark's back, gold at 45 percent over navy-deep, on navy",
+    fg: T.larkBack,
+    bg: T.navy,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "Lark's wing and tail, gold at 25 percent over navy-deep, on navy",
+    fg: T.larkWing,
+    bg: T.navy,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "Lark perched on the map, its breast against navy-glow",
+    fg: T.gold,
+    bg: T.navyGlow,
+    kind: "ui",
+    decorative: true,
+  },
   {
     what: "pick-your-door divider, cream at 15 percent on navy",
     fg: composite(T.cream, 0.15, T.navy),
@@ -335,6 +470,21 @@ const FORBIDDEN = [
     bg: T.paper,
     why: "Same reason. If this ever appears in a component it is a defect.",
   },
+  {
+    what: "gold as text on navy-lift",
+    fg: T.gold,
+    bg: T.navyLift,
+    why:
+      "navy-lift is the top of the navy ramp and gold measures 3.69:1 on it, which fails AA. " +
+      "This is the reason navy-glow, not navy-lift, is the brightest stop of every gradient a " +
+      "headline can land on. navy-lift is a raised card surface only.",
+  },
+  {
+    what: "champagne as text on cream",
+    fg: T.champagne,
+    bg: T.cream,
+    why: "champagne is a pale tint for dark gradient stops. It is never type and never on a light ground.",
+  },
 ];
 
 const MIN = { text: 4.5, large: 3.0, ui: 3.0 };
@@ -363,6 +513,10 @@ for (const f of FORBIDDEN) {
     console.log("      Note: this now passes AA, but it is still forbidden by the design rule.");
   }
 }
+console.log(
+  "\nThese are recorded so a future edit that introduces one is a deliberate act",
+);
+console.log("rather than an accident nobody measured.");
 
 console.log(`\n${failures} failure(s).`);
 if (failures > 0) {

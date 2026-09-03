@@ -251,39 +251,97 @@ body {
 /*
  * The dark ground, layered rather than flat.
  *
- * Three stacked radial gradients instead of one: the original top-center glow
- * that every contrast pairing was verified against, plus two much softer,
- * off-center washes (one champagne, one lifted navy) at single-digit alpha.
- * The soft pair is what stops a large navy band from reading as a default
- * background colour, and because both sit under 0.09 alpha neither moves the
- * composited ground far enough to change a measured ratio; both are checked
- * in audit-contrast.mjs anyway rather than argued about.
+ * Three stacked radial gradients instead of one: a base that runs navy to
+ * navy-deep, plus two soft, off-center decorative washes, one lifted navy and
+ * one champagne. The soft pair is what stops a large navy band from reading as
+ * a default background colour.
  *
- * navy-glow stays the brightest stop of the text-bearing layer. The lift and
- * the champagne are in the decorative layers only, which is what keeps the one
- * gold accent phrase off a ground it fails on.
+ * The alphas here are not taste, they are the answer to a measurement. The
+ * first version of this ran the base up to navy-glow and put the decorative
+ * layers on top at 55 and 7 percent, and audit-contrast.mjs failed it: the one
+ * gold accent phrase a page carries measured 4.03:1 where the champagne bloom
+ * overlapped the base's brightest point. navy-glow had already been chosen in
+ * v4 as the brightest ground gold tolerates at all, so there was no headroom
+ * above it, and no combination of the two decorative alphas cleared 4.5.
+ *
+ * The fix was to lower the base rather than to dim the decoration: the base
+ * now tops out at flat navy, and the decorative lift raises it back toward the
+ * same ceiling instead of past it. The brightest composited ground any text
+ * can land on is now #203646, where gold measures 4.68:1, and that composite
+ * is checked in audit-contrast.mjs rather than reasoned about here.
  */
 .navy-wash {
   background-color: var(--color-navy);
   background-image:
     radial-gradient(
       ellipse 70% 50% at 18% 8%,
-      color-mix(in srgb, var(--color-champagne) 7%, transparent) 0%,
+      color-mix(in srgb, var(--color-champagne) 3%, transparent) 0%,
       transparent 70%
     ),
     radial-gradient(
       ellipse 65% 55% at 86% 92%,
-      color-mix(in srgb, var(--color-navy-lift) 55%, transparent) 0%,
+      color-mix(in srgb, var(--color-navy-lift) 25%, transparent) 0%,
       transparent 72%
     ),
     radial-gradient(
       ellipse 90% 65% at 50% -8%,
-      var(--color-navy-glow) 0%,
+      var(--color-navy) 0%,
       var(--color-navy) 55%,
       var(--color-navy-deep) 100%
     );
   background-size: 160% 160%, 150% 150%, 100% 100%;
   background-position: 18% 8%, 86% 92%, 50% 0%;
+}
+
+/*
+ * Hero atmosphere, per route.
+ *
+ * All eight routes opened identically: the same glow in the same place above
+ * the same headline. Four different audiences should not get four identical
+ * openings, so each hero places its own light.
+ *
+ * What varies is only where the light falls and which geometry sits behind it.
+ * The type scale, the brokerage lockup, the CTA pair and the compliance
+ * geometry are the same on every route, and the class below cannot touch any
+ * of them: it sets three custom properties and nothing else. The variation is
+ * atmosphere, never structure, which is also what stops eight routes drifting
+ * into eight layouts nobody can maintain.
+ *
+ * --hero-x / --hero-y place the bright stop. --hero-bloom places the soft
+ * champagne wash that gives the field its second source of light.
+ */
+.hero-field {
+  background-color: var(--color-navy);
+  background-image:
+    radial-gradient(
+      ellipse 60% 45% at var(--hero-bloom, 20% 90%),
+      color-mix(in srgb, var(--color-champagne) 3%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 55% 50% at calc(100% - var(--hero-x, 50%)) calc(100% - var(--hero-y, 0%)),
+      color-mix(in srgb, var(--color-navy-lift) 25%, transparent) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 95% 70% at var(--hero-x, 50%) var(--hero-y, -8%),
+      var(--color-navy) 0%,
+      var(--color-navy) 58%,
+      var(--color-navy-deep) 100%
+    );
+  background-size: 150% 150%, 150% 150%, 100% 100%;
+  background-position: 0% 0%, 0% 0%, 0% 0%;
+  animation: hero-drift 54s ease-in-out infinite;
+}
+
+@keyframes hero-drift {
+  0%,
+  100% {
+    background-position: 0% 0%, 0% 0%, 0% 0%;
+  }
+  50% {
+    background-position: 12% 8%, -10% -6%, 0% 0%;
+  }
 }
 
 /*
@@ -516,32 +574,38 @@ body {
 }
 
 /*
- * Child stagger. A band opts in by marking its own direct children, and the
- * delay is positional rather than hand-assigned per call site. Capped at six
- * steps: past roughly 360ms the last card in a row is arriving long after the
- * eye has already moved on, which reads as lag rather than as choreography.
+ * Child stagger. A band opts in and its own direct children arrive 60ms apart,
+ * with the delay positional rather than hand-assigned per call site.
+ *
+ * The selector is a descendant one, not a compound one. .stagger sits on the
+ * content block inside the section and .reveal-in sits on the section itself,
+ * because Section wraps its children in a padded div: written as
+ * ".reveal-in.stagger > *" this would have matched that single wrapper div and
+ * staggered exactly one element, which is a rule that looks right and does
+ * nothing.
+ *
+ * Capped at six steps. Past roughly 360ms the last card in a row is arriving
+ * long after the eye has moved on, which reads as lag rather than choreography.
  */
-.stagger > * {
-  transition-delay: 0ms;
-}
-.reveal-in.stagger > *:nth-child(1) { transition-delay: 0ms; }
-.reveal-in.stagger > *:nth-child(2) { transition-delay: 60ms; }
-.reveal-in.stagger > *:nth-child(3) { transition-delay: 120ms; }
-.reveal-in.stagger > *:nth-child(4) { transition-delay: 180ms; }
-.reveal-in.stagger > *:nth-child(5) { transition-delay: 240ms; }
-.reveal-in.stagger > *:nth-child(n + 6) { transition-delay: 300ms; }
-
 .stagger > * {
   opacity: 0;
   transform: translateY(10px);
 }
-.reveal-in.stagger > * {
+
+.reveal-in .stagger > * {
   opacity: 1;
   transform: none;
   transition-property: opacity, transform;
   transition-duration: 0.6s;
   transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+.reveal-in .stagger > *:nth-child(1) { transition-delay: 0ms; }
+.reveal-in .stagger > *:nth-child(2) { transition-delay: 60ms; }
+.reveal-in .stagger > *:nth-child(3) { transition-delay: 120ms; }
+.reveal-in .stagger > *:nth-child(4) { transition-delay: 180ms; }
+.reveal-in .stagger > *:nth-child(5) { transition-delay: 240ms; }
+.reveal-in .stagger > *:nth-child(n + 6) { transition-delay: 300ms; }
 
 /*
  * The hero headline reveals by line, not by letter. Per-letter animation is
@@ -763,13 +827,14 @@ body {
   .reveal,
   .reveal-in,
   .stagger > *,
-  .reveal-in.stagger > * {
+  .reveal-in .stagger > * {
     opacity: 1 !important;
     transform: none !important;
   }
 
-  /* The dark field stops drifting and the grain stops being a moving target. */
-  .navy-wash {
+  /* The dark fields stop drifting and the grain stops being a moving target. */
+  .navy-wash,
+  .hero-field {
     animation: none !important;
   }
 }

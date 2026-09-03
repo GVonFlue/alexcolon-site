@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { useEasedFigure } from "./tools/fields";
 
 /**
  * Loss aversion, stated as arithmetic rather than fear.
@@ -46,6 +47,14 @@ export function CarryCostCalculator() {
   );
 
   const total = monthly * months;
+  /**
+   * The total eases toward a changed value rather than snapping, using the
+   * same hook the four interactive tools already share rather than a second
+   * implementation of it. It skips the very first value, any non-numeric
+   * value, and anything under reduced motion, all inside the hook, so the
+   * figure is correct on first paint either way.
+   */
+  const easedTotal = useEasedFigure(usd.format(total));
   const hasInput = monthly > 0;
 
   return (
@@ -104,14 +113,15 @@ export function CarryCostCalculator() {
         </div>
       </fieldset>
 
-      {/* Values render immediately with no count up animation, so the number is
-          correct on first paint and reduced motion needs no special case. */}
+      {/* The big figure eases toward a changed value; the first value a
+          visitor ever sees, and every value under reduced motion, renders
+          immediately, so first paint is always correct. */}
       <div className="mt-8 border-t border-line pt-6" aria-live="polite">
         {hasInput ? (
           <>
             <p className="label text-subtle">What {months === 1 ? "that month" : `those ${months} months`} costs you</p>
             <p className="figure mt-2 text-[2.4rem] font-semibold leading-none text-navy">
-              {usd.format(total)}
+              {easedTotal}
             </p>
             <p className="measure mt-3 text-[0.95rem] leading-relaxed text-subtle">
               That is {usd.format(monthly)} a month leaving your account while the house sits,

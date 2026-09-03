@@ -245,7 +245,7 @@ function parseFigure(s: string): number | null {
  * passed in, so the figure is correct on first paint either way and reduced
  * motion needs no special case at the call site.
  */
-function useEasedFigure(target: string, durationMs = 550) {
+export function useEasedFigure(target: string, durationMs = 550) {
   const [display, setDisplay] = useState(target);
   const prevNum = useRef<number | null>(null);
   const raf = useRef<number | null>(null);

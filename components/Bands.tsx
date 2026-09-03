@@ -1,12 +1,15 @@
 import Link from "next/link";
-import type { Band, PageContent } from "@/lib/schema";
+import type { Band, PageContent, Testimonial } from "@/lib/schema";
 import { site, magnet, telHref, smsHref } from "@/lib/content";
-import { AccentHeadline, CtaLink, Eyebrow, H2, Prose, Section, Split, type SectionTone } from "./ui";
+import { AccentHeadline, CtaLink, Eyebrow, H2, Prose, Section, SectionRule, Split, type SectionTone } from "./ui";
 import { ServiceAreaMap } from "./ServiceAreaMap";
 import { Assistant } from "./Assistant";
 import { LeadForm } from "./LeadForm";
 import { CarryCostCalculator } from "./CarryCostCalculator";
 import { Marquee } from "./Marquee";
+import { LineReveal } from "./LineReveal";
+import { CountUp } from "./CountUp";
+import { Headshot } from "./Headshot";
 import { NetProceeds } from "./tools/NetProceeds";
 import { Affordability } from "./tools/Affordability";
 import { VaTimeline } from "./tools/VaTimeline";
@@ -40,9 +43,60 @@ const DETAIL_FIELD: Record<string, { label: string; placeholder: string }> = {
   "rental-analysis": { label: "Address you are looking at", placeholder: "Street, city" },
 };
 
+/**
+ * Per-route hero atmosphere.
+ *
+ * `field` places the light (see .hero-field in globals.css), `texture` picks
+ * which of the map's real geometry sits behind it, and `rhythm` is the only
+ * spacing that moves. Everything structural is deliberately absent from this
+ * table: there is no way to express "a different headline size on /buy" here,
+ * which is what keeps the variation to atmosphere.
+ *
+ * The geometry is chosen to mean something rather than to be different. Buying
+ * gets the highways, because a first purchase is a route through stages.
+ * Selling gets the city limit, because a seller's question is what their
+ * specific place inside it is worth. Veterans gets everything, because a PCS
+ * timeline touches all of it at once. Investors gets the highways again but
+ * lit from the opposite corner, because the question there is also about
+ * getting to and from a specific address.
+ */
+const HERO_VARIANTS = {
+  home: {
+    field: { "--hero-x": "50%", "--hero-y": "-8%", "--hero-bloom": "18% 92%" },
+    texture: "rivers",
+    rhythm: "pb-14 pt-6 sm:pb-16 sm:pt-8 lg:pb-20 lg:pt-10",
+  },
+  buying: {
+    field: { "--hero-x": "16%", "--hero-y": "-6%", "--hero-bloom": "86% 88%" },
+    texture: "roads",
+    rhythm: "pb-14 pt-8 sm:pb-16 sm:pt-10 lg:pb-20 lg:pt-14",
+  },
+  selling: {
+    field: { "--hero-x": "84%", "--hero-y": "-6%", "--hero-bloom": "12% 86%" },
+    texture: "boundary",
+    rhythm: "pb-14 pt-8 sm:pb-16 sm:pt-10 lg:pb-20 lg:pt-14",
+  },
+  veterans: {
+    field: { "--hero-x": "26%", "--hero-y": "104%", "--hero-bloom": "72% 8%" },
+    texture: "full",
+    rhythm: "pb-12 pt-8 sm:pb-14 sm:pt-10 lg:pb-16 lg:pt-12",
+  },
+  investors: {
+    field: { "--hero-x": "80%", "--hero-y": "102%", "--hero-bloom": "16% 10%" },
+    texture: "roads",
+    rhythm: "pb-16 pt-8 sm:pb-20 sm:pt-10 lg:pb-24 lg:pt-14",
+  },
+  plain: {
+    field: { "--hero-x": "50%", "--hero-y": "-8%", "--hero-bloom": "20% 90%" },
+    texture: "rivers",
+    rhythm: "pb-14 pt-6 sm:pb-16 sm:pt-8 lg:pb-20 lg:pt-10",
+  },
+} as const;
+
 function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1: boolean }) {
   const Heading = isH1 ? "h1" : "h2";
   const featured = band.feature === "areaMap";
+  const v = HERO_VARIANTS[band.variant];
 
   return (
     // Dark ground: navy with the radial glow tone, so the fold has depth and
@@ -50,7 +104,13 @@ function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1:
     // than the darkened, type-safe compromise a light ground forces. Still
     // less top padding than a standard band, and now overriding the inner
     // block's padding directly rather than adding to it from outside.
-    <Section tone="navyWash" pad="pb-14 pt-6 sm:pb-16 sm:pt-8 lg:pb-20 lg:pt-10">
+    <Section
+      tone="navyWash"
+      pad={v.rhythm}
+      texture={v.texture}
+      className="hero-field"
+      style={v.field as React.CSSProperties}
+    >
       <div
         className={
           featured
@@ -73,8 +133,17 @@ function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1:
             </div>
           )}
           <div className="hero-in" style={{ animationDelay: "70ms" }}>
-            <Heading className="display text-[2.2rem] font-black leading-[0.98] tracking-[-0.04em] text-cream sm:text-[3rem] lg:text-[3.7rem] xl:text-[4rem]">
-              <AccentHeadline text={band.headline} phrase={band.accentPhrase} dark />
+            {/*
+              The type scale is identical on every route and is deliberately
+              not part of the variant table: a hero that changes size per page
+              is four layouts, not one layout with four atmospheres.
+            */}
+            <Heading className="display display-xl text-[2.2rem] font-black text-cream sm:text-[3rem] lg:text-[3.7rem] xl:text-[4rem]">
+              <LineReveal
+                text={band.headline}
+                phrase={band.accentPhrase}
+                plain={<AccentHeadline text={band.headline} phrase={band.accentPhrase} dark />}
+              />
             </Heading>
           </div>
           <div className="hero-in" style={{ animationDelay: "140ms" }}>
@@ -117,34 +186,118 @@ function BandHero({ band, isH1 }: { band: Extract<Band, { type: "hero" }>; isH1:
   );
 }
 
+/**
+ * How much of a person's name may be published, per what they agreed to.
+ *
+ * Permission to be quoted and permission to be named are different
+ * permissions, and the second one is routinely withheld for reasons that are
+ * nobody's business. The preference is recorded with the quote (see
+ * lib/schema.ts) and applied here, so the component never has to guess and a
+ * later editor cannot accidentally promote a first name to a full one.
+ *
+ * "anonymous" still names the context when there is one, because "a seller in
+ * Derby" is what makes an unnamed quote worth reading, and it is not
+ * identifying.
+ */
+function displayName(t: Testimonial): string | null {
+  const parts = t.attribution.trim().split(/\s+/);
+  switch (t.displayAs) {
+    case "full":
+      return t.attribution;
+    case "firstAndLastInitial":
+      return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : parts[0];
+    case "firstOnly":
+      return parts[0];
+    case "initials":
+      return parts.map((w) => `${w[0]}.`).join("");
+    case "anonymous":
+      return null;
+  }
+}
+
 function BandProof({ band, tone }: { band: Extract<Band, { type: "proof" }>; tone: SectionTone }) {
   // Hard stop 3. No testimonial without permission on file, and the words are
   // never edited. With none on file the band withholds itself entirely rather
   // than shipping a placeholder or a generic trust badge.
-  if (site.testimonials.length === 0) return null;
+  //
+  // The grid is built for three, which is what Alex is being asked for, and it
+  // degrades honestly: one quote renders as one wide card rather than as a
+  // third of a row with two holes beside it.
+  const quotes = site.testimonials;
+  if (quotes.length === 0) return null;
+
+  const cols =
+    quotes.length === 1 ? "" : quotes.length === 2 ? "md:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <Section tone={tone}>
-      <H2 className="text-navy">{band.heading}</H2>
-      <ul className="mt-8 grid gap-6 md:grid-cols-2">
-        {site.testimonials.map((t, i) => (
-          <li key={i} className="rounded-lg border border-navy/15 bg-paper p-6">
-            <blockquote className="text-[1.02rem] leading-[1.7] text-ink">“{t.quote}”</blockquote>
-            <p className="mt-4 text-[0.9rem] text-subtle">
-              {t.attribution}
-              {t.context ? `, ${t.context}` : ""}
+    <Section tone={tone} stagger>
+      <div>
+        <SectionRule />
+        <H2 className="text-navy">{band.heading}</H2>
+      </div>
+      <ul className={`mt-9 grid gap-6 ${cols}`}>
+        {quotes.map((t, i) => {
+          const name = displayName(t);
+          return (
+            <li
+              key={i}
+              className="card-warm flex flex-col rounded-xl border border-navy/10 bg-paper p-6"
+            >
+              {/* A quote mark rather than a stock avatar. There is no
+                  photograph of any of these people and there is not going to
+                  be one. */}
+              <span aria-hidden="true" className="display text-[2.5rem] leading-none text-navy/15">
+                &ldquo;
+              </span>
+              <blockquote className="mt-2 flex-1 text-[1.02rem] leading-[1.7] text-ink">
+                {t.quote}
+              </blockquote>
+              <p className="mt-5 border-t border-line pt-4 text-[0.9rem] text-subtle">
+                {[name, t.context].filter(Boolean).join(", ") || "Name withheld by request"}
+              </p>
+            </li>
+          );
+        })}
+      </ul>
+      {/* One CTA under the row, not one per card. Three identical buttons in a
+          row is three primary actions competing in the same screenful. */}
+      <div className="mt-8">
+        <CtaLink
+          cta={{
+            label: "Text Alex a question",
+            href: smsHref(),
+            kind: "direct",
+            emphasis: "secondary",
+          }}
+        />
+      </div>
+    </Section>
+  );
+}
+
+/**
+ * The numbers band. Withholds itself entirely while there are no verified
+ * figures, which is today. See lib/schema.ts for why it exists anyway.
+ */
+function BandNumbers({ band }: { band: Extract<Band, { type: "numbers" }> }) {
+  if (site.numbers.length === 0) return null;
+
+  return (
+    <Section tone="navyWash" texture="roads" stagger>
+      <div>
+        <SectionRule />
+        <H2 className="text-cream">{band.heading}</H2>
+        {band.intro && (
+          <p className="measure mt-4 text-[1.02rem] leading-[1.7] text-dim">{band.intro}</p>
+        )}
+      </div>
+      <ul className="mt-10 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        {site.numbers.map((n) => (
+          <li key={n.label} className="border-t border-cream/15 pt-5">
+            <p className="display text-[2.6rem] font-extrabold leading-none text-cream">
+              <CountUp figure={n.figure} />
             </p>
-            {/* Every testimonial gets a CTA beside it. Proof next to the ask. */}
-            <div className="mt-5">
-              <CtaLink
-                cta={{
-                  label: "Text Alex a question",
-                  href: smsHref(),
-                  kind: "direct",
-                  emphasis: "secondary",
-                }}
-              />
-            </div>
+            <p className="mt-3 text-[1rem] leading-[1.5] text-dim">{n.label}</p>
           </li>
         ))}
       </ul>
@@ -229,8 +382,11 @@ export function Bands({ page }: { page: PageContent }) {
           case "pickYourDoor":
             return (
               <div key={i}>
-                <Section tone="navyWash">
-                  <H2>{band.heading}</H2>
+                <Section tone="navyWash" texture="boundary" stagger>
+                  <div>
+                    <SectionRule />
+                    <H2>{band.heading}</H2>
+                  </div>
                   <ul className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {band.lanes.map((lane) => (
                       <li key={lane.href}>
@@ -265,7 +421,14 @@ export function Bands({ page }: { page: PageContent }) {
           case "prose":
             return (
               <Section key={i} tone={nextLightTone()}>
-                <Split heading={<H2 className="text-navy">{band.heading}</H2>}>
+                <Split
+                  heading={
+                    <div>
+                      <SectionRule />
+                      <H2 className="text-navy">{band.heading}</H2>
+                    </div>
+                  }
+                >
                   <Prose paragraphs={band.body} />
                 </Split>
               </Section>
@@ -276,9 +439,14 @@ export function Bands({ page }: { page: PageContent }) {
             // same reason the reference gives its own step-by-step section
             // the dark, numbered treatment rather than a plain light list.
             return (
-              <Section key={i} tone="navyWash">
+              <Section key={i} tone="navyWash" texture="roads">
                 <Split
-                  heading={<H2 className="text-cream">{band.heading}</H2>}
+                  heading={
+                    <div>
+                      <SectionRule />
+                      <H2 className="text-cream">{band.heading}</H2>
+                    </div>
+                  }
                   aside={
                     band.intro ? (
                       <p className="mt-4 text-[1.02rem] leading-[1.7] text-dim">{band.intro}</p>
@@ -307,7 +475,14 @@ export function Bands({ page }: { page: PageContent }) {
           case "lossAversion":
             return (
               <Section key={i} tone={nextLightTone()}>
-                <Split heading={<H2 className="text-navy">{band.heading}</H2>}>
+                <Split
+                  heading={
+                    <div>
+                      <SectionRule />
+                      <H2 className="text-navy">{band.heading}</H2>
+                    </div>
+                  }
+                >
                   <Prose paragraphs={band.body} />
                   {band.calculator === "carryCost" && <CarryCostCalculator />}
                 </Split>
@@ -316,20 +491,15 @@ export function Bands({ page }: { page: PageContent }) {
 
           case "trust":
             return (
-              <Section key={i} tone="navyWash">
+              <Section key={i} tone="navyWash" texture="rivers">
                 <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr]">
                   <div>
+                    <SectionRule />
                     <H2 className="text-cream">{band.heading}</H2>
-                    {/* The headshot slot withholds itself until real photography
-                        exists. No stock image of a person who is not Alex. */}
-                    {site.headshot.src && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={site.headshot.src}
-                        alt={site.headshot.alt}
-                        className="mt-6 w-full max-w-[22rem] rounded-lg border border-cream/10"
-                      />
-                    )}
+                    {/* Withholds itself until real photography exists. No stock
+                        image of a person who is not Alex. See Headshot.tsx for
+                        what happens the day one arrives. */}
+                    <Headshot slot={site.headshot} />
                   </div>
                   <Prose paragraphs={band.body} tone="dark" />
                 </div>
@@ -348,8 +518,9 @@ export function Bands({ page }: { page: PageContent }) {
             // as its own aspect ratio calls for instead of being fit to a
             // column sized for prose.
             return (
-              <Section key={i} tone="navyWash">
+              <Section key={i} tone="navyWash" texture="rivers">
                 <div className="max-w-[42rem]">
+                  <SectionRule />
                   <H2 className="text-cream">{band.heading}</H2>
                   <p className="mt-4 text-[1.02rem] leading-[1.7] text-dim">{band.intro}</p>
                 </div>
@@ -371,6 +542,7 @@ export function Bands({ page }: { page: PageContent }) {
               <Section key={i} tone="navyWash" id={m.id === "buyer-guide" ? "guide" : m.id === "home-value" ? "valuation" : m.id === "va-checklist" ? "checklist" : m.id === "rental-analysis" ? "analysis" : "contact"}>
                 <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
                   <div>
+                    <SectionRule />
                     <H2>{m.title}</H2>
                     <p className="measure mt-4 text-[1.05rem] leading-[1.7] text-dim">{m.promise}</p>
                     {/* Stacked value list. Six items beats one sentence. */}
@@ -409,7 +581,14 @@ export function Bands({ page }: { page: PageContent }) {
             const Tool = TOOLS[band.tool];
             return (
               <Section key={i} tone={nextLightTone()} id={band.tool}>
-                <Split heading={<H2 className="text-navy">{band.heading}</H2>}>
+                <Split
+                  heading={
+                    <div>
+                      <SectionRule />
+                      <H2 className="text-navy">{band.heading}</H2>
+                    </div>
+                  }
+                >
                   <Prose paragraphs={band.body} />
                   <Tool />
                 </Split>
@@ -420,10 +599,20 @@ export function Bands({ page }: { page: PageContent }) {
           case "proof":
             return <BandProof key={i} band={band} tone={nextLightTone()} />;
 
+          case "numbers":
+            return <BandNumbers key={i} band={band} />;
+
           case "faq":
             return (
               <Section key={i} tone={nextLightTone()}>
-                <Split heading={<H2 className="text-navy">{band.heading}</H2>}>
+                <Split
+                  heading={
+                    <div>
+                      <SectionRule />
+                      <H2 className="text-navy">{band.heading}</H2>
+                    </div>
+                  }
+                >
                 {/*
                   Native disclosure. Interactive with no JavaScript at all,
                   keyboard operable and screen reader labelled for free, and the
@@ -458,8 +647,9 @@ export function Bands({ page }: { page: PageContent }) {
             // No inner card here, unlike conversion's form: there are no
             // fields to protect on a light ground, just a closing statement.
             return (
-              <Section key={i} tone="navyWash">
+              <Section key={i} tone="navyWash" texture="full">
                 <div className="max-w-[42rem]">
+                  <SectionRule />
                   <H2 className="text-cream">{band.heading}</H2>
                   <p className="measure mt-4 text-[1.05rem] leading-[1.7] text-dim">{band.body}</p>
                   <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">

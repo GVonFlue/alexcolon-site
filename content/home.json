@@ -27,7 +27,8 @@
       ],
       "image": null,
       "feature": "areaMap",
-      "accentPhrase": "real answers"
+      "accentPhrase": "real answers",
+      "variant": "home"
     },
     {
       "type": "assistant",
@@ -86,6 +87,11 @@
         "If you ask him a question you get the actual answer, including the times the answer is that you should wait, or that the house you are looking at is not worth what they are asking.",
         "If what you want is someone who will agree with you, he is going to be a poor fit. He would rather you find that out on this page than three weeks into a transaction."
       ]
+    },
+    {
+      "type": "numbers",
+      "heading": "The numbers, once there are numbers",
+      "intro": null
     },
     {
       "type": "conversion",

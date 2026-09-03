@@ -105,6 +105,7 @@ export function Section({
   id,
   stagger = false,
   texture,
+  style,
 }: {
   children: React.ReactNode;
   tone?: SectionTone;
@@ -126,6 +127,8 @@ export function Section({
    * needless SVG in the markup.
    */
   texture?: "rivers" | "roads" | "boundary" | "full";
+  /** Custom properties only, used by the per-route hero atmosphere. */
+  style?: React.CSSProperties;
 }) {
   const dark = DARK_TONES.includes(tone);
 
@@ -139,7 +142,7 @@ export function Section({
     // box, and isolate keeps their z-index from escaping into the page.
     <Reveal
       id={id}
-      stagger={stagger}
+      style={style}
       className={`relative isolate ${TONES[tone]} ${dark ? "grain" : ""} ${className}`}
     >
       {dark && texture && <BandTexture variant={texture} />}
@@ -151,7 +154,11 @@ export function Section({
        * z-10 puts the content above the grain and the geometry motif, both of
        * which sit at z-0 on the section itself.
        */}
-      <div className={`relative z-10 mx-auto w-full max-w-[76rem] px-5 sm:px-8 ${pad ?? "py-11 sm:py-14 lg:py-16"}`}>
+      <div
+        className={`relative z-10 mx-auto w-full max-w-[76rem] px-5 sm:px-8 ${
+          stagger ? "stagger" : ""
+        } ${pad ?? "py-11 sm:py-14 lg:py-16"}`}
+      >
         {children}
       </div>
     </Reveal>
