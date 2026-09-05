@@ -18,7 +18,7 @@ const TOKENS = {
   navyLift: "#22475E",
   cream: "#F7F4EE",
   ink: "#292D32",
-  gold: "#B89A67",
+  gold: "#D4A94A",
   goldInk: "#786443",
   paper: "#FFFFFF",
   subtle: "#5A6068",
