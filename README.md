@@ -9,7 +9,7 @@ Vercel. Nine routes plus a branded 404.
 
 ## Read this before launch
 
-Three things are deliberately missing from this build, because inventing them is
+Four things are deliberately missing from this build, because inventing them is
 never acceptable and a placeholder must never reach a live site. Each one
 withholds its section rather than rendering something untrue.
 
@@ -18,8 +18,15 @@ withholds its section rather than rendering something untrue.
 | Alex's Kansas license number | The licensee line in the footer | Alex, in writing |
 | Any verifiable figure about his business | The whole numbers band | Alex |
 | Any testimonial with permission on file | Every proof band, on every route | Alex |
-| Real photography | The headshot slot in the trust band | Alex |
 | The buyer's guide and VA checklist as actual documents | Nothing, but the forms promise them | Alex |
+
+**The photograph has landed.** `public/brand/alex-portrait.png`, supplied by Alex
+in September 2026: 2000x2000 RGBA, background already removed. It is the hero on
+the homepage and the portrait on /about, and it is the open graph card. Both
+slots stay on the null convention, so setting `src` back to null removes him and
+leaves both compositions finished rather than broken. What was measured off the
+file, and what those measurements constrain, is in `components/Hero.tsx` and
+`docs/V11-REPORT.md`.
 
 Run `npm run report` at any time to print the current list from the content
 files themselves.
@@ -115,6 +122,11 @@ footer line appears on every route with no code change.
 Same convention for `numbers`, `testimonials` and `headshot`: an empty array or a
 null `src` withholds the entire band.
 
+An image slot carries a `source` on the same terms a fact does, and `lib/schema.ts`
+refuses a `src` without one, and without the pixel dimensions. A photograph is a
+claim about a person, so an unsourced one cannot ship, and a slot with no
+dimensions cannot reserve its box and would shift the layout when it loads.
+
 This is the same shape as the self-edit portal's content contract, so this site
 is Phase 0 ready as it stands.
 
@@ -139,7 +151,18 @@ auditor that cannot fail makes every green result downstream meaningless.
 - `scripts/html-checks.mjs` is the rendered HTML check set, shared by the rendered
   auditor and the negative tests so they exercise the same implementation.
 - `scripts/audit-contrast.mjs` composites alpha before measuring. Reading raw RGB
-  measures a color that is never painted.
+  measures a color that is never painted. Two of its colours are measured off
+  the photograph rather than taken from the palette (his jacket `#E3C7B2`, his
+  hair `#312A27`), because the moment a person is painted into a band, part of
+  the ground under the text stops being a token.
+- `node scripts/shots.mjs` also samples the **real painted pixels** under every
+  line of hero copy and under the gold action, at three widths, and fails on
+  anything under 4.5:1 (3:1 for gold against its own ground). A ratio against a
+  token is not a ratio against a photograph.
+- `node scripts/build-og-portrait.mjs` regenerates the open graph card's own
+  crop from the master portrait. Run it if the photograph changes. Its output is
+  committed, the same arrangement `build-map-geometry.mjs` uses, so a deploy
+  never needs a browser binary.
 
 ### The REALTOR gate
 

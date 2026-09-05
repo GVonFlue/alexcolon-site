@@ -201,6 +201,25 @@ function bandRenders(band: Band, testimonials: number, numbers: number): boolean
 }
 
 export function Bands({ page }: { page: PageContent }) {
+  /**
+   * One photograph of Alex per page.
+   *
+   * `site.headshot` and the homepage hero's `portrait` are the same file, and
+   * the trust band appears on both `/` and `/about`. With both slots filled he
+   * showed up twice on the homepage, once in the hero and again two thirds of
+   * the way down, which reads as a site that has one asset and is determined to
+   * use it. So the trust band withholds its portrait on any page whose hero
+   * already carries one, and keeps it on every page whose hero does not, which
+   * today means /about and only /about.
+   *
+   * Derived from the page's own bands rather than hardcoded per route, so a
+   * future route that gives its hero a portrait gets the same behaviour with no
+   * edit here.
+   */
+  const heroHasPortrait = page.bands.some(
+    (b) => b.type === "hero" && Boolean(b.portrait?.src),
+  );
+
   /*
    * Tone is decided once, here, rather than inline at each case.
    *
@@ -469,10 +488,11 @@ export function Bands({ page }: { page: PageContent }) {
                   <div>
                     <SectionRule />
                     <H2 className="text-cream">{band.heading}</H2>
-                    {/* Withholds itself until real photography exists. No stock
-                        image of a person who is not Alex. See Headshot.tsx for
-                        what happens the day one arrives. */}
-                    <Headshot slot={site.headshot} />
+                    {/* Withheld when this page's hero already shows him, and
+                        withheld entirely while site.headshot.src is null. See
+                        the note at the top of this component for the first
+                        rule and Headshot.tsx for the second. */}
+                    {!heroHasPortrait && <Headshot slot={site.headshot} />}
                   </div>
                   <Prose paragraphs={band.body} tone="dark" />
                 </div>

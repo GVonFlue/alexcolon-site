@@ -37,11 +37,18 @@ export type Lockup = {
  * Every surface that sets Alex's name beside the brokerage name. Adding a new
  * one without adding it here is caught by the rendered check, which walks
  * `[data-compliance-lockup]` in the DOM rather than trusting this list.
+ *
+ * The open graph card's two sizes went up (68/38 to 74/40) when the card was
+ * rebuilt around the photograph. The reason is legibility rather than taste:
+ * an iMessage link preview renders the 1200px card at roughly 300px, a quarter
+ * of its nominal size, so 38px of brokerage name arrives as 9.5px and 40px
+ * arrives as 10px. Both names had to grow together, which is also the only way
+ * to grow either one: the ratio moved 1.79x to 1.85x and the cap is still 2x.
  */
 export const LOCKUPS: Lockup[] = [
   { where: "sticky header wordmark", unit: "rem", agent: 1.02, brokerage: 0.72 },
   { where: "footer identity block", unit: "rem", agent: 1.15, brokerage: 0.82 },
-  { where: "open graph card", unit: "px", agent: 68, brokerage: 38 },
+  { where: "open graph card", unit: "px", agent: 74, brokerage: 40 },
 ];
 
 export function assertLockups(lockups: Lockup[] = LOCKUPS): void {

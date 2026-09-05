@@ -313,9 +313,12 @@
   "numbers": [],
   "testimonials": [],
   "headshot": {
-    "src": null,
+    "src": "/brand/alex-portrait.png",
     "alt": "Alexander Colón",
-    "needed": "One photograph of Alex. The professional shoot is pending, so this band withholds itself until a real image exists. No stock substitute."
+    "needed": "Supplied. Kept as the record of what was asked for: one photograph of Alex, no stock substitute.",
+    "width": 2000,
+    "height": 2000,
+    "source": "Supplied by Alex Colón, September 2026. The same file the hero uses, cropped differently by the component rather than delivered twice. See content/home.json for the measurements taken on arrival."
   },
   "assistant": {
     "name": "Lark",

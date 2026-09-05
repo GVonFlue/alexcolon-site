@@ -30,24 +30,48 @@ export const PendingFact = z.object({
 export const MaybeFact = z.union([VerifiedFact, PendingFact]);
 export type MaybeFact = z.infer<typeof MaybeFact>;
 
-export const ImageSlot = z.object({
-  /** null until real photography exists. Never a stock substitute. */
-  src: z.string().nullable(),
-  alt: z.string(),
-  /** Shown in the build report so the client knows exactly what to send. */
-  needed: z.string(),
-  /**
-   * The photograph's own pixel dimensions, once there is one.
-   *
-   * Present so the frame can reserve the right box before the image loads and
-   * so the layout can adapt to whatever shape Alex's photographer delivers.
-   * The alternative, a fixed aspect ratio with object-cover, crops him out of
-   * his own picture the moment the shot is a different shape than the one the
-   * layout assumed, and nobody notices until he does.
-   */
-  width: z.number().int().positive().nullable().default(null),
-  height: z.number().int().positive().nullable().default(null),
-});
+export const ImageSlot = z
+  .object({
+    /** null until real photography exists. Never a stock substitute. */
+    src: z.string().nullable(),
+    alt: z.string(),
+    /** Shown in the build report so the client knows exactly what to send. */
+    needed: z.string(),
+    /**
+     * The photograph's own pixel dimensions, once there is one.
+     *
+     * Present so the frame can reserve the right box before the image loads and
+     * so the layout can adapt to whatever shape Alex's photographer delivers.
+     * The alternative, a fixed aspect ratio with object-cover, crops him out of
+     * his own picture the moment the shot is a different shape than the one the
+     * layout assumed, and nobody notices until he does.
+     */
+    width: z.number().int().positive().nullable().default(null),
+    height: z.number().int().positive().nullable().default(null),
+    /**
+     * Where this image came from and when, in the same shape and for the same
+     * reason as VerifiedFact.source.
+     *
+     * A photograph is a published claim about a person: this is Alex, taken
+     * recently enough to be him. A file that arrives with no record of who
+     * supplied it and when is exactly how a stale or wrong headshot survives
+     * three redesigns, so the refinement below makes an unsourced image a
+     * build failure rather than a convention somebody can forget.
+     */
+    source: z.string().min(1).nullable().default(null),
+  })
+  .refine((s) => s.src === null || s.source !== null, {
+    message:
+      "An image slot with a src must carry a source. Same rule as VerifiedFact: " +
+      "a published image is a claim, and an unsourced claim cannot ship.",
+    path: ["source"],
+  })
+  .refine((s) => s.src === null || (s.width !== null && s.height !== null), {
+    message:
+      "An image slot with a src must carry its pixel width and height, so the " +
+      "browser reserves the right box and the layout cannot shift when it loads.",
+    path: ["width"],
+  });
 export type ImageSlot = z.infer<typeof ImageSlot>;
 
 export const Cta = z.object({

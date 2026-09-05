@@ -31,11 +31,12 @@
       "variant": "home",
       "attribution": "Alexander Colón, agent with At Home Wichita Real Estate.",
       "portrait": {
-        "src": null,
+        "src": "/brand/alex-portrait.png",
         "alt": "Alexander Colón",
-        "needed": "A background-removed portrait PNG at 2x, from Garrett. Until it lands the hero composes itself without a portrait rather than showing a placeholder person. Record the pixel width and height with it so the frame reserves the right box and nothing shifts.",
-        "width": null,
-        "height": null
+        "needed": "Supplied. Kept here as the record of what was asked for: a background-removed portrait PNG at 2x, with its pixel width and height recorded so the frame reserves the right box and nothing shifts.",
+        "width": 2000,
+        "height": 2000,
+        "source": "Supplied by Alex Colón, September 2026. Delivered as a 2000x2000 RGBA PNG with the background already removed; file metadata records it as prepared in Canva by Garrett Von Flue. Measured on arrival rather than assumed: the alpha channel is real (54.7 percent of pixels fully transparent, 0.97 percent partial), the subject's bounding box is x 15 to 1999 by y 250 to 1999, and the matte carries no light halo (edge pixels average 4.9 luminance units darker than the opaque pixel beside them, not brighter)."
       }
     },
     {

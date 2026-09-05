@@ -440,6 +440,337 @@ async function checkAssistantKeyboard(page) {
  * animation that would have brought it back was disabled. So this asserts both:
  * nothing is animating, and nothing is stuck at zero opacity.
  */
+/**
+ * The portrait's contrast, measured against the pixels the browser actually
+ * painted rather than against a token.
+ *
+ * This exists because the hero stopped having a flat ground. Every other
+ * contrast pairing on this site is verified in scripts/audit-contrast.mjs
+ * against a colour that can be written down; a photograph of a person cannot
+ * be, and the one place the design deliberately overlaps text and photograph is
+ * the one place where "it is navy behind there" stops being true.
+ *
+ * Method. Capture each ink's box and its computed colour, hide the ink layer
+ * (leaving the portrait, the field and the map card exactly as they were),
+ * screenshot, then read every pixel inside each box and take the worst ratio
+ * against that ink. The worst pixel is the answer, not the average: a headline
+ * is only as legible as its least legible glyph.
+ *
+ * The gold rule is checked the same way and is a separate rule. Gold is the
+ * primary action everywhere on this site, and his jacket is a warm tan close
+ * enough to it that gold on him reads as a smudge rather than as a control.
+ * Gold measures 1.66:1 on the jacket and 5.44:1 on navy, so the requirement is
+ * that whatever is painted under a gold surface still clears 3:1 against gold
+ * itself, which puts the ceiling at roughly 22 percent of him.
+ */
+async function checkPortraitContrast(page, width) {
+  await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(500);
+
+  const hasPortrait = await page.evaluate(
+    () => document.querySelectorAll("[data-hero-portrait]").length > 0,
+  );
+  if (!hasPortrait) {
+    // The null convention is live code: with hero.portrait.src null there is
+    // nothing to check and that is a pass, not a skip to be explained away.
+    return { ok: true, detail: "no portrait on this build, nothing to measure" };
+  }
+
+  const targets = await page.evaluate(() => {
+    // Resolve any computed colour, including modern syntax, by round-tripping
+    // it through a canvas. `getComputedStyle().color` is not reliably rgb():
+    // an alpha-modified Tailwind colour resolves to color-mix()/oklab() in
+    // current engines, and pulling three integers out of that with a regex
+    // reads the wrong numbers and reports a nonsense ratio.
+    const probe = document.createElement("canvas").getContext("2d");
+    const resolve = (c) => {
+      probe.fillStyle = "#000";
+      probe.fillStyle = c;
+      const h = probe.fillStyle;
+      if (h.startsWith("#")) return [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+      const n = h.match(/[\d.]+/g).map(Number);
+      return [n[0], n[1], n[2]];
+    };
+    const hero = document.querySelector("section");
+    const out = [];
+    for (const el of hero.querySelectorAll("[data-hero-ink]")) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 4 || r.height < 4) continue;
+      out.push({
+        label: el.getAttribute("data-hero-ink"),
+        rule: "ink",
+        rgb: resolve(getComputedStyle(el).color),
+        box: [r.x, r.y, r.width, r.height],
+      });
+    }
+    // Gold surfaces: the one primary action, and the single accent phrase.
+    for (const el of hero.querySelectorAll("[data-cta-emphasis='primary'], [data-accent-phrase]")) {
+      const r = el.getBoundingClientRect();
+      if (r.width < 4 || r.height < 4) continue;
+      out.push({
+        label: el.matches("[data-cta-emphasis='primary']") ? "gold CTA" : "gold accent phrase",
+        rule: "gold",
+        rgb: [0xb8, 0x9a, 0x67],
+        box: [r.x, r.y, r.width, r.height],
+      });
+    }
+    return out;
+  });
+
+  if (targets.length === 0) return { ok: false, detail: "found no tagged hero ink to measure" };
+
+  // Hide the ink itself so what is captured is exactly the ground under it.
+  // visibility rather than display, so nothing reflows and every box stays
+  // where it was measured.
+  await page.addStyleTag({
+    content:
+      "[data-hero-ink],[data-cta-emphasis='primary'],[data-accent-phrase]{visibility:hidden!important}",
+  });
+  await page.waitForTimeout(250);
+  const shot = await page.screenshot({
+    clip: { x: 0, y: 0, width, height: Math.min(1400, await page.evaluate(() => document.documentElement.scrollHeight)) },
+  });
+
+  const results = await page.evaluate(
+    async ({ dataUrl, targets }) => {
+      const img = new Image();
+      img.src = dataUrl;
+      await img.decode();
+      const c = document.createElement("canvas");
+      c.width = img.naturalWidth;
+      c.height = img.naturalHeight;
+      const ctx = c.getContext("2d", { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0);
+      const lin = (v) => {
+        const s = v / 255;
+        return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+      };
+      const L = (r, g, b) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+      const out = [];
+      for (const t of targets) {
+        const lf = L(t.rgb[0], t.rgb[1], t.rgb[2]);
+        const x0 = Math.max(0, Math.floor(t.box[0]));
+        const y0 = Math.max(0, Math.floor(t.box[1]));
+        const w = Math.min(Math.ceil(t.box[2]), c.width - x0);
+        const h = Math.min(Math.ceil(t.box[3]), c.height - y0);
+        if (w <= 0 || h <= 0) continue;
+        const d = ctx.getImageData(x0, y0, w, h).data;
+        let worst = Infinity;
+        let at = null;
+        for (let i = 0; i < d.length; i += 4) {
+          const lb = L(d[i], d[i + 1], d[i + 2]);
+          const hi = Math.max(lf, lb);
+          const lo = Math.min(lf, lb);
+          const r = (hi + 0.05) / (lo + 0.05);
+          if (r < worst) {
+            worst = r;
+            const n = i / 4;
+            at = [x0 + (n % w), y0 + Math.floor(n / w), d[i], d[i + 1], d[i + 2]];
+          }
+        }
+        out.push({ label: t.label, rule: t.rule, worst, at });
+      }
+      return out;
+    },
+    { dataUrl: `data:image/png;base64,${shot.toString("base64")}`, targets },
+  );
+
+  const problems = [];
+  for (const r of results) {
+    const need = r.rule === "gold" ? 3 : 4.5;
+    if (r.worst < need) {
+      problems.push(
+        `${r.label} ${r.worst.toFixed(2)}:1 (needs ${need}) worst pixel ` +
+          `at ${r.at[0]},${r.at[1]} rgb(${r.at[2]},${r.at[3]},${r.at[4]})`,
+      );
+    }
+  }
+  const summary = results
+    .map((r) => `${r.label} ${r.worst.toFixed(2)}:1`)
+    .join(", ");
+  return {
+    ok: problems.length === 0,
+    detail: problems.length ? problems.join("; ") : summary,
+  };
+}
+
+/**
+ * Where the portrait is cut off, in the source photograph's own coordinates.
+ *
+ * This check exists because of a defect that a green build could never have
+ * caught and a screenshot at two widths did not. The /about portrait sized its
+ * clip with three fixed heights against a frame whose height scales with its
+ * column. Between 640 and 1023, where that column is the whole page, the frame
+ * grew and the clip did not: the visible fraction fell to 40 percent and he was
+ * cut off just below his eyes. No overflow, no contrast failure, no console
+ * error, nothing to fail on. It took a person looking at 768px.
+ *
+ * The arithmetic that makes it checkable: every portrait frame on this site is
+ * an `object-fit: cover` square source in a taller-than-wide box, so the source
+ * maps to the frame linearly and the top of his head can never be cropped. The
+ * only question is where the bottom lands, and that is
+ * `(visibleBottom - frameTop) / frameHeight * 2000` in source pixels.
+ *
+ * The floor is 1400. His crown is at source y 250 and his chin at roughly 1150,
+ * so 1400 is comfortably past his collar: anything above it is cutting into his
+ * face or his neck, which is what this is here to stop. The frames are built to
+ * land around 1560.
+ */
+async function checkPortraitCrop(page, width) {
+  const results = [];
+  for (const route of ["/", "/about"]) {
+    await page.goto(`${BASE}${route}`, { waitUntil: "networkidle" });
+    await scrollThrough(page);
+    const found = await page.evaluate(() => {
+      const out = [];
+      for (const frame of document.querySelectorAll("[data-portrait-frame]")) {
+        const r = frame.getBoundingClientRect();
+        if (r.width < 4 || r.height < 4) continue;
+        // The lowest edge anything actually clips him at: any ancestor that is
+        // not overflow:visible, plus the band he sits in.
+        let bottom = r.bottom;
+        for (let el = frame.parentElement; el; el = el.parentElement) {
+          const cs = getComputedStyle(el);
+          const clips = cs.overflow !== "visible" || cs.overflowY !== "visible";
+          if (clips || el.tagName === "SECTION") {
+            bottom = Math.min(bottom, el.getBoundingClientRect().bottom);
+          }
+          if (el.tagName === "SECTION") break;
+        }
+        out.push({
+          sourceY: Math.round(((bottom - r.top) / r.height) * 2000),
+          visible: +((bottom - r.top) / r.height).toFixed(2),
+        });
+      }
+      return out;
+    });
+    for (const f of found) results.push({ route, ...f });
+  }
+
+  if (results.length === 0) return { ok: true, detail: "no portrait on this build" };
+  const bad = results.filter((r) => r.sourceY < 1400);
+  return {
+    ok: bad.length === 0,
+    detail: bad.length
+      ? bad
+          .map((r) => `${r.route} cut at source y ${r.sourceY}, above the 1400 floor (his chin is at ~1150)`)
+          .join("; ")
+      : results.map((r) => `${r.route} cut at source y ${r.sourceY} (${Math.round(r.visible * 100)}% of frame)`).join(", "),
+  };
+}
+
+/**
+ * What the portrait actually costs a phone, and whether it moves the page.
+ *
+ * Two separate failures this catches, both of which a screenshot cannot:
+ *
+ *   The master is a 4.9MB PNG. It is never meant to reach a browser: next/image
+ *   is supposed to serve a resized WebP or AVIF derivative sized from the
+ *   `sizes` attribute. A wrong or missing `sizes` is invisible on a fast
+ *   connection and expensive on a phone, so the transferred bytes are measured
+ *   rather than assumed.
+ *
+ *   A hero image is the classic cumulative layout shift. The frame reserves its
+ *   box from the recorded pixel dimensions, so this should be zero, and zero is
+ *   what is asserted.
+ */
+async function checkPortraitDelivery(browser, width) {
+  const ctx = await browser.newContext({ viewport: { width, height: 900 } });
+  const page = await ctx.newPage();
+
+  /*
+   * The webfont is blocked for this measurement, on purpose.
+   *
+   * This page has a small pre-existing layout shift that has nothing to do with
+   * the portrait: `display=swap` means the fallback stack paints first and
+   * Archivo and Inter re-flow the header nav and the hero copy when they
+   * arrive. It measures 0.0149 at 1024 and it measures the same on /buy, which
+   * has no portrait at all, so it is a property of the font loading strategy
+   * rather than of anything added here. Reported in the delivery notes with
+   * its two possible fixes rather than fixed quietly at the end of a pass
+   * about a photograph.
+   *
+   * Blocking the stylesheet takes that shift out of the measurement and leaves
+   * exactly the question this check exists to answer: does the portrait itself
+   * move anything. It must not, and zero is asserted rather than a threshold,
+   * because the frame reserves its box from the recorded pixel dimensions and
+   * there is no reason for it to be anything else.
+   */
+  await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
+
+  const imageBytes = [];
+  page.on("response", async (res) => {
+    const url = res.url();
+    if (!/_next\/image|\/brand\//.test(url)) return;
+    try {
+      const body = await res.body();
+      imageBytes.push({ url, bytes: body.length, type: res.headers()["content-type"] ?? "" });
+    } catch {
+      /* a response body can be gone by the time this runs; not a failure */
+    }
+  });
+
+  await page.addInitScript(() => {
+    window.__cls = 0;
+    new PerformanceObserver((list) => {
+      for (const e of list.getEntries()) if (!e.hadRecentInput) window.__cls += e.value;
+    }).observe({ type: "layout-shift", buffered: true });
+  });
+
+  await page.goto(`${BASE}/`, { waitUntil: "networkidle" });
+  await page.waitForTimeout(1200);
+  const cls = await page.evaluate(() => window.__cls ?? 0);
+
+  const portrait = await page.evaluate(() => {
+    // The visible one. Both treatments are in the DOM at every width and the
+    // one that is not in play is display:none, so taking the first match
+    // reports a 0x0 box and hides whether the live one is sized correctly.
+    const img = [...document.querySelectorAll("[data-hero-portrait] img")].find(
+      (el) => el.getBoundingClientRect().width > 0,
+    );
+    if (!img) return null;
+    return {
+      src: img.getAttribute("src") ?? "",
+      sizes: img.getAttribute("sizes") ?? "",
+      rendered: [Math.round(img.getBoundingClientRect().width), Math.round(img.getBoundingClientRect().height)],
+    };
+  });
+
+  await ctx.close();
+
+  if (!portrait) return { ok: true, detail: "no portrait on this build, nothing to measure" };
+
+  const problems = [];
+  if (!portrait.src.startsWith("/_next/image")) {
+    problems.push(`portrait is not going through next/image (src ${portrait.src.slice(0, 60)})`);
+  }
+  if (!portrait.sizes) problems.push("portrait has no sizes attribute");
+
+  // The budget is the number a phone actually pays. 250KB is generous for a
+  // cut-out at these dimensions and tight enough that a broken `sizes` (which
+  // makes next/image fall back to the largest candidate) fails here rather
+  // than on somebody's cellular connection.
+  const total = imageBytes.reduce((n, r) => n + r.bytes, 0);
+  const budget = width < 768 ? 250_000 : 600_000;
+  if (total > budget) {
+    problems.push(
+      `portrait bytes ${(total / 1024).toFixed(0)}KB over the ${(budget / 1024).toFixed(0)}KB budget at ${width}px ` +
+        `[${imageBytes.map((r) => `${r.type} ${(r.bytes / 1024).toFixed(0)}KB`).join(", ")}]`,
+    );
+  }
+  if (cls > 0.001) {
+    problems.push(`cumulative layout shift ${cls.toFixed(4)} with the webfont blocked, must be 0`);
+  }
+
+  return {
+    ok: problems.length === 0,
+    detail: problems.length
+      ? problems.join("; ")
+      : `${(total / 1024).toFixed(0)}KB as ${imageBytes.map((r) => r.type).join("/") || "no image request"}, ` +
+        `rendered ${portrait.rendered.join("x")}, CLS ${cls.toFixed(4)} (webfont blocked)`,
+  };
+}
+
 async function checkReducedMotion(browser) {
   const ctx = await browser.newContext({
     viewport: { width: 1280, height: 900 },
@@ -595,6 +926,40 @@ async function runEngine(engine, out) {
     console.log(`${assistant.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} assistant kbd     ${assistant.detail}`);
 
     await ctx.close();
+
+    /*
+     * The portrait's own checks.
+     *
+     * 390 is the in-flow treatment. 768 is the width that caught the /about
+     * crop defect and is in the list permanently because of it: it is the one
+     * place where the trust band is a single column AND the page is wide, which
+     * is the combination that broke. 1024 is where the overlap composition
+     * starts and where the container is narrowest, which makes it the worst
+     * case for text over him rather than the widest viewport being it. 1440 is
+     * the laptop the client will look at this on.
+     */
+    for (const w of [390, 768, 1024, 1440]) {
+      const pc = await browser.newContext({ viewport: { width: w, height: 1000 } });
+      const pp = await pc.newPage();
+      const contrast = await checkPortraitContrast(pp, w);
+      if (!contrast.ok) failures += 1;
+      console.log(
+        `${contrast.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} portrait ink ${String(w).padStart(4)}px  ${contrast.detail}`,
+      );
+
+      const crop = await checkPortraitCrop(pp, w);
+      if (!crop.ok) failures += 1;
+      console.log(
+        `${crop.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} portrait crop ${String(w).padStart(3)}px  ${crop.detail}`,
+      );
+      await pc.close();
+
+      const delivery = await checkPortraitDelivery(browser, w);
+      if (!delivery.ok) failures += 1;
+      console.log(
+        `${delivery.ok ? "pass" : "FAIL"}  ${engine.name.padEnd(8)} portrait cost ${String(w).padStart(3)}px  ${delivery.detail}`,
+      );
+    }
 
     const reduced = await checkReducedMotion(browser);
     if (!reduced.ok) failures += 1;

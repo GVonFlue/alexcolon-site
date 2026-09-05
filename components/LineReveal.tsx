@@ -57,7 +57,9 @@ function LineContent({
   return (
     <>
       {line.slice(0, s - from)}
-      <span className="text-gold">{line.slice(s - from, e - from)}</span>
+      <span data-accent-phrase="" className="text-gold">
+        {line.slice(s - from, e - from)}
+      </span>
       {line.slice(e - from)}
     </>
   );

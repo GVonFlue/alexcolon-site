@@ -33,6 +33,24 @@ const TOKENS = {
   // has to be reproduced by Satori for the OG card.
   larkBack: "#5B5544",
   larkWing: "#393C38",
+  /**
+   * Two colours out of the photograph rather than out of the palette.
+   *
+   * A design system verifies its own tokens against each other. The moment a
+   * photograph of a person is painted into a band, part of the ground under the
+   * text stops being a token, and checking only the tokens then measures a
+   * colour that is no longer the one being painted. These two are measured off
+   * public/brand/alex-portrait.png, not chosen:
+   *
+   *   jacket  #E3C7B2  the mean of two 400x450 samples of his jacket
+   *   hair    #312A27  the mean of the crown of his head, x 760..1160 y 260..420
+   *
+   * They are here so a future edit that puts type over him has to argue with a
+   * number. If the photograph is ever replaced, re-measure both: nothing about
+   * these values is a property of the design.
+   */
+  jacket: "#E3C7B2",
+  hair: "#312A27",
 };
 
 function hexToRgb(hex) {
@@ -482,6 +500,104 @@ const PAIRS = [
     kind: "ui",
     decorative: true,
   },
+
+  // --- The portrait -------------------------------------------------------
+  //
+  // The hero and the /about trust band paint a photograph of a person into a
+  // dark band, and text crosses it. Everything below is measured against the
+  // photograph's own colours rather than against the navy that used to be the
+  // whole ground. The three FORBIDDEN entries at the bottom of this file are
+  // the other half of this: they are what a headline crossing him at full
+  // strength would actually measure.
+  //
+  // Why the rim light exists, as a number rather than as an opinion.
+  // His hair measures 1.04:1 against the navy field, which is the same
+  // luminance to within rounding. Without something behind him the top of his
+  // head has no edge at all: it is not a contrast failure, because nothing is
+  // reading it, but it is the difference between a person standing in a field
+  // and a silhouette dissolving into it.
+  {
+    what: "his hair against the navy field, which is why the rim light exists",
+    fg: T.hair,
+    bg: T.navy,
+    kind: "ui",
+    decorative: true,
+  },
+  {
+    what: "the rim light, champagne at 30 percent over navy",
+    fg: composite(T.champagne, 0.3, T.navy),
+    bg: T.navy,
+    kind: "ui",
+    decorative: true,
+  },
+  // The overlap the hero composition is built around, as two ceilings.
+  //
+  // The leftward mask holds him transparent for the first 6 percent of the
+  // frame and ramps to solid at 34, so "how legible is text over him" is
+  // entirely a question of how far right a given line of copy reaches. The two
+  // inks reach different distances and tolerate different amounts of him, so
+  // they get different ceilings rather than one number:
+  //
+  //   cream, the headline. Tolerates 38 percent. The headline column is the
+  //   widest copy on the band and 38 is what the mask reaches at its right edge
+  //   at 1024, which is the binding width: the container is narrow enough there
+  //   that the frame's left edge lands inside a 38rem text column, and every
+  //   wider viewport pushes him further right.
+  //
+  //   dim, the support paragraph and the attribution line. Tolerates only 25
+  //   percent, and fails at 38 (3.60:1), which this auditor caught rather than
+  //   a person. It is kept under the ceiling by the support column being 34rem
+  //   against the headline's 38rem, which is a 64px difference and is the whole
+  //   reason the two columns are not the same width. Measured at 1024, the
+  //   binding width, dim actually lands on him at 0 percent.
+  //
+  // Both are ceilings rather than measurements. scripts/shots.mjs samples the
+  // real painted pixels under every line of hero copy at eight widths and fails
+  // on anything under 4.5:1, which is what makes these numbers a rule instead
+  // of an argument.
+  {
+    what: "hero headline over the portrait's feathered edge, cream on his jacket at 38 percent over navy",
+    fg: T.cream,
+    bg: composite(T.jacket, 0.38, T.navy),
+    kind: "text",
+  },
+  {
+    what: "hero support copy over the portrait's feathered edge, dim on his jacket at 25 percent over navy",
+    fg: T.dim,
+    bg: composite(T.jacket, 0.25, T.navy),
+    kind: "text",
+  },
+  // The attribution line was dim at 90 percent and measured 4.44:1 here, which
+  // failed the build. It is full dim now. The pairing is kept, at the alpha it
+  // used to carry, so the number that caused the change stays visible.
+  {
+    what: "hero attribution line over the feathered edge, dim on his jacket at 25 percent",
+    fg: T.dim,
+    bg: composite(T.jacket, 0.25, T.navy),
+    kind: "text",
+  },
+  // The map card sits over his chest at lg. Its fill is navy at 82 percent, so
+  // the worst ground anything inside it can land on is that fill composited
+  // over the brightest thing the photograph contains, which is the jacket.
+  // This is the pairing that decides the card's fill value.
+  {
+    what: "map card label, cream on the card's navy-at-82-percent fill over his jacket",
+    fg: T.cream,
+    bg: composite(T.navy, 0.82, T.jacket),
+    kind: "text",
+  },
+  {
+    what: "map card supporting copy, dim on the card's fill over his jacket",
+    fg: T.dim,
+    bg: composite(T.navy, 0.82, T.jacket),
+    kind: "text",
+  },
+  {
+    what: "map marks, cream at 75 percent on the card's fill over his jacket",
+    fg: composite(T.cream, 0.75, composite(T.navy, 0.82, T.jacket)),
+    bg: composite(T.navy, 0.82, T.jacket),
+    kind: "ui",
+  },
 ];
 
 /** Combinations the design forbids. Asserted so a future edit cannot introduce them. */
@@ -520,6 +636,58 @@ const FORBIDDEN = [
     fg: T.champagne,
     bg: T.cream,
     why: "champagne is a pale tint for dark gradient stops. It is never type and never on a light ground.",
+  },
+  // --- The portrait's jacket ----------------------------------------------
+  // These three are the constraint the whole hero composition is built around,
+  // and they are the reason the "headline crosses his shoulder" overlap happens
+  // in the feathered zone rather than on top of him. Every text colour this
+  // site paints on a dark band is a light one, and his jacket is a light warm
+  // tan, so all three fail together. There is no colour in the palette that may
+  // sit on him at full strength, gold least of all: gold and the jacket are
+  // close enough in hue that gold type on it would read as a smudge before it
+  // read as a word.
+  {
+    what: "cream as text on his jacket",
+    fg: T.cream,
+    bg: T.jacket,
+    why:
+      "1.46:1. The jacket is a light ground and cream is a light ink. This is what the hero " +
+      "headline would measure if the leftward mask were ever removed.",
+  },
+  {
+    what: "supporting copy as text on his jacket",
+    fg: T.dim,
+    bg: T.jacket,
+    why:
+      "1.01:1, which is the same luminance to within rounding. Worse than cream, and the " +
+      "support paragraph is the copy that actually reaches furthest right in the hero.",
+  },
+  {
+    what: "the attribution line's old ink, dim at 90 percent, over the feathered edge",
+    fg: composite("#C9CDD2", 0.9, composite("#E3C7B2", 0.25, "#172A3A")),
+    bg: composite("#E3C7B2", 0.25, "#172A3A"),
+    why:
+      "4.44:1. The hero's brokerage attribution used to be text-dim/90 and this is what it " +
+      "measured once a photograph was behind it. It is full text-dim now. A line K.S.A. 58-3086 " +
+      "wants readable does not get thinned for visual weight.",
+  },
+  {
+    what: "supporting copy on his jacket at 38 percent over navy",
+    fg: T.dim,
+    bg: composite("#E3C7B2", 0.38, "#172A3A"),
+    why:
+      "3.60:1. This is the ceiling cream is allowed and dim is not, and it is the reason the " +
+      "hero's support column is 34rem where its headline column is 38rem. Widening the support " +
+      "column past the headline's is a contrast change, not a layout one.",
+  },
+  {
+    what: "gold as text on his jacket",
+    fg: T.gold,
+    bg: T.jacket,
+    why:
+      "1.66:1, and the two are close in hue as well as in value, so a gold accent phrase " +
+      "crossing him would read as a smudge rather than as a word. Keep gold buttons and the " +
+      "one gold accent phrase off him.",
   },
 ];
 

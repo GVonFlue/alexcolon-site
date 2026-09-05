@@ -373,37 +373,165 @@ body {
 }
 
 /*
- * The hero portrait's feathered base.
+ * The hero portrait's frame geometry.
  *
- * A background-removed PNG placed on a coloured field reads as a sticker, and
- * the reason is almost always the bottom edge: a clean horizontal cut where the
- * crop ended. Masking the lower quarter to transparent dissolves him into the
- * navy instead, which is the single largest contributor to the composite
- * reading as one image.
+ * Three numbers per breakpoint and nothing else moves him. They live here
+ * rather than in the component because they are the only values in the
+ * composition that were tuned against a rendered screenshot instead of derived
+ * from the file's own measurements, and keeping them together with that
+ * admission is worth more than keeping them next to the JSX.
+ *
+ * The frame is `aspect-[3/4]` over a square source, so `object-fit: cover`
+ * scales to the frame's HEIGHT and crops horizontally only. Two consequences
+ * worth writing down, because both are easy to get wrong later:
+ *
+ *   The top of his head can never be cropped off, at any frame size. The only
+ *   axis the cover fit cuts is the one his head is not near.
+ *
+ *   The visible window is 2000 x 3/4 = 1500 source pixels wide, so his head
+ *   (685 source px at its widest) is 46 percent of the frame's width. That
+ *   ratio, not the frame width, is what actually sets how large his face reads:
+ *   at 1280 the frame is 553px and his face renders at 253px.
+ */
+.hero-field {
+  /* calc(50% - 50vw) is the distance from this container's own edge out to the
+     viewport's, so his right edge lands on the screen edge at every width
+     rather than stopping at the 76rem container and leaving a navy strip
+     beside him. */
+  --portrait-right: calc(50% - 50vw);
+  --portrait-width: 52%;
+  --portrait-bottom: -6%;
+}
+
+@media (min-width: 1024px) {
+  .hero-field {
+    --portrait-width: 48%;
+    /* Set so the base fade STRADDLES the band's bottom edge rather than
+       finishing above it or falling entirely below it.
+
+       At -8% the fade completed about 55px short of the boundary and he read
+       as a figure sitting inside the band. At -20% he cleared the boundary at
+       full strength, which is the right idea and 43px too far: it pushed his
+       chin down onto the map card at 1440. -13% puts the band edge roughly
+       midway through the fade, so he is about 43 percent opaque where the
+       band ends, which reads as a crop with a feathered edge rather than as
+       either a hard cut or an evaporation. */
+    --portrait-bottom: -13%;
+  }
+}
+
+/*
+ * The leftward fade, and the reason the headline overlap is legal.
+ *
+ * It does two jobs that happen to want the same gradient. It hides the hard
+ * vertical line where the horizontal crop ends, which is the sticker tell on
+ * this photograph the way a hard bottom edge is on most of them. And it is the
+ * contrast mechanism: his jacket is #E3C7B2, cream measures 1.46:1 on it and
+ * dim 1.01:1, so a headline crossing him at full strength would be illegible.
+ * Under the copy column he is between 0 and roughly 38 percent opaque, the
+ * composited ground stays near navy, and cream stays over 4.5:1.
+ *
+ * Held flat at 0 for the first 6 percent so the fade has somewhere to start
+ * from, then linear to solid at 34 percent, which is to the RIGHT of where the
+ * copy column ends at every width the site is checked at.
+ * scripts/shots.mjs samples the real painted pixels under the headline rather
+ * than trusting this comment.
+ */
+.portrait-fade-x {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 6%, #000 34%);
+  mask-image: linear-gradient(to right, transparent 0%, transparent 6%, #000 34%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  /* A mask gradient tiles by default, so any part of the element outside the
+     first tile gets the gradient again rather than its end value. That is not
+     theoretical: it put a hard vertical cut down the /about portrait at exactly
+     the point where it bleeds past its column. */
+}
+
+/*
+ * The base fade.
+ *
+ * The band below the hero is navy too, so a hard horizontal cut across his
+ * chest would sit in the middle of an unbroken navy field with no edge to
+ * explain it, which is exactly what makes a background-removed PNG read as a
+ * sticker. The last 6 percent of the frame dissolves instead, and
+ * --portrait-bottom above is set so the band's own edge falls roughly midway
+ * through that 6 percent. It is short on purpose: a long fade reads as him
+ * evaporating rather than as a crop, which is the opposite of the effect
+ * wanted.
+ *
+ * Nested inside .portrait-fade-x rather than composited with it. Two mask
+ * layers plus `mask-composite: intersect` is the tidier spelling and it fails
+ * in the dangerous direction: an engine without `mask-composite` falls back to
+ * `add`, which is the UNION, which would leave him fully opaque exactly where
+ * the headline crosses him. Nesting cannot fail that way, and it needs nothing
+ * beyond plain mask-image.
  *
  * -webkit-mask-image is not redundant. Safari shipped the unprefixed
  * mask-image later than the prefixed one and this is the property the whole
  * effect depends on, so both are declared rather than assuming which build a
- * visitor is on.
+ * visitor is on. That matters more than usual here: WebKit could not be
+ * launched on the machine this was built on, so the prefixed declaration is
+ * insurance against an engine nobody could test.
  */
-.portrait-feather {
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 70%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 70%, transparent 100%);
+.portrait-fade-y {
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 94%, transparent 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  /* A mask gradient tiles by default, so any part of the element outside the
+     first tile gets the gradient again rather than its end value. That is not
+     theoretical: it put a hard vertical cut down the /about portrait at exactly
+     the point where it bleeds past its column. */
 }
 
 /*
- * A warm rim behind the portrait, picking up the accent that is already in the
- * palette. The brief suggested rgba(201,169,97,0.28); this uses 184,154,103,
- * which is the site's actual gold, because "picks up the existing gold accent"
- * and "a colour close to it" are different things and the second one is how a
- * palette acquires a sixth value nobody decided on.
+ * The same fade, mirrored, for the /about treatment.
+ *
+ * There he is anchored to the left and bleeds off the page gutter, so the cut
+ * edge that needs hiding is the right one. Same gradient, same reason: a
+ * horizontally cropped cut-out has a hard vertical line where the crop ended,
+ * and a hard line is the tell.
+ *
+ * Slightly longer than the hero's (solid at 38 percent rather than 34) because
+ * nothing is printed over him here, so it is doing only the one job and can be
+ * as gentle as it likes. It is not a contrast mechanism on this band, which is
+ * the one real difference between the two.
+ */
+.portrait-fade-x-right {
+  -webkit-mask-image: linear-gradient(to left, transparent 0%, transparent 4%, #000 38%);
+  mask-image: linear-gradient(to left, transparent 0%, transparent 4%, #000 38%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  /* A mask gradient tiles by default, so any part of the element outside the
+     first tile gets the gradient again rather than its end value. That is not
+     theoretical: it put a hard vertical cut down the /about portrait at exactly
+     the point where it bleeds past its column. */
+}
+
+/*
+ * The rim light behind the portrait.
+ *
+ * It exists for one measured reason rather than for atmosphere. His hair is
+ * very dark, around #23201C where it meets the field, and the field is navy
+ * #172A3A: those are close enough in luminance that his silhouette dissolves
+ * into the gradient along the top of his head. The rim is what separates them.
+ *
+ * champagne #D8C9A8 at low alpha, not gold. Gold is the primary action and
+ * spending it on a decorative glow the size of a person is the largest single draw
+ * on that signal anywhere on the site; champagne already exists as the pale
+ * tint for dark surfaces and is the brighter of the two, which is the property
+ * this actually needs. Two shadows, not one: a tight bright one that does the
+ * separating, and a wide dim one that gives him somewhere to stand.
  *
  * drop-shadow rather than box-shadow on purpose: box-shadow would trace the
  * element's rectangle and put a glowing box behind a cut-out person.
  * drop-shadow follows the alpha channel, so it traces his actual silhouette.
  */
 .portrait-rim {
-  filter: drop-shadow(0 0 60px rgba(184, 154, 103, 0.28));
+  filter:
+    drop-shadow(0 0 14px rgba(216, 201, 168, 0.3))
+    drop-shadow(0 0 70px rgba(216, 201, 168, 0.16));
 }
 
 /*

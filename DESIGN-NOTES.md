@@ -1016,3 +1016,304 @@ the geometry motif, which is this client's own seven towns and two rivers, and
 the town cards, whose entire design is organised around which facts about a
 place a licensed agent is allowed to state. On a build with no fair housing
 exposure the card would just be a card.
+
+---
+
+# v1.2
+
+One thing arrived, and it changed more than it looks like it should have: the
+photograph. Up to this pass the hero was a composition built around a person who
+was not there, verified against a placeholder that could not be wrong because it
+did not exist. Everything below is what happened when the real file landed and
+was measured rather than assumed.
+
+## What the file actually is
+
+`public/brand/alex-portrait.png`, supplied by Alex in September 2026. Measured on
+arrival, because a brief's description of an image and the image are two
+different things and only one of them can be built against:
+
+| | |
+| --- | --- |
+| Dimensions | 2000 x 2000, 8 bit RGBA |
+| Alpha | Real. 54.7 percent of pixels fully transparent, 44.4 percent fully opaque, 0.97 percent partial |
+| Subject bounding box | x 15..1999, y 250..1999 |
+| Headroom above his hair | 250px, which is 12.5 percent of the frame, not "very little" |
+| Halo | None. Edge pixels average 4.9 luminance units **darker** than the opaque pixel beside them |
+| His head | 685px across at its widest, hair and beard included, which is 34 percent of the frame |
+| His jacket | `#E3C7B2` |
+| His hair | `#312A27` |
+
+Three of those six were expectations going in, and two of them were wrong in ways
+that mattered.
+
+**The halo.** The expectation was a possible light fringe from background
+removal, to be feathered out if present. The test for it is not to look at the
+edge, which is unreliable on a dark preview, but to compare each partially
+transparent pixel to the nearest fully opaque one: a white fringe makes the edge
+systematically brighter than the subject just inside it. Here the median is
+minus 5.5 and the 5th to 95th percentile range is minus 26 to plus 19, which is
+hair and jacket rather than a fringe. Nothing was feathered, because feathering
+a clean matte is just softening it.
+
+**The framing.** The expectation was "roughly square, chest up, very little
+headroom." It is square, and it is chest up, and the headroom is 12.5 percent of
+the frame, which is a lot. What actually constrains the composition is the other
+end: his shoulders splay to nearly the full 2000px width by the bottom row, so
+he is nearly three times wider at the chest than at the head. That single number is why
+the hero crops him horizontally rather than scaling him down. Printing the frame
+at a width that makes his face a sensible size puts his shoulders across the
+whole band.
+
+## The number that reshaped the composition
+
+His jacket measures `#E3C7B2`. Against it:
+
+| | |
+| --- | --- |
+| cream `#F7F4EE` | **1.46:1** |
+| dim `#C9CDD2` | **1.01:1** |
+| gold `#B89A67` | **1.66:1** |
+
+Every ink this site paints on a dark band is a light one. There is therefore no
+colour in the palette that may sit on his jacket at full strength, and the brief's
+own warning about gold turned out to be the least of it: dim, the supporting copy
+colour, is worse than gold, at the same luminance to within rounding.
+
+That is the constraint the whole hero is now built around, and it is checked in
+two places rather than argued about in one. `audit-contrast.mjs` gained the
+jacket and the hair as measured colours alongside the palette tokens, with the
+three failing pairs recorded in its FORBIDDEN list so a future edit has to argue
+with a number. `shots.mjs` samples the pixels the browser actually painted under
+every line of hero copy at three widths, because a ratio against a token stops
+being a ratio against the ground the moment a photograph is part of the ground.
+
+Both caught things. The contrast auditor failed the build on the hero's
+attribution line, which was `text-dim/90` and measured 4.44:1 over his feathered
+edge. The rendered check then failed the same line again for a different reason:
+its box had no `max-width`, so it ran the full width of the headline column and
+reached into him even though the sentence inside it did not. The first fix was to
+stop thinning a line K.S.A. 58-3086 wants readable in order to save a little
+visual weight. The second was to give it a width that holds regardless of how
+long the copy gets.
+
+## The headline does not cross his shoulder, and this is the honest reason
+
+The brief asked to verify the overlap against a real photograph and adjust so a
+word genuinely crosses him. Verified, and it does not, and it cannot without
+either cropping his head or letting him dominate the band.
+
+The geometry is simple once it is drawn. A headline sits at the top of a hero. At
+the top of the frame, the only part of him that exists is his head, which is
+narrow and centred. His shoulders, the wide part, are at the bottom, level with
+the supporting copy and the buttons. At 1280 the longest headline line ends
+around x 613 and the nearest pixel of him at that height is 217px further right.
+Closing that gap means moving him left, which puts a navy strip on his right and
+loses the bleed, or making him large enough that his shoulder reaches up into the
+headline, which at the required size crops his face at the band's top edge.
+
+So the overlap moved rather than being faked. What crosses him now:
+
+- **The map card**, hard, over his chest, at `z-30` with a backdrop blur. This is
+  the strongest depth cue on the band and it is a real occlusion rather than a
+  transparency trick.
+- **The copy column**, into his feathered edge, where he is between 0 and 38
+  percent opaque. Cream tolerates 38 and measures 5.24:1 there. Dim tolerates 25
+  and is held under it by the support and attribution columns being narrower than
+  the headline column, which is now a contrast decision rather than a typographic
+  one.
+
+Writing "the headline crosses his shoulder" and shipping a headline that does not
+would have been describing intended behaviour as completed behaviour, in the band
+the whole build's honesty argument opens with.
+
+## Two masks, nested, and the failure mode that decided it
+
+He needs two fades: leftward, so the horizontal crop has no hard vertical edge
+and so the copy column has somewhere legible to overlap, and downward, so the
+band's own bottom edge dissolves him instead of cutting him in a field of
+unbroken navy.
+
+The tidy spelling is two mask layers on one element with
+`mask-composite: intersect`. It was rejected for how it fails. An engine without
+`mask-composite` falls back to `add`, which is the union of the two masks, which
+would leave him **fully opaque exactly where the headline crosses him**: a
+silent contrast failure, in the engine that could not be tested on this machine,
+introduced by the tidier code. Nesting two elements with one plain `mask-image`
+each cannot fail that way and needs no support beyond `mask-image` itself.
+
+The masks also taught the pass its own bug. `mask-repeat` defaults to `repeat`,
+so an element wider than its mask's first tile gets the gradient again rather
+than its end value. On /about, where he bleeds 96px past his column, that put a
+hard vertical cut down him at exactly the column's edge. Every fade class now
+declares `no-repeat`.
+
+## The rim light, which is a measurement rather than an atmosphere
+
+His hair measures **1.04:1** against the navy field. That is the same luminance
+to within rounding: the top of his head has no edge at all, and he dissolves into
+the gradient rather than standing in it.
+
+The rim is champagne rather than gold, at two radii: a tight bright one that does
+the separating and a wide dim one that gives him somewhere to stand. Gold is the
+primary action, and spending it on a decorative glow the size of a person is the
+largest single draw on that signal anywhere on the site. `drop-shadow` rather
+than `box-shadow`, so it follows the alpha channel and traces his silhouette
+instead of putting a glowing rectangle behind a cut-out.
+
+The hero's drifting gradient was re-aimed at the same time. A field that drifts
+behind a static cut-out reads as a mistake when the light has no relationship to
+him, so the bright stop moved behind his head. That is applied by the presence of
+a portrait rather than by the route's variant table, which keeps the table's rule
+intact: a route's atmosphere still cannot reach anything structural.
+
+## Mobile, decided by looking at it
+
+The previous pass dropped the portrait below `md` and said plainly that with no
+photograph there was no honest way to judge. With one, the judgement is easy in
+both directions.
+
+He works at 390. His face renders 149px across, which is a face rather than
+a thumbnail, and it is the strongest thing on a viewport that carries most of his
+traffic.
+
+The overlap does not work at 390, and not as a matter of taste: below `lg` the
+copy column is essentially the viewport, so any portrait behind it is a portrait
+behind text, and cream on his jacket is 1.46:1. So he keeps full strength and
+gives up the overlap. Right anchored, bleeding through the page gutter and the
+band's bottom padding, directly under the buttons, with nothing painted on top of
+him.
+
+That treatment now runs to 1023 rather than to 767. 768 to 1023 was tried as a
+narrower version of the desktop composition and it is the worst of both: the
+frame has to shrink to clear a copy column that is still nearly the full width,
+which pushes him into the bottom right corner at a size where his face stops
+carrying, and leaves the top right of the band empty.
+
+## /about, which is a different composition rather than the same crop resized
+
+| | hero | /about |
+| --- | --- | --- |
+| crop | 1500px source window, chest up | 1428px window, head and shoulders |
+| anchored | right, bleeding off the viewport | left, bleeding off the page gutter |
+| faded | on the left, where the copy comes from | on the right |
+| covered by | the map card | nothing |
+| his face at 1280 | ~253px | ~278px |
+| his job | supporting the headline | being the subject |
+
+The thing that made this hard is worth recording, because it is a property of
+this photograph rather than of the layout. He is a wide, symmetric, chest-up
+cut-out whose shoulders reach both edges of the frame. Cropping close enough for
+a large face therefore always cuts the silhouette, and a cut-out whose silhouette
+is cut is a rectangular photograph with no border. The first attempt did exactly
+that and looked like a snapshot in a box. The composition works by hiding both
+cut edges instead: one runs off the page gutter, the other dissolves.
+
+**One portrait per page.** `site.headshot` and the hero's `portrait` are the same
+file, and the trust band appears on both `/` and `/about`, so turning both on put
+him on the homepage twice, once in the hero and again two thirds of the way down.
+The trust band now withholds its portrait on any page whose hero already carries
+one, derived from the page's own bands rather than hardcoded per route.
+
+## An assumption from the previous pass, checked and wrong
+
+v1.1 marked the hero portrait `fetchpriority="low"` and lazy, reasoning that the
+headline is the page's LCP element and should stay that way. Lighthouse
+disagrees: on the mobile preset the LCP element on the homepage is that image,
+and it was arriving lazily. Lazy-loading the LCP element is the one thing that is
+unambiguously wrong regardless of what any single measurement says, so it is
+eager now.
+
+Eager rather than `priority`, and the distinction is the whole point. `priority`
+also injects a preload link, which on a throttled connection competes with the
+render-blocking CSS and the font stylesheet and pushes first paint out. Eager
+only stops the image waiting for the viewport.
+
+/about's portrait took `priority` at first, since he is unambiguously that page's
+LCP element and above the fold, which is exactly the case the flag is documented
+for. Measured back to back it scored 95 with `priority` and 96 with plain eager,
+and under load the `priority` version dropped to 74 with a 4.1 second first paint
+while every other route sat at 1.8. First paint queued behind a photograph is a
+worse trade than an LCP that arrives a fraction later, so neither portrait on
+this site is preloaded.
+
+That change then produced its own bug, which is worth recording because it is the
+kind that only shows up in a number. Both hero treatments are always in the DOM
+with CSS hiding the one not in play, which is free while the images are lazy: a
+`display: none` image never intersects and is never fetched. Eager fetches it
+anyway. A phone at 1024 went from 43KB in one request to 76KB in two. The hidden
+treatment declares `sizes: 0px` outside its own range now, so the browser takes
+the smallest candidate in the srcset instead.
+
+## The open graph card, designed for the size it actually renders at
+
+Alex's primary action is a text message and a text message renders a link
+preview, so this card is the entire first impression for most people. It is
+drawn at 1200x630 and iMessage shows it at roughly 300px, a quarter of that.
+Sized against the reduction rather than against the artboard:
+
+| | at 1200px | at ~300px |
+| --- | --- | --- |
+| his face | ~225px | ~56px |
+| his name | 74px | ~18px |
+| the brokerage | 40px | ~10px |
+| the seven towns | 21px | ~5px |
+
+The long headline the card used to carry measured about 13px after that
+reduction, which is a sentence nobody can read occupying the space his face
+needed. It is gone, and nothing replaced it: no number, no testimonial, no
+adjective. What is left says who this is, which is the one thing a link preview
+has to do.
+
+The two lockup sizes went up, 68/38 to 74/40, and that is a compliance change as
+much as a legibility one: the brokerage name had to grow with his, which is also
+the only direction it can grow. The ratio moved from 1.79x to 1.85x against a 2x
+cap.
+
+Satori is not a browser and has no `mask-image`, so the leftward fade is baked
+into the alpha channel of a committed derivative by
+`scripts/build-og-portrait.mjs`. Same arrangement as the map geometry: generated
+by a script, committed, so a deploy never depends on a browser binary.
+
+## The mandatory self critique
+
+**Is the photograph carrying the design, or is the design carrying the
+photograph?** Honestly, some of both, and the split is visible. What the
+photograph carries is the fold: a face at 253px with a headline beside it is a
+different kind of page from a headline beside a map, and no amount of gradient
+work was going to close that gap. What the design carries is everything that
+stops it reading as a stock agent hero, and most of that is the constraint work
+rather than the composition: the crop was set by his shoulder width, the overlap
+by his jacket's luminance, the rim by his hair's, and the mobile breakpoint by
+what his face measures at 390. None of those numbers would transfer to another
+person's photograph, which is the test that separates a composition from a
+template with a picture dropped into it.
+
+**What is the weakest thing about it now?** The hero's vertical rhythm below
+`lg`. He is in flow under the buttons, which puts him around 780px down at 390,
+so on a phone the first screenful is still type and the face arrives on the
+second. That is the correct trade against putting text on his jacket, but it is a
+trade, and the thing that would actually fix it is shorter hero copy rather than
+a different portrait treatment. The support paragraph is 480 characters and it is
+the reason the buttons sit where they do.
+
+**What did not get fixed.** The page has a small pre-existing layout shift from
+`font-display: swap`: the fallback stack paints first and Archivo and Inter
+re-flow the header nav and the hero copy when they arrive. It measures 0.0149 at
+1024 and it measures the same on `/buy`, which has no portrait at all, so the
+portrait did not cause it. The two fixes are `display=optional`, which makes it
+exactly zero at the cost of first-time visitors seeing the fallback, and
+`next/font`, which self-hosts and generates a metric-matched fallback but makes
+the build depend on reaching Google Fonts. The first one is the wrong trade for
+this site specifically: v1.1 changed the display face to Archivo to stop the fold
+reading as competent rather than designed, and first visit is exactly when that
+matters. The second is a real option and it is a decision about build fragility,
+not about a photograph, so it is not one to take quietly at the end of a pass
+about one.
+
+**Would this same pass have happened for any other agent?** The technique, yes.
+Bleeding a cut-out off two edges, feathering the third and overlapping a card is
+how anyone would do this. What could not transfer is every number in it, and the
+fact that two of the three fades exist for contrast reasons rather than for
+looks. On a build where the subject wore navy, the headline would cross his
+shoulder and this section would be two paragraphs shorter.

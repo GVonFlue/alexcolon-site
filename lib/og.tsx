@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 import { site } from "./content";
 import { LOCKUPS } from "./compliance-type";
@@ -20,10 +22,57 @@ import { LOCKUPS } from "./compliance-type";
  *     card, because there is none to make. It carries his name, the brokerage,
  *     the seven towns, and Lark.
  *   - The palette, unchanged. Navy field, cream type, one gold hairline.
+ *
+ * DESIGNED FOR THE SIZE IT ACTUALLY RENDERS AT, WHICH IS NOT 1200x630.
+ *
+ * An iMessage link preview draws this card at roughly 300px wide, a quarter of
+ * its nominal size, and that is the size that matters here because a text
+ * message is Alex's primary action. Everything on the card was sized against
+ * that reduction rather than against the artboard:
+ *
+ *   his face          ~225px  ->  ~56px   the only element that reads instantly
+ *   his name           74px   ->  ~18px   readable
+ *   the brokerage      40px   ->  ~10px   legible as a line, not as words
+ *   the seven towns    21px   ->  ~5px    texture at preview size, real at full
+ *
+ * The long headline the card used to carry measured about 13px after that
+ * reduction, which is a sentence nobody can read taking the space his face
+ * needed, so it is gone. What is left says who this is, which is the one thing
+ * a link preview has to do. Nothing was replaced with a claim: there is still
+ * no number, no testimonial and no adjective on this card.
+ *
+ * SATORI IS NOT A BROWSER. It has no `mask-image`, so the leftward fade that
+ * keeps the crop from reading as a sticker is baked into the alpha channel of
+ * `alex-portrait-og.png` by scripts/build-og-portrait.mjs. See that file.
  */
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = "image/png";
+
+/**
+ * The portrait, as a data URI.
+ *
+ * Read from disk rather than fetched over HTTP: these routes are prerendered at
+ * build time (`○ /opengraph-image` in the build output), so there is no server
+ * to fetch from yet, and a card that silently loses its photograph because a
+ * fetch failed is exactly the kind of quiet degradation this build does not
+ * ship. Read once at module load, not once per card.
+ *
+ * If the file is missing the card renders without him rather than failing the
+ * build. That is the same trade the font fetch already makes: a card without a
+ * photograph is a small problem, a build that will not complete is a large one.
+ * It is a real branch, not a comment, and the null convention covers it: the
+ * layout has to look finished with the portrait absent, and it does, because
+ * that was the card up to this pass.
+ */
+const PORTRAIT: string | null = (() => {
+  try {
+    const file = readFileSync(join(process.cwd(), "public", "brand", "alex-portrait-og.png"));
+    return `data:image/png;base64,${file.toString("base64")}`;
+  } catch {
+    return null;
+  }
+})();
 
 const LOCKUP = LOCKUPS.find((l) => l.where === "open graph card")!;
 
@@ -98,6 +147,13 @@ function LarkMark({ size }: { size: number }) {
  */
 export type OgVariant = "home" | "buy" | "sell" | "veterans" | "investors";
 
+/** The town list as two balanced lines. See the call site for why. */
+function townLines(names: string[]): string[] {
+  const half = Math.ceil(names.length / 2);
+  const sep = "  \u00b7  ";
+  return [names.slice(0, half).join(sep), names.slice(half).join(sep)].filter(Boolean);
+}
+
 const VARIANTS: Record<OgVariant, { eyebrow: string; glow: string }> = {
   home: { eyebrow: "Wichita area real estate", glow: "50% -10%" },
   buy: { eyebrow: "Buying a house here", glow: "12% 0%" },
@@ -110,82 +166,115 @@ export async function ogImage(variant: OgVariant = "home", headline?: string) {
   const v = VARIANTS[variant];
   const brokerage = site.compliance.brokerageName.value;
   const fonts = await displayFont();
+  // Kept in the signature so the four route cards can still pass one, and kept
+  // out of the layout: see the header note on what the reduction to preview
+  // size did to a sentence at this scale.
+  void headline;
 
   return new ImageResponse(
     (
       <div
         style={{
+          position: "relative",
           width: "100%",
           height: "100%",
           display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          padding: "68px 76px",
+          padding: "62px 72px",
           backgroundColor: "#172A3A",
           backgroundImage: `radial-gradient(ellipse 90% 70% at ${v.glow}, #1C3350 0%, #172A3A 55%, #0F1D28 100%)`,
           fontFamily: fonts ? "Archivo" : undefined,
           color: "#F7F4EE",
         }}
       >
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          {/* The one gold hairline, the same rule that opens a section. */}
-          <div style={{ display: "flex", width: 56, height: 3, backgroundColor: "#B89A67", borderRadius: 2 }} />
-          <div
-            style={{
-              display: "flex",
-              marginTop: 26,
-              fontSize: 22,
-              letterSpacing: "0.14em",
-              textTransform: "uppercase",
-              color: "#C9CDD2",
-            }}
-          >
-            {v.eyebrow}
-          </div>
-          <div
-            style={{
-              display: "flex",
-              marginTop: 22,
-              fontSize: 52,
-              fontWeight: 700,
-              lineHeight: 1.1,
-              letterSpacing: "-0.03em",
-              maxWidth: 900,
-            }}
-          >
-            {headline ?? "Straight answers before you commit to anything"}
-          </div>
-        </div>
+        {/*
+          Him, first in the stack so the type sits over him rather than under.
+          Bleeding off the right edge and off the bottom: two cut edges nobody
+          can see, which is what lets the crop be tight enough for his face to
+          survive the reduction to preview size. The third edge, the left one,
+          is the baked alpha ramp. There is no fourth: the crop's top is 150px
+          above his crown.
+        */}
+        {PORTRAIT && (
+          <img
+            src={PORTRAIT}
+            width={560}
+            height={625}
+            alt=""
+            style={{ position: "absolute", right: -34, bottom: -22 }}
+          />
+        )}
 
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
-          {/*
-            The Kansas lockup. Agent name over brokerage name, adjacent, with
-            the sizes taken from lib/compliance-type.ts rather than typed in
-            here, so the ratio assertion covers this card too.
-          */}
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            width: 560,
+            height: "100%",
+          }}
+        >
           <div style={{ display: "flex", flexDirection: "column" }}>
+            {/* The one gold hairline, the same rule that opens a section. */}
+            <div style={{ display: "flex", width: 56, height: 3, backgroundColor: "#B89A67", borderRadius: 2 }} />
+            <div
+              style={{
+                display: "flex",
+                marginTop: 24,
+                fontSize: 24,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "#C9CDD2",
+              }}
+            >
+              {v.eyebrow}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {/*
+              The Kansas lockup. Agent name over brokerage name, adjacent, with
+              the sizes taken from lib/compliance-type.ts rather than typed in
+              here, so the ratio assertion covers this card too.
+            */}
             <div
               style={{
                 display: "flex",
                 fontSize: LOCKUP.agent,
                 fontWeight: 700,
+                lineHeight: 1.05,
                 letterSpacing: "-0.03em",
               }}
             >
               {site.agentName}
             </div>
             {brokerage && (
-              <div style={{ display: "flex", marginTop: 8, fontSize: LOCKUP.brokerage, color: "#C9CDD2" }}>
+              <div style={{ display: "flex", marginTop: 10, fontSize: LOCKUP.brokerage, color: "#C9CDD2" }}>
                 {brokerage}
               </div>
             )}
-            <div style={{ display: "flex", marginTop: 14, fontSize: 24, color: "#C9CDD2" }}>
-              {site.serviceAreas.map((a) => a.name).join("  ·  ")}
+            {/*
+              The seven towns, split into two balanced lines in code rather than
+              left to wrap. Wrapping put a leading separator at the start of the
+              second line ("\u00b7 Rose Hill"), which reads as a typo. The split
+              is computed from the list's own length, so an eighth town or a
+              renamed one still balances with no edit here.
+            */}
+            <div style={{ display: "flex", flexDirection: "column", marginTop: 22 }}>
+              {townLines(site.serviceAreas.map((a) => a.name)).map((line) => (
+                <div
+                  key={line}
+                  style={{ display: "flex", fontSize: 21, lineHeight: 1.45, color: "#C9CDD2" }}
+                >
+                  {line}
+                </div>
+              ))}
             </div>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center" }}>
-            <LarkMark size={150} />
+            {/* Lark, small. It is a mark beside a name that is also written
+                out, so shrinking it costs no information. */}
+            <div style={{ display: "flex", marginTop: 20 }}>
+              <LarkMark size={62} />
+            </div>
           </div>
         </div>
       </div>

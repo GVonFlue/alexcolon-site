@@ -283,7 +283,14 @@ export function AccentHeadline({
   return (
     <>
       {text.slice(0, i)}
-      <span className={dark ? "text-gold" : "text-gold-ink"}>{text.slice(i, i + phrase.length)}</span>
+      {/* Tagged so the rendered checks can find the one gold phrase on a page
+          without matching on a utility class name. On a dark hero it can sit
+          near the portrait, and gold has a tighter tolerance for what it is
+          painted over than cream does: see checkPortraitContrast in
+          scripts/shots.mjs. */}
+      <span data-accent-phrase="" className={dark ? "text-gold" : "text-gold-ink"}>
+        {text.slice(i, i + phrase.length)}
+      </span>
       {text.slice(i + phrase.length)}
     </>
   );
