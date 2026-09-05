@@ -318,7 +318,7 @@ main > section::before {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   background-image:
     repeating-linear-gradient(to right, var(--grid-major) 0 1px, transparent 1px var(--mile)),
@@ -337,12 +337,22 @@ main > section:is(.bg-navy, .navy-wash)::before {
     repeating-linear-gradient(to bottom, var(--grid-minor-dark) 0 1px, transparent 1px var(--quarter));
 }
 
-/* Everything the visitor reads sits above the grid. Section's inner block is
-   the only direct child that carries content. */
-main > section > * {
-  position: relative;
-  z-index: 1;
-}
+/*
+ * NO RULE HERE TOUCHES THE SECTION'S CHILDREN, AND THAT IS DELIBERATE.
+ *
+ * The first version of this file lifted content above the grid with
+ * `main > section > * { position: relative; z-index: 1 }`. That looked
+ * harmless and was not: BandTexture renders as `absolute inset-0 h-full
+ * w-full`, and forcing `position: relative` on it dropped a full-size SVG
+ * into normal flow. Every dark band grew by roughly a viewport of empty
+ * navy above its own content. BandSeam is absolutely positioned too and was
+ * hit the same way.
+ *
+ * z-index -1 on the ::before does the same job with no child rules at all.
+ * The section already carries `isolation: isolate` from ui.tsx, so a
+ * negative index cannot escape the band: it paints above the section's own
+ * background and below everything in it.
+ */
 
 /* ============================================================
    5. THE HAIRLINE RULE ON LIGHT GROUNDS
@@ -409,28 +419,69 @@ main > section:is(.bg-cream, .bg-paper, .wash) .rule-gold {
   }
 
   /*
-   * The map card, moved out from over the copy and under him instead.
+   * HE STOPS ABOVE THE CARD RATHER THAN BEHIND IT.
    *
-   * Hero.tsx positions it lg:left-[46%], which put it across the boundary
-   * between the two columns. Anchoring it to the right edge keeps it in his
-   * half, low, where it reads as sitting at his feet.
+   * --portrait-bottom was -13%, chosen so the base fade straddled the band's
+   * bottom edge. That was right when nothing sat under him. With the map card
+   * moved into his column it put the card across his chest, which is the
+   * "Alex behind the map" problem: he was not behind it by intent, he simply
+   * had nowhere to end.
+   *
+   * A positive value lifts him. 27% leaves the card its own room and the
+   * feathered base now resolves into open navy above the card instead of
+   * being interrupted by it.
+   */
+  .hero-field {
+    --portrait-bottom: 27%;
+  }
+
+  /*
+   * The map card, under him rather than on him.
+   *
+   * Also wider than it was. The town hit targets are a fixed radius in the
+   * map's own viewBox, so shrinking the card shrinks every target on screen
+   * proportionally. A narrow card is the reason the towns were hard to hit.
    *
    * This is the one rule in this file that targets a Tailwind class by
-   * substring rather than by a named hook, because the card has no class or
-   * data attribute of its own. It is the fragile line here: if the card
-   * stops moving after a Hero.tsx edit, this selector is why. The durable
-   * fix is a data-hero-map attribute on that div.
+   * substring, because the card has no class or data attribute of its own.
+   * It is the fragile line here: if the card stops moving after a Hero.tsx
+   * edit, this selector is why. The durable fix is a data-hero-map attribute
+   * on that div.
    */
   .hero-field [class*="lg:absolute"][class*="pointer-events-auto"] {
     left: auto;
-    right: 2%;
-    bottom: 0;
-    width: min(21rem, 38%);
+    right: 1%;
+    bottom: 0.75rem;
+    width: min(26rem, 44%);
   }
 }
 
 /* ============================================================
-   7. REDUCED MOTION
+   7. THE TOWN HIT TARGETS
+
+   ServiceAreaMap draws a fixed r=72 transparent circle per town as the hit
+   area. That radius is in the map's own viewBox units, so the size it lands
+   at on screen is entirely a function of how wide the map is rendered. In
+   the hero card it was coming out well under a comfortable target while the
+   same markup is fine on /areas, where the map is full width.
+
+   r is a real CSS property on an SVG circle in every current engine, so the
+   compact case can be corrected without touching the component. Widening the
+   card above does most of the work; this closes the rest.
+
+   The towns' closest pair is Derby and Rose Hill at 213 units apart, so two
+   96-unit radii still leave 21 units between them and no two hit areas
+   overlap.
+   ============================================================ */
+
+@media (min-width: 1024px) {
+  .hero-field circle.hit {
+    r: 96px;
+  }
+}
+
+/* ============================================================
+   8. REDUCED MOTION
 
    Nothing in this file animates. globals.css already kills transitions
    site-wide under reduced motion; this is here so that if drift is ever
