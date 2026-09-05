@@ -311,30 +311,50 @@ export function Result({
   empty?: string;
 }) {
   const displayValue = useEasedFigure(value);
+  /*
+   * A dark panel inside the light tool card, not a bordered-top block at the
+   * bottom of it.
+   *
+   * All four tools used to end in a rule and a slightly larger number, which
+   * made the answer read as the last row of the form rather than as the thing
+   * the form is for. This is the same treatment the carry cost calculator got,
+   * applied once here so all four inherit it instead of four near-copies.
+   *
+   * The figure is gold on navy-deep at 6.40:1. A negative figure uses
+   * --color-negative-light, because the light-ground negative measures 1.95:1
+   * on navy and is unusable there; both are checked in audit-contrast.mjs.
+   */
   return (
-    <div className="mt-8 border-t border-line pt-6" aria-live="polite">
+    <div
+      className="navy-wash grain relative isolate mt-8 overflow-hidden rounded-xl p-5 sm:p-6"
+      aria-live="polite"
+    >
       {empty ? (
-        <p className="text-[0.95rem] leading-relaxed text-subtle">{empty}</p>
+        <>
+          <span aria-hidden="true" className="rule-gold mb-4 opacity-40" />
+          <p className="text-[0.95rem] leading-relaxed text-dim">{empty}</p>
+        </>
       ) : (
         <>
-          <p className="label text-subtle">{label}</p>
+          <span aria-hidden="true" className="rule-gold mb-4" />
+          <p className="label text-dim">{label}</p>
           <p
-            className={`figure mt-2 text-[2.4rem] font-semibold leading-none ${
-              tone === "negative" ? "text-negative" : "text-navy"
+            className={`figure mt-2 text-[2.6rem] font-semibold leading-none sm:text-[3rem] ${
+              tone === "negative" ? "text-negative-light" : "text-gold"
             }`}
           >
             {displayValue}
           </p>
           {rows && rows.length > 0 && (
-            <dl className="mt-6 divide-y divide-line border-t border-line">
+            <dl className="mt-6 divide-y divide-cream/15 border-t border-cream/15">
               {rows.map((r) => (
                 <div key={r.label} className="flex items-baseline justify-between gap-4 py-2.5">
-                  <dt className={`text-[0.95rem] ${r.muted ? "text-subtle" : "text-ink"}`}>
+                  <dt className={`text-[0.95rem] ${r.muted ? "text-dim" : "text-cream"}`}>
                     {r.label}
                   </dt>
                   <dd
                     className={`figure text-[0.98rem] ${
-                      r.muted ? "text-subtle" : "font-semibold text-navy"
+                      r.muted ? "text-dim" : "font-semibold text-cream"
                     }`}
                   >
                     {r.value}

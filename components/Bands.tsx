@@ -563,8 +563,12 @@ export function Bands({ page }: { page: PageContent }) {
                   }
                 >
                   <Prose paragraphs={band.body} />
-                  <Tool />
                 </Split>
+                {/* Full band width, for the same reason as the carry cost
+                    calculator: Split's content column is sized for a 62
+                    character measure, and a two-column field grid inside it
+                    wraps its own labels. */}
+                <Tool />
               </Section>
             );
           }

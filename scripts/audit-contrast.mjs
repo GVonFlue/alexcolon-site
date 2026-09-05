@@ -26,6 +26,7 @@ const TOKENS = {
   line: "#E2DCD0",
   field: "#8A8177",
   negative: "#8C3B2E",
+  negativeLight: "#E8907F",
   champagne: "#D8C9A8",
   // Lark's two blends, both gold composited over navy-deep at a fixed alpha
   // and written down rather than computed at paint time, because the same hex
@@ -312,6 +313,33 @@ const PAIRS = [
     kind: "ui",
     decorative: true,
   },
+  // The tools' result panel, which is dark inside a light card so the answer
+  // reads as an answer rather than as the last row of a form. Everything
+  // painted on it is checked here, including the negative figure, which is the
+  // reason --color-negative-light exists at all: the light-ground negative
+  // measures 1.95:1 on navy and could not be reused.
+  { what: "tool result figure, gold on navy-deep", fg: T.gold, bg: T.navyDeep, kind: "text" },
+  { what: "tool result label, dim on navy-deep", fg: T.dim, bg: T.navyDeep, kind: "text" },
+  { what: "tool result rows, cream on navy-deep", fg: T.cream, bg: T.navyDeep, kind: "text" },
+  {
+    what: "tool result figure when negative, negative-light on navy-deep",
+    fg: T.negativeLight,
+    bg: T.navyDeep,
+    kind: "text",
+  },
+  {
+    what: "tool result figure when negative, negative-light on navy-glow",
+    fg: T.negativeLight,
+    bg: T.navyGlow,
+    kind: "text",
+  },
+  {
+    what: "tool result row rule, cream at 15 percent on navy-deep",
+    fg: composite(T.cream, 0.15, T.navyDeep),
+    bg: T.navyDeep,
+    kind: "ui",
+    decorative: true,
+  },
   // --- v1.1 -----------------------------------------------------------------
   // navy-lift, the top of the navy ramp. Introduced as a raised surface: the
   // town panel, the headshot frame, any card that needs to sit above a dark
@@ -478,6 +506,14 @@ const FORBIDDEN = [
       "navy-lift is the top of the navy ramp and gold measures 3.69:1 on it, which fails AA. " +
       "This is the reason navy-glow, not navy-lift, is the brightest stop of every gradient a " +
       "headline can land on. navy-lift is a raised card surface only.",
+  },
+  {
+    what: "the light-ground negative on a dark ground",
+    fg: T.negative,
+    bg: T.navy,
+    why:
+      "1.95:1. This is why --color-negative-light exists. A negative figure on a dark panel uses " +
+      "that, never this one.",
   },
   {
     what: "champagne as text on cream",
