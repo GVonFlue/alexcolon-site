@@ -351,6 +351,16 @@ export const Band = z.discriminatedUnion("type", [
           lane: z.string().min(1),
           line: z.string().min(1),
           href: z.string().min(1),
+          /**
+           * The one concrete thing waiting on the other side of this door.
+           *
+           * Optional, and it must name something that already exists on that
+           * route. This is not a promise field: every value currently in it is
+           * one of the four interactive tools the site already ships, so the
+           * lane can say what a visitor gets without anyone inventing a
+           * benefit to put here.
+           */
+          offer: z.string().min(1).optional(),
         }),
       )
       .min(3)

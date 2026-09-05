@@ -51,22 +51,26 @@
         {
           "lane": "Buying",
           "line": "You have not done this before and you want to know what it costs before anyone runs your credit.",
-          "href": "/buy"
+          "href": "/buy",
+          "offer": "Work backward from the payment"
         },
         {
           "lane": "Selling",
           "line": "You want a real number on your house and a straight read on whether now is the time.",
-          "href": "/sell"
+          "href": "/sell",
+          "offer": "See what you would actually walk away with"
         },
         {
           "lane": "Military",
           "line": "You have a VA loan, a report date, or both, and the timeline is not something you control.",
-          "href": "/veterans"
+          "href": "/veterans",
+          "offer": "Build the schedule around your report date"
         },
         {
           "lane": "Investing",
           "line": "You want the rent, the carry, and what is left, worked on a specific address.",
-          "href": "/investors"
+          "href": "/investors",
+          "offer": "Run the full carry, not just the payment"
         }
       ]
     },

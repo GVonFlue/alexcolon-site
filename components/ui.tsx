@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Cta } from "@/lib/schema";
 import { Reveal } from "./Reveal";
 import { BandTexture } from "./BandTexture";
+import { BandSeam } from "./BandSeam";
 
 /**
  * Button styling encodes rule 3 of the nine checks. The gold accent is a filled
@@ -105,6 +106,7 @@ export function Section({
   id,
   stagger = false,
   texture,
+  seam,
   style,
 }: {
   children: React.ReactNode;
@@ -127,6 +129,12 @@ export function Section({
    * needless SVG in the markup.
    */
   texture?: "rivers" | "roads" | "boundary" | "full";
+  /**
+   * Draw the river seam across this band's top edge. Set where the ground
+   * actually changes between light and dark; Bands.tsx works that out from the
+   * tone sequence rather than each call site guessing.
+   */
+  seam?: "intoDark" | "intoLight";
   /** Custom properties only, used by the per-route hero atmosphere. */
   style?: React.CSSProperties;
 }) {
@@ -146,6 +154,7 @@ export function Section({
       className={`relative isolate ${TONES[tone]} ${dark ? "grain" : ""} ${className}`}
     >
       {dark && texture && <BandTexture variant={texture} />}
+      {seam && <BandSeam direction={seam} />}
       {/*
        * Cut from py-16/20/24 (up to 96px a side, 192px between two adjacent
        * bands) to this. Premium is not the same as empty: there was enough

@@ -765,10 +765,10 @@ counting call sites:
    pass's report counted three separate near-identical entries where one
    name covers all of them; the behavior did not change, the description
    did.
-4. **Marquee.** A continuous, decorative ticker of the same four audience
-   lanes pickYourDoor already lists. The one loop on the site, and it is
-   allowed to be one: it is texture, not an entrance, and was never in
-   scope for "not a loop."
+4. **Marquee.** Removed in v1.2. It repeated the four lane names
+   immediately beneath a band that had just set them in display type, which
+   is duplication rather than texture. The site now has no continuous loop
+   at all.
 5. **Tool result easing.** The big figure in all four interactive tools
    eases toward a changed value (`fields.tsx`, shared by all four, not
    duplicated per tool). Skipped on the very first value a tool ever

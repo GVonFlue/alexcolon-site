@@ -57,8 +57,29 @@ export function CarryCostCalculator() {
   const easedTotal = useEasedFigure(usd.format(total));
   const hasInput = monthly > 0;
 
+  /*
+   * Two panels, deliberately, not one card with a line under it.
+   *
+   * v4 recorded that a card which is dark at the top and light at the bottom
+   * "would read as two things stapled together", and that was right about the
+   * assistant, where the dark part was only a header bar. It is the wrong
+   * conclusion here. Inputs genuinely need a light ground and a result
+   * genuinely wants a dark one, so rather than compromise both, this is two
+   * panels with an explicit relationship: you fill in the left, the right
+   * answers. Side by side above lg, stacked below, one border, one radius,
+   * one object.
+   *
+   * The result figure is gold on navy. That is the second named exception to
+   * "gold is a fill, never type", after the hero's one accent phrase, and it
+   * is allowed for the same reason: gold as text fails on cream at 2.46:1 and
+   * clears AA on every dark ground this site paints, 5.44:1 on navy and 4.68:1
+   * on the brightest composite the dark field reaches. Gold as a filled
+   * surface still means "act here" and still appears on exactly one control
+   * per screenful. This is the one number the whole band exists to produce.
+   */
   return (
-    <div className="mt-8 rounded-lg border border-navy/15 bg-paper p-6 sm:p-7">
+    <div className="mt-8 overflow-hidden rounded-2xl border border-navy/15 lg:grid lg:grid-cols-[1.15fr_1fr]">
+      <div className="bg-paper p-6 sm:p-7">
       <div className="grid gap-5 sm:grid-cols-2">
         {FIELDS.map((f) => (
           <div key={f.key}>
@@ -113,27 +134,38 @@ export function CarryCostCalculator() {
         </div>
       </fieldset>
 
-      {/* The big figure eases toward a changed value; the first value a
-          visitor ever sees, and every value under reduced motion, renders
-          immediately, so first paint is always correct. */}
-      <div className="mt-8 border-t border-line pt-6" aria-live="polite">
+      </div>
+
+      {/* The result panel. The big figure eases toward a changed value; the
+          first value a visitor ever sees, and every value under reduced
+          motion, renders immediately, so first paint is always correct. */}
+      <div
+        className="navy-wash grain relative isolate flex flex-col justify-center p-6 text-cream sm:p-7"
+        aria-live="polite"
+      >
         {hasInput ? (
           <>
-            <p className="label text-subtle">What {months === 1 ? "that month" : `those ${months} months`} costs you</p>
-            <p className="figure mt-2 text-[2.4rem] font-semibold leading-none text-navy">
+            <span aria-hidden="true" className="rule-gold mb-5" />
+            <p className="label text-dim">
+              What {months === 1 ? "that month" : `those ${months} months`} costs you
+            </p>
+            <p className="figure mt-3 text-[2.9rem] font-semibold leading-none text-gold sm:text-[3.4rem]">
               {easedTotal}
             </p>
-            <p className="measure mt-3 text-[0.95rem] leading-relaxed text-subtle">
-              That is {usd.format(monthly)} a month leaving your account while the house sits,
-              whichever way you eventually decide. It is money spent on the house you already have,
-              not on the next one.
+            <p className="mt-4 text-[0.95rem] leading-relaxed text-dim">
+              That is <span className="figure text-cream">{usd.format(monthly)}</span> a month
+              leaving your account while the house sits, whichever way you eventually decide. It is
+              money spent on the house you already have, not on the next one.
             </p>
           </>
         ) : (
-          <p className="text-[0.95rem] leading-relaxed text-subtle">
-            Put your own figures in above and the total appears here. Nothing is sent anywhere and
-            nothing is stored.
-          </p>
+          <>
+            <span aria-hidden="true" className="rule-gold mb-5 opacity-40" />
+            <p className="text-[0.95rem] leading-relaxed text-dim">
+              Put your own figures in and the total appears here. Nothing is sent anywhere and
+              nothing is stored.
+            </p>
+          </>
         )}
       </div>
     </div>

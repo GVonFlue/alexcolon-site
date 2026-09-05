@@ -572,29 +572,6 @@ body {
   transform: translate(var(--mx), var(--my)) scale(var(--ms, 1)) translate(calc(-1 * var(--mx)), calc(-1 * var(--my)));
 }
 
-/*
- * Marquee. A low, quiet strip of the audience lanes between bands, built from
- * the same array pickYourDoor renders, so there is one list of the four lanes
- * rather than two that can disagree.
- *
- * Reduced motion is honored twice: this query flattens the animation the same
- * way every other animation on the site is flattened, and Marquee.tsx also
- * checks matchMedia itself so it never doubles the track for a loop nobody
- * will see move, which would otherwise render as a stalled, doubled list
- * rather than a normal static one.
- */
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-.marquee-track {
-  animation: marquee 32s linear infinite;
-}
 
 /* ==========================================================================
  * v1.1 motion

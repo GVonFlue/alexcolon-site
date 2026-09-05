@@ -6,8 +6,8 @@ import { ServiceAreaMap } from "./ServiceAreaMap";
 import { Assistant } from "./Assistant";
 import { LeadForm } from "./LeadForm";
 import { CarryCostCalculator } from "./CarryCostCalculator";
-import { Marquee } from "./Marquee";
 import { Hero } from "./Hero";
+import { BandTexture } from "./BandTexture";
 import { CountUp } from "./CountUp";
 import { Headshot } from "./Headshot";
 import { NetProceeds } from "./tools/NetProceeds";
@@ -36,6 +36,12 @@ const TOOLS = {
  * light bands next to each other are not the same flat fill twice.
  */
 const LIGHT_TONES: SectionTone[] = ["cream", "paper", "wash"];
+
+/**
+ * One geometry fragment per lane, so the four cards are visibly four. Same
+ * TIGER/Line source as the map and the seam; nothing new is downloaded or drawn.
+ */
+const LANE_TEXTURES = ["rivers", "roads", "boundary", "full"] as const;
 
 /** Magnets that want one extra free text field, and what to call it. */
 const DETAIL_FIELD: Record<string, { label: string; placeholder: string }> = {
@@ -72,7 +78,7 @@ function displayName(t: Testimonial): string | null {
   }
 }
 
-function BandProof({ band, tone }: { band: Extract<Band, { type: "proof" }>; tone: SectionTone }) {
+function BandProof({ band, tone, seam }: { band: Extract<Band, { type: "proof" }>; tone: SectionTone; seam?: "intoDark" | "intoLight" }) {
   // Hard stop 3. No testimonial without permission on file, and the words are
   // never edited. With none on file the band withholds itself entirely rather
   // than shipping a placeholder or a generic trust badge.
@@ -87,7 +93,7 @@ function BandProof({ band, tone }: { band: Extract<Band, { type: "proof" }>; ton
     quotes.length === 1 ? "" : quotes.length === 2 ? "md:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <Section tone={tone} stagger>
+    <Section tone={tone} stagger seam={seam}>
       <div>
         <SectionRule />
         <H2 className="text-navy">{band.heading}</H2>
@@ -136,11 +142,11 @@ function BandProof({ band, tone }: { band: Extract<Band, { type: "proof" }>; ton
  * The numbers band. Withholds itself entirely while there are no verified
  * figures, which is today. See lib/schema.ts for why it exists anyway.
  */
-function BandNumbers({ band }: { band: Extract<Band, { type: "numbers" }> }) {
+function BandNumbers({ band, seam }: { band: Extract<Band, { type: "numbers" }>; seam?: "intoDark" | "intoLight" }) {
   if (site.numbers.length === 0) return null;
 
   return (
-    <Section tone="navyWash" texture="roads" stagger>
+    <Section tone="navyWash" texture="roads" stagger seam={seam}>
       <div>
         <SectionRule />
         <H2 className="text-cream">{band.heading}</H2>
@@ -162,17 +168,80 @@ function BandNumbers({ band }: { band: Extract<Band, { type: "numbers" }> }) {
   );
 }
 
+/**
+ * The bands that are always dark, as a fixed chapter rather than part of the
+ * light rotation. See the LIGHT_TONES note above for why the split is a fields
+ * decision rather than an aesthetic one.
+ */
+const DARK_BANDS = new Set([
+  "hero",
+  "assistant",
+  "pickYourDoor",
+  "steps",
+  "trust",
+  "areaMap",
+  "conversion",
+  "closingCta",
+  "numbers",
+]);
+
+/**
+ * Whether a band will actually put anything on the page.
+ *
+ * Two bands withhold themselves entirely when their content is missing, which
+ * is today for both. That matters here and not only to them: a band that
+ * renders nothing is not a boundary, so the tone rotation and the seam between
+ * light and dark both have to be computed over the bands that actually appear.
+ * Counting a withheld band would put a seam against a section that is not there.
+ */
+function bandRenders(band: Band, testimonials: number, numbers: number): boolean {
+  if (band.type === "proof") return testimonials > 0;
+  if (band.type === "numbers") return numbers > 0;
+  return true;
+}
+
 export function Bands({ page }: { page: PageContent }) {
-  // Scoped to bands that have no fixed reason to be light or dark, so
-  // pickYourDoor and conversion (always navyWash) never throw the rhythm off:
-  // the next light band after either of them still just takes the next tone
-  // in line rather than restarting the cycle.
+  /*
+   * Tone is decided once, here, rather than inline at each case.
+   *
+   * It used to be chosen inside the switch, which was fine until the seam
+   * needed to know whether the band above it was light or dark. Deriving that
+   * a second time would have been two sources of truth for the same fact, and
+   * the failure mode is a seam pointing the wrong way on one route only.
+   *
+   * The light rotation is scoped to bands with no fixed reason to be either, so
+   * pickYourDoor and conversion never throw the rhythm off: the next light band
+   * after one of them takes the next tone in line rather than restarting.
+   */
   let lightIndex = 0;
-  const nextLightTone = () => LIGHT_TONES[lightIndex++ % LIGHT_TONES.length];
+  const tones: (SectionTone | null)[] = page.bands.map((band) => {
+    if (!bandRenders(band, site.testimonials.length, site.numbers.length)) return null;
+    if (DARK_BANDS.has(band.type)) return "navyWash";
+    return LIGHT_TONES[lightIndex++ % LIGHT_TONES.length];
+  });
+
+  const isDark = (t: SectionTone | null) => t === "navyWash" || t === "navy";
+
+  /**
+   * A seam is drawn where the ground actually changes, looking back past any
+   * withheld band to the last one that rendered. The hero never gets one:
+   * there is nothing above it to cross into.
+   */
+  const seamFor = (i: number): "intoDark" | "intoLight" | undefined => {
+    if (i === 0 || tones[i] === null) return undefined;
+    let prev = i - 1;
+    while (prev >= 0 && tones[prev] === null) prev -= 1;
+    if (prev < 0) return undefined;
+    if (isDark(tones[i]) === isDark(tones[prev])) return undefined;
+    return isDark(tones[i]) ? "intoDark" : "intoLight";
+  };
 
   return (
     <>
       {page.bands.map((band, i) => {
+        const tone = tones[i];
+        const seam = seamFor(i);
+        const nextLightTone = () => tone ?? "cream";
         switch (band.type) {
           case "hero":
             // The hero is a composition rather than a layout now, so it lives
@@ -184,7 +253,7 @@ export function Bands({ page }: { page: PageContent }) {
             // own "Meet Scout" section, a character introduction rather than
             // a form bolted onto the page.
             return (
-              <Section key={i} tone="navyWash" id="ask">
+              <Section key={i} seam={seam} tone="navyWash" id="ask">
                 <Assistant
                   eyebrow={band.eyebrow}
                   heading={band.heading}
@@ -215,7 +284,7 @@ export function Bands({ page }: { page: PageContent }) {
             // on it as a distinct, easy option rather than more of the same
             // ask.
             return (
-              <Section key={i} tone={nextLightTone()} pad="py-8 sm:py-9">
+              <Section key={i} seam={seam} tone={nextLightTone()} pad="py-8 sm:py-9">
                 <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
                   <p className="text-[1.05rem] font-medium text-ink">{band.line}</p>
                   <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-3 sm:justify-end">
@@ -239,47 +308,77 @@ export function Bands({ page }: { page: PageContent }) {
             );
 
           case "pickYourDoor":
+            /*
+             * The main navigational decision on the site, and until now four
+             * identical rectangles with a label and a line of grey text. It
+             * read as a table of contents rather than as a choice.
+             *
+             * Three things changed, none of them an icon. Alex banned keys,
+             * doors and handshakes at intake, and the honest icons for
+             * "selling" and "investing" do not exist, so a set of four would
+             * have been four clip-art compromises.
+             *
+             *   The lane name is display type at a real size, so the four
+             *   words a visitor is choosing between are the largest thing in
+             *   the band rather than the same size as the copy under them.
+             *
+             *   Each lane names the concrete thing waiting behind it, taken
+             *   from the four tools that already exist on those routes. A door
+             *   with a stated reward is a choice; a door with a label is a
+             *   list item.
+             *
+             *   Each card carries a different fragment of the city's own
+             *   geometry, so the four are visibly four rather than one design
+             *   repeated. Same source as the map and the seam, no new asset,
+             *   and it is the differentiation v4's own self critique asked for
+             *   and did not do.
+             */
             return (
-              <div key={i}>
-                <Section tone="navyWash" texture="boundary" stagger>
+              <Section key={i} tone="navyWash" stagger seam={seam}>
                   <div>
                     <SectionRule />
                     <H2>{band.heading}</H2>
                   </div>
                   <ul className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {band.lanes.map((lane) => (
+                    {band.lanes.map((lane, n) => (
                       <li key={lane.href}>
                         <Link
                           href={lane.href}
-                          className="group flex h-full min-h-[180px] flex-col justify-between rounded-xl border border-cream/15 bg-navy-glow p-6 shadow-[0_4px_0_rgba(255,255,255,0.04)_inset,0_24px_50px_-24px_rgba(0,0,0,0.7)] transition-[transform,box-shadow,border-color] duration-150 hover:-translate-y-1.5 hover:border-cream/35 hover:shadow-[0_4px_0_rgba(255,255,255,0.06)_inset,0_30px_60px_-22px_rgba(0,0,0,0.75)]"
+                          className="group relative isolate flex h-full min-h-[15rem] flex-col overflow-hidden rounded-xl border border-cream/15 bg-navy-glow p-6 shadow-[0_4px_0_rgba(255,255,255,0.04)_inset,0_24px_50px_-24px_rgba(0,0,0,0.7)] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-2 hover:border-cream/40 hover:shadow-[0_4px_0_rgba(255,255,255,0.07)_inset,0_34px_64px_-22px_rgba(0,0,0,0.8)]"
                         >
-                          <span className="text-[1.3rem] font-semibold tracking-[-0.015em]">
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0 -z-10 opacity-70 transition-opacity duration-200 group-hover:opacity-100"
+                          >
+                            <BandTexture variant={LANE_TEXTURES[n % LANE_TEXTURES.length]} />
+                          </span>
+                          <span className="display text-[1.65rem] font-extrabold leading-none tracking-[-0.02em] text-cream">
                             {lane.lane}
                           </span>
-                          <span className="mt-4 flex items-end justify-between gap-3 text-[0.98rem] leading-[1.6] text-dim">
+                          <span className="mt-3 text-[0.95rem] leading-[1.55] text-dim">
                             {lane.line}
-                            <span
-                              aria-hidden="true"
-                              className="shrink-0 text-cream transition-transform duration-150 group-hover:translate-x-1"
-                            >
-                              →
-                            </span>
                           </span>
+                          {lane.offer && (
+                            <span className="mt-auto flex items-end justify-between gap-3 border-t border-cream/15 pt-4">
+                              <span className="text-[0.9rem] font-medium leading-snug text-cream/85">{lane.offer}</span>
+                              <span
+                                aria-hidden="true"
+                                className="shrink-0 text-cream transition-transform duration-200 group-hover:translate-x-1"
+                              >
+                                &rarr;
+                              </span>
+                            </span>
+                          )}
                         </Link>
                       </li>
                     ))}
-                  </ul>
-                </Section>
-                {/* Low and quiet, the same four lanes rendered as a strip
-                    rather than a second list, so there is one source for
-                    them, not two that can drift apart. */}
-                <Marquee items={band.lanes.map((l) => l.lane)} />
-              </div>
+                </ul>
+              </Section>
             );
 
           case "prose":
             return (
-              <Section key={i} tone={nextLightTone()}>
+              <Section key={i} seam={seam} tone={nextLightTone()}>
                 <Split
                   heading={
                     <div>
@@ -298,7 +397,7 @@ export function Bands({ page }: { page: PageContent }) {
             // same reason the reference gives its own step-by-step section
             // the dark, numbered treatment rather than a plain light list.
             return (
-              <Section key={i} tone="navyWash" texture="roads">
+              <Section key={i} seam={seam} tone="navyWash" texture="roads">
                 <Split
                   heading={
                     <div>
@@ -333,7 +432,7 @@ export function Bands({ page }: { page: PageContent }) {
 
           case "lossAversion":
             return (
-              <Section key={i} tone={nextLightTone()}>
+              <Section key={i} seam={seam} tone={nextLightTone()}>
                 <Split
                   heading={
                     <div>
@@ -343,14 +442,29 @@ export function Bands({ page }: { page: PageContent }) {
                   }
                 >
                   <Prose paragraphs={band.body} />
-                  {band.calculator === "carryCost" && <CarryCostCalculator />}
                 </Split>
+                {/*
+                  The calculator sits outside Split, at the full width of the
+                  band. It was in Split's content column, which is sized for a
+                  62 character measure and squeezed the most useful thing on the
+                  site into half the page with its labels wrapping.
+
+                  The band stays light, and that is a contrast decision rather
+                  than a preference. The result figure is gold, gold fails on
+                  every light ground and clears AA on navy, so the result panel
+                  has to be dark; and a dark panel only reads as a result
+                  because the band around it is light. Making the whole band
+                  dark would force the result onto navy-lift, where gold
+                  measures 3.69:1 and is forbidden, and would erase the
+                  separation that makes the number land.
+                */}
+                {band.calculator === "carryCost" && <CarryCostCalculator />}
               </Section>
             );
 
           case "trust":
             return (
-              <Section key={i} tone="navyWash" texture="rivers">
+              <Section key={i} seam={seam} tone="navyWash" texture="rivers">
                 <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr]">
                   <div>
                     <SectionRule />
@@ -377,7 +491,7 @@ export function Bands({ page }: { page: PageContent }) {
             // as its own aspect ratio calls for instead of being fit to a
             // column sized for prose.
             return (
-              <Section key={i} tone="navyWash" texture="rivers">
+              <Section key={i} seam={seam} tone="navyWash" texture="rivers">
                 <div className="max-w-[42rem]">
                   <SectionRule />
                   <H2 className="text-cream">{band.heading}</H2>
@@ -398,7 +512,7 @@ export function Bands({ page }: { page: PageContent }) {
             const m = magnet(band.magnetId);
             const detail = DETAIL_FIELD[m.id];
             return (
-              <Section key={i} tone="navyWash" id={m.id === "buyer-guide" ? "guide" : m.id === "home-value" ? "valuation" : m.id === "va-checklist" ? "checklist" : m.id === "rental-analysis" ? "analysis" : "contact"}>
+              <Section key={i} seam={seam} tone="navyWash" id={m.id === "buyer-guide" ? "guide" : m.id === "home-value" ? "valuation" : m.id === "va-checklist" ? "checklist" : m.id === "rental-analysis" ? "analysis" : "contact"}>
                 <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
                   <div>
                     <SectionRule />
@@ -439,7 +553,7 @@ export function Bands({ page }: { page: PageContent }) {
           case "tool": {
             const Tool = TOOLS[band.tool];
             return (
-              <Section key={i} tone={nextLightTone()} id={band.tool}>
+              <Section key={i} seam={seam} tone={nextLightTone()} id={band.tool}>
                 <Split
                   heading={
                     <div>
@@ -456,14 +570,14 @@ export function Bands({ page }: { page: PageContent }) {
           }
 
           case "proof":
-            return <BandProof key={i} band={band} tone={nextLightTone()} />;
+            return <BandProof key={i} band={band} tone={nextLightTone()} seam={seam} />;
 
           case "numbers":
-            return <BandNumbers key={i} band={band} />;
+            return <BandNumbers key={i} band={band} seam={seam} />;
 
           case "faq":
             return (
-              <Section key={i} tone={nextLightTone()}>
+              <Section key={i} seam={seam} tone={nextLightTone()}>
                 <Split
                   heading={
                     <div>
@@ -506,7 +620,7 @@ export function Bands({ page }: { page: PageContent }) {
             // No inner card here, unlike conversion's form: there are no
             // fields to protect on a light ground, just a closing statement.
             return (
-              <Section key={i} tone="navyWash" texture="full">
+              <Section key={i} seam={seam} tone="navyWash" texture="full">
                 <div className="max-w-[42rem]">
                   <SectionRule />
                   <H2 className="text-cream">{band.heading}</H2>
