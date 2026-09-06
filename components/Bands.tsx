@@ -353,7 +353,7 @@ export function Bands({ page }: { page: PageContent }) {
              *   and did not do.
              */
             return (
-              <Section key={i} tone="navyWash" stagger seam={seam}>
+              <Section key={i} tone={nextLightTone()} stagger seam={seam}>
                   <div>
                     <SectionRule />
                     <H2>{band.heading}</H2>
@@ -416,7 +416,7 @@ export function Bands({ page }: { page: PageContent }) {
             // same reason the reference gives its own step-by-step section
             // the dark, numbered treatment rather than a plain light list.
             return (
-              <Section key={i} seam={seam} tone="navyWash" texture="roads">
+              <Section key={i} seam={seam} tone={nextLightTone()}>
                 <Split
                   heading={
                     <div>
@@ -483,7 +483,7 @@ export function Bands({ page }: { page: PageContent }) {
 
           case "trust":
             return (
-              <Section key={i} seam={seam} tone="navyWash" texture="rivers">
+              <Section key={i} seam={seam} tone={nextLightTone()}>
                 <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr]">
                   <div>
                     <SectionRule />
@@ -511,7 +511,7 @@ export function Bands({ page }: { page: PageContent }) {
             // as its own aspect ratio calls for instead of being fit to a
             // column sized for prose.
             return (
-              <Section key={i} seam={seam} tone="navyWash" texture="rivers">
+              <Section key={i} seam={seam} tone={nextLightTone()}>
                 <div className="max-w-[42rem]">
                   <SectionRule />
                   <H2 className="text-cream">{band.heading}</H2>
@@ -532,7 +532,7 @@ export function Bands({ page }: { page: PageContent }) {
             const m = magnet(band.magnetId);
             const detail = DETAIL_FIELD[m.id];
             return (
-              <Section key={i} seam={seam} tone="navyWash" id={m.id === "buyer-guide" ? "guide" : m.id === "home-value" ? "valuation" : m.id === "va-checklist" ? "checklist" : m.id === "rental-analysis" ? "analysis" : "contact"}>
+              <Section key={i} seam={seam} tone={nextLightTone()} id={m.id === "buyer-guide" ? "guide" : m.id === "home-value" ? "valuation" : m.id === "va-checklist" ? "checklist" : m.id === "rental-analysis" ? "analysis" : "contact"}>
                 <div className="grid gap-10 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
                   <div>
                     <SectionRule />
