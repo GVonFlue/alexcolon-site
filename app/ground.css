@@ -764,3 +764,197 @@ main [data-hero-ink="support"] {
     animation: none !important;
   }
 }
+
+/* ============================================================
+   15. SCALE
+
+   THE DIAGNOSIS. Comparing this against mortgagepunk.com, which is the
+   reference for "exciting", the difference is not texture and it is not
+   colour. It is two things:
+
+     1. That hero opens on a full-bleed PHOTOGRAPH. This one opens on a
+        pattern. No amount of grid beats an image, and a grid is what you
+        reach for when you do not have one. The real fix is photography and
+        it is not something a stylesheet can supply. See the note at the end
+        of this file.
+
+     2. That hero's display type is authored at 246px against a 1512px stage,
+        roughly 16 percent of the viewport width, outlined, with layered drop
+        shadows. This one tops out at 3.6rem, about 4 percent. It is not a
+        smaller version of the same idea, it is a different order of thing.
+
+   The second one IS available here, and it is most of the perceived gap.
+   ============================================================ */
+
+@media (min-width: 1024px) {
+  main .hero-field [data-hero-ink="headline"] {
+    /*
+     * clamp rather than a fixed size: the low end protects the 1024 case
+     * where the copy column is genuinely narrow, the high end stops it
+     * running away on a 27 inch monitor, and the middle is a share of the
+     * viewport so it scales like the reference does.
+     */
+    font-size: clamp(3.4rem, 5.2vw, 5rem);
+    line-height: 0.94;
+    letter-spacing: -0.038em;
+  }
+}
+
+/*
+ * The headline gets weight rather than outline.
+ *
+ * Deliberately NOT -webkit-text-stroke. That reads as punk on a black field
+ * with Anton, which is the point over there, and it reads as a mistake in a
+ * navy and gold palette that the client asked to be "premium without looking
+ * overly luxurious". The equivalent move in this register is depth: a shadow
+ * with a direction, so the type sits above the field rather than on it.
+ */
+main .hero-field [data-hero-ink="headline"] {
+  text-shadow:
+    0 1px 0 color-mix(in srgb, var(--color-cream) 14%, transparent),
+    0 18px 40px rgb(0 0 0 / 0.45);
+}
+
+/*
+ * The accent phrase becomes actual metal.
+ *
+ * background-clip:text paints at the element's BACKGROUND layer, so anything
+ * else painted in the same element buries it. That is why the fill goes on
+ * the accent span alone and why nothing else may be painted there.
+ */
+main .hero-field [data-accent-phrase] {
+  background: linear-gradient(
+    168deg,
+    var(--color-gold-lit) 0%,
+    var(--color-gold) 44%,
+    var(--color-gold-shade) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  /* The shadow has to come off: a text-shadow under a transparent fill paints
+     straight through the glyph and turns the phrase into a grey smear. */
+  text-shadow: none;
+  /* Fallback for any engine that does not support background-clip on text:
+     the declaration above is ignored and this keeps it readable gold. */
+  -webkit-text-stroke: 0;
+}
+
+@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
+  main .hero-field [data-accent-phrase] {
+    background: none;
+    color: var(--color-gold);
+    -webkit-text-fill-color: var(--color-gold);
+  }
+}
+
+/* ============================================================
+   16. GROUNDING THE PORTRAIT
+
+   The reference paints two separate shadows behind Chris: a tight elliptical
+   one at his feet and a wide soft one on the wall behind him. That pair is
+   most of why he reads as standing in the scene rather than pasted on it,
+   and it is worth stealing exactly.
+
+   Here they go inside the portrait plate, which already has overflow hidden,
+   so neither can escape into the band.
+   ============================================================ */
+
+main [data-hero-portrait] {
+  position: relative;
+}
+
+main [data-hero-portrait]::before {
+  /* The wall. Wide, soft, high, behind his shoulders. */
+  content: "";
+  position: absolute;
+  inset: 6% -6% 18% -6%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 42%,
+    rgb(0 0 0 / 0.42) 0%,
+    rgb(0 0 0 / 0.18) 46%,
+    rgb(0 0 0 / 0) 72%
+  );
+  filter: blur(18px);
+}
+
+main [data-hero-portrait]::after {
+  /* The floor. Tight, dark, low, directly under him. */
+  content: "";
+  position: absolute;
+  right: 8%;
+  bottom: 2%;
+  left: 8%;
+  height: 12%;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at 50% 68%,
+    rgb(0 0 0 / 0.72) 0%,
+    rgb(0 0 0 / 0.34) 34%,
+    rgb(0 0 0 / 0) 74%
+  );
+  filter: blur(10px);
+}
+
+main [data-hero-portrait] [data-portrait-frame] {
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================================================
+   17. THE PHOTOGRAPH THIS SITE DOES NOT HAVE YET
+
+   Everything above is compensation. The single largest remaining difference
+   between this site and the one it is being compared to is that one opens on
+   a real photograph of a real place and this one opens on a pattern.
+
+   The hook is already here and unused. When a photograph exists, set
+   --hero-plate to a url() on .hero-field and the rule below takes over: the
+   image fills the band, the field gradient becomes a scrim over it rather
+   than the ground itself, and the grid drops to a whisper because it is no
+   longer doing the work alone.
+
+   Nothing changes until that variable is set, so this costs nothing today.
+   ============================================================ */
+
+.hero-field {
+  --hero-plate: none;
+}
+
+/*
+ * IT HANGS ON .hero-grain, NOT ON .hero-field.
+ *
+ * The obvious place was .hero-field::after, and it was wrong twice over.
+ * .hero-field is a dark band, so ui.tsx gives it the .grain class, and
+ * .grain::after is already taken. The two selectors also carry identical
+ * specificity, and globals.css is imported after this file, so the rule would
+ * have silently lost the cascade and done nothing at all while appearing to
+ * work in review.
+ *
+ * .hero-grain is a real element Hero.tsx renders, absolutely positioned over
+ * the whole band with pointer-events:none. Its ::before is free, and it
+ * already has exactly the geometry the plate needs.
+ */
+.hero-field .hero-grain::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  /* Behind the band's own content, which sits at z-10, but above the section
+     background. The parent is at z-40, so this steps back out of its own
+     stacking context rather than sitting on top of the copy. */
+  z-index: -41;
+  pointer-events: none;
+  background-image: var(--hero-plate);
+  background-size: cover;
+  background-position: center 42%;
+  /* The scrim. Without it, cream type over an unknown photograph is a
+     contrast failure waiting for the first bright sky. 74 percent navy is the
+     figure that keeps cream above 7:1 over pure white. */
+  box-shadow: inset 0 0 0 100vmax color-mix(in srgb, var(--color-navy) 74%, transparent);
+  /* The grain's own opacity is 0.03. The plate must not inherit it. */
+  opacity: 33.3;
+}
