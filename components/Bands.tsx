@@ -169,20 +169,35 @@ function BandNumbers({ band, seam }: { band: Extract<Band, { type: "numbers" }>;
 }
 
 /**
- * The bands that are always dark, as a fixed chapter rather than part of the
- * light rotation. See the LIGHT_TONES note above for why the split is a fields
- * decision rather than an aesthetic one.
+ * The bands that are always dark.
+ *
+ * WAS NINE OF ELEVEN. Nine entries meant nearly every band on every route
+ * rendered navy, and the page read as one uninterrupted dark scroll with
+ * nothing to stop on. It is the single thing that made the site feel
+ * monotonous, and no amount of texture, gloss or type fixed it, because the
+ * problem was the ratio rather than the treatment.
+ *
+ * Every reference worth copying rations its dark surface. Increase uses one
+ * dark surface, for code. Lithic uses black once, for the hero vault, then
+ * runs warm the whole way down. Slash is fully dark and earns it with
+ * thirteen neutral steps, which this site does not have.
+ *
+ * Four now, and each one earns it:
+ *
+ *   hero        the opening statement
+ *   assistant   Lark, which is the one interactive moment on the page
+ *   numbers     a short stat callout, which is what dark is best at
+ *   closingCta  the close, mirroring the open
+ *
+ * pickYourDoor, steps, trust, areaMap and conversion all moved to light. The
+ * lane cards and step plates are navy objects, so on a warm ground they now
+ * read as cards on paper rather than as navy on navy.
  */
 const DARK_BANDS = new Set([
   "hero",
   "assistant",
-  "pickYourDoor",
-  "steps",
-  "trust",
-  "areaMap",
-  "conversion",
-  "closingCta",
   "numbers",
+  "closingCta",
 ]);
 
 /**
