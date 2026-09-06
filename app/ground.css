@@ -372,133 +372,23 @@ main > section:is(.bg-cream, .bg-paper, .wash) .rule-gold {
 /* ============================================================
    6. THE HERO
 
-   THE DIAGNOSIS, BEFORE THE FIX. The hero was one value. Navy field, navy
-   card, navy everything, and a cut-out man standing in the middle of it with
-   nothing under his feet. Moving him around inside that does not help,
-   because the problem is not where he is, it is that nothing in the band has
-   an edge. A photograph of a person needs a ground or it reads as a sticker.
+   NOTHING HERE ANYMORE, AND THAT IS THE FIX.
 
-   So he gets a plate: a lifted navy panel that runs the full height of the
-   band, bleeds off the right edge, and is separated from the field by a
-   single gold hairline. He stands IN something. The value step between
-   navy-wash and navy-lift is small on paper and does most of the work here,
-   because the eye reads an edge long before it reads a colour.
+   Earlier versions of this file moved the hero portrait and the map card
+   around with absolute offsets and a substring selector on a Tailwind class.
+   Every round produced a new collision: the card on his chest, his head
+   clipped at the band edge, a hard vertical seam down the middle. Three
+   absolutely positioned layers in one box cannot tell each other where they
+   are, and a stylesheet reaching in from outside the component cannot either.
 
-   The gold hairline is the one piece of decoration in this file and it earns
-   its place: it is what makes the panel read as a deliberate architectural
-   element rather than as an accidentally lighter patch.
+   components/Hero.tsx is a two column grid now. Columns cannot overlap and a
+   flow item cannot land on the item above it, so the composition is correct
+   at every width without anything in this file participating.
 
-   CONTRAST. The plate tops out at navy-lift, #22475E. Nothing on it is type:
-   the copy column stops well to the left of the hairline, and gold on
-   navy-lift is 4.49:1 and stays on the FORBIDDEN list. If a future edit
-   widens the copy column past the hairline, that is a contrast change and
-   not a layout one.
+   If the hero needs changing, change Hero.tsx. Do not reintroduce overrides
+   here: the fragile selector that used to live in this section is exactly the
+   thing that made the last three rounds unfixable.
    ============================================================ */
-
-@media (min-width: 1024px) {
-  .hero-field {
-    --portrait-right: -1%;
-    --portrait-width: 44%;
-    /*
-     * Lifted off the band's floor. It was -13%, tuned so the base fade
-     * straddled the bottom edge, which was right when nothing sat under him.
-     * With the map plate in his column he simply had nowhere to end, so the
-     * card landed on his chest. This is the "Alex behind the map" problem and
-     * it was a geometry problem, not a stacking one.
-     */
-    --portrait-bottom: 30%;
-    /* Where the plate's hairline falls, as a share of the band. One value, so
-       the plate and the copy column cannot drift into each other. */
-    --plate-edge: 52%;
-  }
-
-  /*
-   * The plate. Drawn from the portrait's own box so it tracks him at every
-   * width, extended far past it vertically and to the right, and clipped by
-   * the section's existing overflow-hidden.
-   *
-   * z-index -1 keeps it behind the photograph. [data-hero-portrait] is
-   * absolutely positioned with z-10, so it is already a stacking context and
-   * a negative index cannot escape it.
-   */
-  .hero-field [data-hero-portrait]::before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: -260%;
-    bottom: -260%;
-    left: -7%;
-    right: -100vw;
-    background:
-      linear-gradient(
-        100deg,
-        color-mix(in srgb, var(--color-navy-lift) 82%, transparent) 0%,
-        color-mix(in srgb, var(--color-navy-lift) 34%, transparent) 62%,
-        transparent 100%
-      );
-    /*
-     * The hairline, at 80 percent rather than the 34 the first draft used.
-     * Measured: at 34 percent it composites to 1.74:1 against the plate and
-     * 2.42:1 against the field, which is not an edge, it is a rumour. At 80
-     * it is 3.63:1 against the plate and 5.03:1 against the field, so it
-     * clears the 3:1 non-text floor on both sides of itself. A line that has
-     * to separate two surfaces has to be legible against both, not one.
-     */
-    border-left: 1px solid color-mix(in srgb, var(--color-gold) 80%, transparent);
-  }
-
-  /* The copy stops before the hairline. */
-  .hero-field .relative > .relative.z-20 {
-    max-width: calc(var(--plate-edge) - 6%);
-  }
-
-  /* The leftward mask was sized to hide him under a headline that no longer
-     crosses him. At 34 percent it dissolved a third of a man for no reason. */
-  .hero-field .portrait-fade-x {
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 2%, #000 14%);
-    mask-image: linear-gradient(to right, transparent 0%, transparent 2%, #000 14%);
-  }
-
-  /*
-   * The map, as a plate rather than a smudge.
-   *
-   * It was navy at 82 percent on a navy field, which is why it dissolved. Now
-   * it sits on navy-deep, which is DARKER than the plate behind it, plus a
-   * gold hairline and real elevation. A card is legible because it steps away
-   * from its ground, and stepping down is as good as stepping up.
-   *
-   * Wider, too. ServiceAreaMap draws a fixed r=72 hit circle per town in the
-   * map's own viewBox units, so the on-screen size of every target is purely
-   * a function of how wide the card renders. A narrow card is why the towns
-   * were hard to hit.
-   *
-   * This targets a Tailwind class by substring because the card has no data
-   * attribute of its own. It is the fragile line in this file: if the card
-   * stops moving after a Hero.tsx edit, this selector is why. The durable fix
-   * is data-hero-map on that div.
-   */
-  .hero-field [class*="lg:absolute"][class*="pointer-events-auto"] {
-    left: auto;
-    right: 2.5%;
-    bottom: 1.25rem;
-    width: min(27rem, 46%);
-  }
-
-  .hero-field [class*="lg:absolute"][class*="pointer-events-auto"] > div {
-    background-color: color-mix(in srgb, var(--color-navy-deep) 92%, transparent);
-    border-color: color-mix(in srgb, var(--color-gold) 30%, transparent);
-    box-shadow:
-      0 1px 0 0 color-mix(in srgb, var(--color-cream) 6%, transparent) inset,
-      0 40px 80px -28px rgb(0 0 0 / 0.8);
-  }
-
-  /* Bigger targets. r is a real CSS property on an SVG circle in every
-     current engine. Derby and Rose Hill are the closest pair at 213 units,
-     so two 96-unit radii still leave 21 units between them. */
-  .hero-field circle.hit {
-    r: 96px;
-  }
-}
 
 /* ============================================================
    7. PLATES EVERYWHERE ELSE
