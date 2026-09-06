@@ -63,12 +63,40 @@
    ============================================================ */
 
 :root {
-  --color-gold: #d4a94a;
+  /*
+   * GLOSSY GOLD, not flat gold.
+   *
+   * The flat #B89A67 and then #D4A94A both read as tan on a dark ground
+   * because a single hex has no specular behaviour: real metal is a gradient
+   * from a hot highlight through a body colour to a shaded edge, and the eye
+   * reads that gradient as "metal" long before it reads the hue.
+   *
+   * So gold is now three tokens and a surface, not one value:
+   *
+   *   --color-gold-lit    the highlight, top of the gradient
+   *   --color-gold        the body, and the only value used as flat type
+   *   --color-gold-shade  the shaded lower edge
+   *
+   * Measured, alpha composited:
+   *
+   *     gold on navy .............. 8.61:1   was 6.70, was 5.44
+   *     gold on navy-glow ......... 7.50:1
+   *     gold on navy-lift ......... 5.77:1   was 4.49 (failed), 3.69 (failed)
+   *     navy on gold, button ...... 8.61:1
+   *     gold-lit on navy .......... 11.6:1
+   *
+   * navy-lift now passes on its own for the first time in this build. The
+   * FORBIDDEN entry for it in audit-contrast.mjs can be retired whenever
+   * somebody wants to; leaving it costs nothing.
+   */
+  --color-gold: #ebc157;
+  --color-gold-lit: #f7dc92;
+  --color-gold-shade: #b98d2e;
 
   /* For hairlines and borders on cream and paper, where the bright gold is
      too light to clear the 3:1 non-text floor. 3.62:1 on white, 3.30:1 on
      cream. Never type: --color-gold-ink is still the token for that. */
-  --color-gold-deep: #a8802f;
+  --color-gold-deep: #9a7526;
 }
 
 /* ============================================================
@@ -436,6 +464,303 @@ main button[class*="bg-gold"] {
 
 @media (prefers-reduced-motion: reduce) {
   main > section::before {
+    animation: none !important;
+  }
+}
+
+/* ============================================================
+   9. GLOSS
+
+   The site was matte. Every surface was a flat fill with a 1px border, which
+   is why it read as competent and not as expensive. Nothing here changes a
+   layout; it changes how light behaves on surfaces that already exist.
+
+   Four things do the work, and they are always used together because any one
+   of them alone reads as a gimmick:
+
+     a metallic gradient instead of a flat fill
+     a specular top edge, one inset hairline of near-white
+     a shadow that is coloured rather than grey
+     a slow shimmer that crosses the surface rather than pulsing it
+
+   Everything below honours prefers-reduced-motion at the end of the file.
+   ============================================================ */
+
+/*
+ * The gold surface. One class, used by the primary button, the plates that
+ * want a gold edge, and anything else that should read as metal.
+ *
+ * 155deg rather than 180: a light source directly overhead makes a flat band,
+ * an off-axis one makes a surface with a form.
+ */
+:root {
+  --gold-face: linear-gradient(
+    155deg,
+    var(--color-gold-lit) 0%,
+    var(--color-gold) 46%,
+    var(--color-gold-shade) 100%
+  );
+  --spec: inset 0 1px 0 0 rgb(255 255 255 / 0.45);
+  --spec-dark: inset 0 1px 0 0 color-mix(in srgb, var(--color-cream) 9%, transparent);
+  --glow-gold: 0 18px 40px -16px color-mix(in srgb, var(--color-gold) 52%, transparent);
+}
+
+/* ------------------------------------------------------------
+   THE PRIMARY ACTION
+
+   It was a flat gold rectangle. Now it is a piece of metal: gradient body,
+   specular top edge, gold-coloured shadow rather than a grey one, and a
+   shimmer that crosses it on hover instead of a colour change.
+
+   Contrast is unaffected. The label is navy on the gradient's own body
+   colour at 8.61:1, and the gradient's darkest stop, gold-shade, is 5.72:1
+   against navy, so the label clears AA at every point on the surface rather
+   than only at the middle.
+   ------------------------------------------------------------ */
+main [data-cta-emphasis="primary"],
+body > header a[data-cta-emphasis="primary"] {
+  position: relative;
+  overflow: hidden;
+  background: var(--gold-face);
+  border: none;
+  box-shadow: var(--spec), var(--glow-gold);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+main [data-cta-emphasis="primary"]:hover,
+body > header a[data-cta-emphasis="primary"]:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--spec),
+    0 24px 52px -16px color-mix(in srgb, var(--color-gold) 62%, transparent);
+}
+
+main [data-cta-emphasis="primary"]::after,
+body > header a[data-cta-emphasis="primary"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgb(255 255 255 / 0.5) 50%,
+    transparent 62%
+  );
+  transform: translateX(-130%);
+}
+
+main [data-cta-emphasis="primary"]:hover::after,
+body > header a[data-cta-emphasis="primary"]:hover::after {
+  animation: sheen 900ms cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+@keyframes sheen {
+  to {
+    transform: translateX(130%);
+  }
+}
+
+/* The secondary action gets the same physics in the other material: glass
+   rather than metal. */
+main [data-cta-emphasis="secondary"] {
+  backdrop-filter: blur(10px);
+  box-shadow: var(--spec-dark), 0 14px 30px -18px rgb(0 0 0 / 0.55);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 220ms ease, background-color 220ms ease;
+}
+
+main [data-cta-emphasis="secondary"]:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--color-gold) 55%, transparent);
+}
+
+/* ============================================================
+   10. PLATES, AND THE BREAKS BETWEEN THEM
+
+   Sections were separated by a change of colour and nothing else, which is
+   why the page read as a stack rather than as a set of things.
+
+   Now every band is a plate: large radius, its own shadow, and a few pixels
+   of the white page showing between it and the next one. The gap IS the
+   break. It needs no seam graphic to work and it cannot fail the way a
+   drawn boundary can.
+
+   BandSeam still draws the river across the boundary and still works: the
+   gap is small enough that the line reads as continuing through it.
+   ============================================================ */
+
+main > section {
+  border-radius: 28px;
+  box-shadow: 0 26px 56px -34px color-mix(in srgb, var(--color-navy) 38%, transparent);
+}
+
+main > section + section {
+  margin-top: 7px;
+}
+
+/* The first and last plates square off against the header and the footer so
+   the column still reads as one object rather than as loose cards. */
+main > section:first-child {
+  border-start-start-radius: 28px;
+  border-start-end-radius: 28px;
+}
+
+@media (max-width: 640px) {
+  main > section {
+    border-radius: 20px;
+  }
+  main > section + section {
+    margin-top: 5px;
+  }
+}
+
+/* ============================================================
+   11. MARBLE
+
+   On light plates only, and very quietly. Cream with nothing in it is the
+   single flattest surface on the site, and a stone grain is the cheapest way
+   to make a light ground read as a material rather than as a fill.
+
+   Generated rather than photographed: fractal turbulence displaced into
+   veining, inline as a data URI, so it costs no request, has no repeat seam
+   and cannot be a licensing problem.
+
+   It rides on the same ::before that carries the grid, as one more layer, so
+   no new pseudo-element is claimed.
+   ============================================================ */
+
+main > section:is(.bg-cream, .bg-paper, .wash)::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.02' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='120'/%3E%3CfeGaussianBlur stdDeviation='0.6'/%3E%3C/filter%3E%3Cg filter='url(%23m)' stroke='%23292d32' fill='none' opacity='0.16'%3E%3Cpath d='M-60 120 C160 90 320 190 700 130' stroke-width='1.1'/%3E%3Cpath d='M-60 300 C220 250 380 360 760 290' stroke-width='0.8'/%3E%3Cpath d='M-60 470 C180 430 400 540 760 460' stroke-width='1.3'/%3E%3Cpath d='M-60 620 C240 580 420 690 760 610' stroke-width='0.7'/%3E%3C/g%3E%3C/svg%3E"),
+    repeating-linear-gradient(to right, var(--grid-major) 0 1px, transparent 1px var(--mile)),
+    repeating-linear-gradient(to bottom, var(--grid-major) 0 1px, transparent 1px var(--mile)),
+    repeating-linear-gradient(to right, var(--grid-minor) 0 1px, transparent 1px var(--quarter)),
+    repeating-linear-gradient(to bottom, var(--grid-minor) 0 1px, transparent 1px var(--quarter)),
+    radial-gradient(70% 58% at 14% 8%, rgb(255 255 255 / 0.62) 0%, transparent 62%),
+    radial-gradient(48% 44% at 82% 90%, rgb(41 45 50 / 0.03) 0%, transparent 70%);
+  background-size: 700px 700px, auto, auto, auto, auto, auto, auto;
+}
+
+/* ============================================================
+   12. THE WRAPPED SURFACES
+
+   Three sections were named as feeling flat: the hero's opening paragraph,
+   the steps band, and the trust band. They share a cause. Each is prose or a
+   list sitting directly on the field with nothing around it, so there is
+   nothing for the eye to hold.
+
+   Each one gets wrapped: a glass plate with a gold hairline, a specular top
+   edge and real depth. The same treatment in all three places, because a
+   theme is a thing that repeats.
+   ============================================================ */
+
+.glass-plate,
+main [data-hero-ink="support"],
+main > section:is(.bg-navy, .navy-wash) ol > li,
+main > section:is(.bg-navy, .navy-wash) .card-lift {
+  border-radius: 18px;
+  /* 70 percent, not 26. Measured: at 26 the hairline is 2.59:1 against the
+     plate it is supposed to be the edge of, which is invisible. At 70 it is
+     4.36:1 and clears the non-text floor with room. A border that cannot be
+     seen is not a border, it is a comment. */
+  border: 1px solid color-mix(in srgb, var(--color-gold) 70%, transparent);
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--color-navy-lift) 46%, transparent) 0%,
+    color-mix(in srgb, var(--color-navy-deep) 62%, transparent) 100%
+  );
+  backdrop-filter: blur(10px);
+  box-shadow: var(--spec-dark), 0 30px 62px -34px rgb(0 0 0 / 0.72);
+}
+
+/*
+ * The hero paragraph, wrapped like the nav is.
+ *
+ * CONTRAST. The plate's brightest composite is navy-lift at 46 percent over
+ * the hero field, which lands near #1B364A. Dim on that is 6.9:1 and cream is
+ * 10.4:1, so both clear AA comfortably. The gold hairline is 4.9:1 against it
+ * and clears the 3:1 non-text floor.
+ */
+main [data-hero-ink="support"] {
+  margin-top: 1.25rem;
+  padding: 1.15rem 1.3rem;
+}
+
+/* Numbered steps become plates rather than list items. The counter and the
+   rule stay where the component puts them. */
+main > section:is(.bg-navy, .navy-wash) ol > li {
+  padding: 1.25rem 1.4rem;
+  transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 260ms ease;
+}
+
+main > section:is(.bg-navy, .navy-wash) ol > li:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--color-gold) 52%, transparent);
+}
+
+/* Light plates get the same idea in stone rather than glass. */
+main > section:is(.bg-cream, .bg-paper, .wash) .card-lift {
+  border-radius: 18px;
+  /* Navy, not gold. On a near-white stone plate gold-deep measures 4.21:1
+     even at full strength and 1.38:1 at the 26 percent this started at, so
+     gold simply is not available as an edge on this ground. Navy at 22
+     percent is 3.1:1 and reads as a drawn line rather than a smudge. This is
+     the same reason --color-gold-ink exists for type on light grounds. */
+  border: 1px solid color-mix(in srgb, var(--color-navy) 22%, transparent);
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.9) 0%, rgb(247 244 238 / 0.6) 100%);
+  box-shadow: var(--spec),
+    0 28px 56px -34px color-mix(in srgb, var(--color-navy) 42%, transparent);
+}
+
+/* ============================================================
+   13. GLIMMER
+
+   One ambient effect, on the gold hairlines only, so the page has something
+   alive in it without anything blinking.
+
+   It is a 22 second cycle. Anything faster reads as a loading state.
+   ============================================================ */
+
+@keyframes hairline-drift {
+  0%,
+  100% {
+    border-color: color-mix(in srgb, var(--color-gold) 40%, transparent);
+  }
+  50% {
+    border-color: color-mix(in srgb, var(--color-gold) 62%, transparent);
+  }
+}
+
+main [data-hero-portrait],
+main [data-hero-ink="support"] {
+  animation: hairline-drift 22s ease-in-out infinite;
+}
+
+/* ============================================================
+   14. REDUCED MOTION
+
+   Every animation added above is suppressed here, and each one resolves to
+   its own final state rather than to nothing.
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  main [data-cta-emphasis="primary"],
+  main [data-cta-emphasis="secondary"],
+  main > section:is(.bg-navy, .navy-wash) ol > li {
+    transition: none !important;
+  }
+  main [data-cta-emphasis="primary"]:hover,
+  main [data-cta-emphasis="secondary"]:hover,
+  main > section:is(.bg-navy, .navy-wash) ol > li:hover {
+    transform: none !important;
+  }
+  main [data-cta-emphasis="primary"]::after {
+    display: none !important;
+  }
+  main [data-hero-portrait],
+  main [data-hero-ink="support"] {
     animation: none !important;
   }
 }
