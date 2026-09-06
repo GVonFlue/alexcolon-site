@@ -349,20 +349,14 @@ main > section::before {
   z-index: -1;
   pointer-events: none;
   background-image:
-    repeating-linear-gradient(to right, var(--grid-major) 0 1px, transparent 1px var(--mile)),
-    repeating-linear-gradient(to bottom, var(--grid-major) 0 1px, transparent 1px var(--mile)),
-    repeating-linear-gradient(to right, var(--grid-minor) 0 1px, transparent 1px var(--quarter)),
-    repeating-linear-gradient(to bottom, var(--grid-minor) 0 1px, transparent 1px var(--quarter)),
-    radial-gradient(70% 58% at 14% 8%, rgb(255 255 255 / 0.55) 0%, transparent 62%),
-    radial-gradient(48% 44% at 82% 90%, rgb(41 45 50 / 0.035) 0%, transparent 70%);
+    radial-gradient(72% 60% at 14% 6%, rgb(255 255 255 / 0.7) 0%, transparent 64%),
+    radial-gradient(50% 46% at 84% 92%, rgb(41 45 50 / 0.04) 0%, transparent 72%);
 }
 
 main > section:is(.bg-navy, .navy-wash)::before {
   background-image:
-    repeating-linear-gradient(to right, var(--grid-major-dark) 0 1px, transparent 1px var(--mile)),
-    repeating-linear-gradient(to bottom, var(--grid-major-dark) 0 1px, transparent 1px var(--mile)),
-    repeating-linear-gradient(to right, var(--grid-minor-dark) 0 1px, transparent 1px var(--quarter)),
-    repeating-linear-gradient(to bottom, var(--grid-minor-dark) 0 1px, transparent 1px var(--quarter));
+    radial-gradient(74% 58% at 76% 4%, rgb(32 54 70 / 0.85) 0%, transparent 66%),
+    radial-gradient(56% 50% at 8% 94%, rgb(235 193 87 / 0.09) 0%, transparent 70%);
 }
 
 /*
@@ -633,10 +627,6 @@ main > section:first-child {
 main > section:is(.bg-cream, .bg-paper, .wash)::before {
   background-image:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.006 0.02' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeDisplacementMap in='SourceGraphic' scale='120'/%3E%3CfeGaussianBlur stdDeviation='0.6'/%3E%3C/filter%3E%3Cg filter='url(%23m)' stroke='%23292d32' fill='none' opacity='0.16'%3E%3Cpath d='M-60 120 C160 90 320 190 700 130' stroke-width='1.1'/%3E%3Cpath d='M-60 300 C220 250 380 360 760 290' stroke-width='0.8'/%3E%3Cpath d='M-60 470 C180 430 400 540 760 460' stroke-width='1.3'/%3E%3Cpath d='M-60 620 C240 580 420 690 760 610' stroke-width='0.7'/%3E%3C/g%3E%3C/svg%3E"),
-    repeating-linear-gradient(to right, var(--grid-major) 0 1px, transparent 1px var(--mile)),
-    repeating-linear-gradient(to bottom, var(--grid-major) 0 1px, transparent 1px var(--mile)),
-    repeating-linear-gradient(to right, var(--grid-minor) 0 1px, transparent 1px var(--quarter)),
-    repeating-linear-gradient(to bottom, var(--grid-minor) 0 1px, transparent 1px var(--quarter)),
     radial-gradient(70% 58% at 14% 8%, rgb(255 255 255 / 0.62) 0%, transparent 62%),
     radial-gradient(48% 44% at 82% 90%, rgb(41 45 50 / 0.03) 0%, transparent 70%);
   background-size: 700px 700px, auto, auto, auto, auto, auto, auto;
@@ -957,4 +947,202 @@ main [data-hero-portrait] [data-portrait-frame] {
   box-shadow: inset 0 0 0 100vmax color-mix(in srgb, var(--color-navy) 74%, transparent);
   /* The grain's own opacity is 0.03. The plate must not inherit it. */
   opacity: 33.3;
+}
+
+/* ============================================================
+   18. THE TYPE SYSTEM
+
+   THE DIAGNOSIS, WHICH IS THE CLIENT'S OWN AND IS CORRECT. The page was one
+   long uninterrupted scroll with nothing to stop on. Every band was a heading
+   in the same face at roughly the same size followed by a paragraph in the
+   same face at the same size, on the same navy. There was no second voice
+   anywhere, so there was no rhythm, so there was no reason to stop reading.
+
+   Three references and one working site say the same thing:
+
+     Slash pairs a display serif at 28px and up with a sans below it, and
+     never crosses the boundary in either direction. The collision IS the
+     brand rather than a decoration on it.
+
+     Lithic holds -0.02em tracking at every size from 14px body to 64px
+     display, never loosening. The constancy is what unifies a scale.
+
+     Increase runs -5.4px at 90px, about -0.06em, so a headline reads as one
+     dense architectural block rather than as airy display copy.
+
+     gvonflue.vercel.app, which works, numbers its sections: "01 — Who you're
+     working with", "02 — Why people pick me". Each band announces itself
+     before it says anything. That is the thing that gives a reader a reason
+     to stop.
+
+   All four are implemented below.
+   ============================================================ */
+
+/*
+ * Fraunces replaces Archivo as the display face, set in globals.css.
+ *
+ * A soft serif with optical sizing rather than a didone: Slash's Ivy Presto
+ * is beautiful and would read as a fashion house on a site whose brief says
+ * "premium without feeling luxury-exclusive". Fraunces has the editorial
+ * weight without the hauteur, its italic is genuinely good, and the optical
+ * size axis means it tightens correctly as it grows instead of just scaling.
+ *
+ * The boundary is absolute and it is the point: serif at display sizes, Inter
+ * everywhere else. Never cross it.
+ */
+main :is(h1, h2, h3),
+.display {
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 22, "WONK" 1;
+  letter-spacing: -0.028em;
+}
+
+/* Tracking tightens as size grows, the way Increase does it. */
+main h1,
+.display-xl {
+  letter-spacing: -0.048em;
+  line-height: 0.96;
+}
+
+/*
+ * The accent phrase becomes a second voice: serif italic, and gold.
+ *
+ * This is the single cheapest way to make a headline stop reading as one
+ * uniform block. gvonflue.vercel.app does exactly this with "Real *Estate*"
+ * and "Meet *Scout*", and it is why those headlines have a shape.
+ *
+ * The metallic fill from section 15 still applies on the hero; this adds the
+ * italic everywhere the accent phrase appears.
+ */
+main [data-accent-phrase] {
+  font-style: italic;
+  font-variation-settings: "SOFT" 40, "WONK" 1;
+  letter-spacing: -0.02em;
+}
+
+/* ============================================================
+   19. NUMBERED BANDS
+
+   Every section announces itself before it says anything. This is lifted
+   straight from gvonflue.vercel.app, where it demonstrably works.
+
+   Done with a CSS counter rather than by threading an index through twelve
+   call sites in Bands.tsx. The counter increments on the section and the
+   eyebrow reads it, so a band added or reordered renumbers itself and no
+   component has to know its own position.
+
+   The hero is excluded. A hero labelled 01 reads as a slide deck.
+   ============================================================ */
+
+main {
+  counter-reset: band;
+}
+
+main > section {
+  counter-increment: band;
+}
+
+main > section .label::before {
+  content: counter(band, decimal-leading-zero) " — ";
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+}
+
+/* No number on the hero, and none on the short utility strips where a label
+   is a tag rather than a section marker. */
+main > section:first-child .label::before {
+  content: none;
+}
+
+/* ============================================================
+   20. GIVING PROSE A SHAPE
+
+   Long blocks of even text are the specific thing the client called out, and
+   the fix is not shorter copy. The copy is the best thing on this site. The
+   fix is that the first sentence of a block should not be the same size as
+   the last.
+
+   The lead paragraph of every prose band steps up in size and drops its
+   muting, so the eye has an entry point. Everything after it stays quiet.
+   That single step is what turns a wall into an article.
+   ============================================================ */
+
+main > section:is(.bg-cream, .bg-paper, .wash) .prose > p:first-of-type,
+main > section:is(.bg-navy, .navy-wash) .prose > p:first-of-type {
+  font-size: 1.22rem;
+  line-height: 1.58;
+  letter-spacing: -0.012em;
+}
+
+main > section:is(.bg-cream, .bg-paper, .wash) .prose > p:first-of-type {
+  color: var(--color-ink);
+}
+
+/* A gold rule opening each prose block, so a band has a visible start. */
+main .prose > p:first-of-type::before {
+  content: "";
+  display: block;
+  width: 3.25rem;
+  height: 2px;
+  margin-bottom: 1.15rem;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--color-gold-deep) 0%,
+    color-mix(in srgb, var(--color-gold-deep) 15%, transparent) 100%
+  );
+}
+
+main > section:is(.bg-navy, .navy-wash) .prose > p:first-of-type::before {
+  background: linear-gradient(
+    90deg,
+    var(--color-gold) 0%,
+    color-mix(in srgb, var(--color-gold) 12%, transparent) 100%
+  );
+}
+
+/* ============================================================
+   21. THE NEUTRAL RAMP
+
+   Slash runs 13 neutral steps. Increase runs 8. This site had four, which is
+   why every surface looked like every other surface: with nothing between
+   cream and navy, a card can only be one of them.
+
+   Six steps on the light side, warm rather than grey, because the canvas is
+   warm and a cool grey card on a warm cream ground reads as a mistake.
+   ============================================================ */
+
+:root {
+  --paper-0: #ffffff;
+  --paper-1: #fbf9f5;
+  --paper-2: #f7f4ee;
+  --paper-3: #efeae1;
+  --paper-4: #e2dbcf;
+  --paper-5: #cdc4b4;
+}
+
+/* Light bands alternate between two of them rather than all being one, which
+   is the Increase move: rhythm from canvas colour, no dividers needed. */
+main > section:is(.bg-cream, .wash) {
+  background-color: var(--paper-2);
+}
+
+main > section:is(.bg-cream, .wash):nth-of-type(even) {
+  background-color: var(--paper-1);
+}
+
+main > section.bg-paper {
+  background-color: var(--paper-0);
+}
+
+/* Cards on light bands step UP to white, with a navy-tinted three-layer
+   shadow rather than a border. Straight from Increase: the tint is what makes
+   a shadow read as expensive instead of dirty. */
+main > section:is(.bg-cream, .bg-paper, .wash) .card-lift {
+  background: var(--paper-0);
+  border-color: color-mix(in srgb, var(--color-navy) 12%, transparent);
+  box-shadow:
+    0 6px 8px 0 rgb(23 42 58 / 0.03),
+    0 18px 22px 0 rgb(23 42 58 / 0.07),
+    0 50px 60px -20px rgb(23 42 58 / 0.09);
 }

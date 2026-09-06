@@ -125,7 +125,7 @@
      face rather than the same face set larger. Full fallback stack, so the
      page is correct before the webfont arrives and correct if it never does;
      the fallback resolves to the same stack --font-sans uses. */
-  --font-display: "Archivo", "Inter", ui-sans-serif, system-ui, -apple-system,
+  --font-display: "Fraunces", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo,
     Consolas, monospace;
