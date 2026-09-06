@@ -250,14 +250,36 @@ export function Hero({
           everywhere both exist.
         */}
         <div
+          /*
+           * ORDER MATTERS BELOW lg, AND IT IS NOT THE DOM ORDER.
+           *
+           * Stacked, the copy column comes first in source, so on a phone you
+           * scrolled the eyebrow, a three line headline, a paragraph in a
+           * plate, the compliance line and two buttons before reaching a
+           * photograph of the person the page is about. That is most of a
+           * screen and a half of type before a face, on the viewport that
+           * carries most of his traffic.
+           *
+           * `order` fixes it without moving anything in the DOM, so the
+           * reading order for a screen reader and the tab order both stay
+           * correct: headline, then him, then the rest of the copy.
+           */
           className={
             hasPortrait || featured
-              ? "grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.82fr)] lg:gap-14"
+              ? "grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.82fr)] lg:gap-14"
               : "grid gap-10"
           }
         >
           {/* The copy column. */}
-          <div className="max-w-[42rem] lg:max-w-none">
+          {/*
+            `display: contents` below lg, a block at lg.
+            Below lg this wrapper disappears and its two children become grid
+            items in their own right, which is what lets the portrait sit
+            BETWEEN them via `order`. At lg it is a block again and the copy is
+            one column, so the desktop composition is untouched.
+          */}
+          <div className="contents lg:block lg:max-w-none">
+          <div className="order-0 max-w-[42rem]">
             <div className="hero-in" style={{ animationDelay: "0ms" }}>
               <Eyebrow tone="dark">{band.eyebrow}</Eyebrow>
             </div>
@@ -282,6 +304,14 @@ export function Hero({
               ))}
             </Heading>
 
+            {/*
+              Below lg the portrait is pulled up to here by `order`, so the
+              support paragraph, the compliance line and the buttons all land
+              underneath it. Above lg nothing moves.
+            */}
+          </div>
+
+          <div className="order-2 max-w-[42rem]">
             <div className="hero-in" style={{ animationDelay: "260ms" }}>
               <p
                 data-hero-ink="support"
@@ -323,6 +353,7 @@ export function Hero({
               ))}
             </div>
           </div>
+          </div>
 
           {/*
             The right column: him, then the map beneath him.
@@ -336,7 +367,7 @@ export function Hero({
             first, then his face, then the map.
           */}
           {(hasPortrait || featured) && (
-            <div className="flex flex-col gap-5">
+            <div className="order-1 flex flex-col gap-5 lg:order-none">
               {hasPortrait && (
                 <PortraitPlate
                   slot={portrait!}
@@ -345,8 +376,8 @@ export function Hero({
                    * left for the browser to get wrong. Capped below lg so he
                    * does not become a poster on a tablet.
                    */
-                  sizes="(min-width: 1280px) 30rem, (min-width: 1024px) 38vw, (min-width: 640px) 60vw, 88vw"
-                  className="mx-auto w-full max-w-[26rem] lg:mx-0 lg:max-w-none"
+                  sizes="(min-width: 1280px) 30rem, (min-width: 1024px) 38vw, (min-width: 640px) 60vw, 92vw"
+                  className="mx-auto w-full max-w-[22rem] sm:max-w-[26rem] lg:mx-0 lg:max-w-none"
                 />
               )}
               {mapCard}

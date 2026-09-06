@@ -436,12 +436,12 @@ export function Bands({ page }: { page: PageContent }) {
                   heading={
                     <div>
                       <SectionRule />
-                      <H2 className="text-cream">{band.heading}</H2>
+                      <H2>{band.heading}</H2>
                     </div>
                   }
                   aside={
                     band.intro ? (
-                      <p className="mt-4 text-[1.02rem] leading-[1.7] text-dim">{band.intro}</p>
+                      <p className="mt-4 text-[1.02rem] leading-[1.7] text-subtle">{band.intro}</p>
                     ) : null
                   }
                 >
@@ -450,12 +450,12 @@ export function Bands({ page }: { page: PageContent }) {
                 <ol className="space-y-8">
                   {band.steps.map((s, n) => (
                     <li key={s.title} className="grid gap-3 sm:grid-cols-[3.5rem_1fr]">
-                      <span className="figure text-[0.95rem] font-semibold text-dim">
+                      <span className="figure text-[0.95rem] font-semibold text-subtle">
                         {String(n + 1).padStart(2, "0")}
                       </span>
                       <div>
-                        <h3 className="text-[1.12rem] font-semibold text-cream">{s.title}</h3>
-                        <p className="measure mt-2 text-[1rem] leading-[1.7] text-dim">{s.detail}</p>
+                        <h3 className="text-[1.12rem] font-semibold text-ink">{s.title}</h3>
+                        <p className="measure mt-2 text-[1rem] leading-[1.7] text-subtle">{s.detail}</p>
                       </div>
                     </li>
                   ))}
@@ -502,14 +502,14 @@ export function Bands({ page }: { page: PageContent }) {
                 <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr]">
                   <div>
                     <SectionRule />
-                    <H2 className="text-cream">{band.heading}</H2>
+                    <H2>{band.heading}</H2>
                     {/* Withheld when this page's hero already shows him, and
                         withheld entirely while site.headshot.src is null. See
                         the note at the top of this component for the first
                         rule and Headshot.tsx for the second. */}
                     {!heroHasPortrait && <Headshot slot={site.headshot} />}
                   </div>
-                  <Prose paragraphs={band.body} tone="dark" />
+                  <Prose paragraphs={band.body} />
                 </div>
               </Section>
             );
@@ -529,13 +529,13 @@ export function Bands({ page }: { page: PageContent }) {
               <Section key={i} seam={seam} tone={nextLightTone()}>
                 <div className="max-w-[42rem]">
                   <SectionRule />
-                  <H2 className="text-cream">{band.heading}</H2>
-                  <p className="mt-4 text-[1.02rem] leading-[1.7] text-dim">{band.intro}</p>
+                  <H2>{band.heading}</H2>
+                  <p className="mt-4 text-[1.02rem] leading-[1.7] text-subtle">{band.intro}</p>
                 </div>
                 <ServiceAreaMap towns={site.serviceAreas} phoneE164={site.phone.e164} />
                 <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2">
                   {site.serviceAreas.map((a) => (
-                    <li key={a.name} className="label text-dim">
+                    <li key={a.name} className="label text-subtle">
                       {a.name}
                     </li>
                   ))}
@@ -552,13 +552,13 @@ export function Bands({ page }: { page: PageContent }) {
                   <div>
                     <SectionRule />
                     <H2>{m.title}</H2>
-                    <p className="measure mt-4 text-[1.05rem] leading-[1.7] text-dim">{m.promise}</p>
+                    <p className="measure mt-4 text-[1.05rem] leading-[1.7] text-subtle">{m.promise}</p>
                     {/* Stacked value list. Six items beats one sentence. */}
                     <ul className="mt-8 space-y-5">
                       {m.stack.map((s) => (
                         <li key={s.label} className="border-t border-cream/15 pt-5">
                           <p className="text-[1.02rem] font-semibold">{s.label}</p>
-                          <p className="mt-1.5 text-[0.96rem] leading-[1.65] text-dim">{s.detail}</p>
+                          <p className="mt-1.5 text-[0.96rem] leading-[1.65] text-subtle">{s.detail}</p>
                         </li>
                       ))}
                     </ul>
@@ -566,7 +566,7 @@ export function Bands({ page }: { page: PageContent }) {
                       // Honest about what exists. The form says Alex sends it,
                       // because saying "instant download" would be describing
                       // intended behavior as completed behavior.
-                      <p className="mt-7 text-[0.9rem] leading-relaxed text-dim">
+                      <p className="mt-7 text-[0.9rem] leading-relaxed text-subtle">
                         Alex writes and sends this himself rather than serving an automated
                         download.
                       </p>
