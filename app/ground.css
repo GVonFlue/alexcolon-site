@@ -64,38 +64,37 @@
 
 :root {
   /*
-   * GLOSSY GOLD, not flat gold.
+   * ALEX'S GOLD, WITH GLOSS.
    *
-   * The flat #B89A67 and then #D4A94A both read as tan on a dark ground
-   * because a single hex has no specular behaviour: real metal is a gradient
-   * from a hot highlight through a body colour to a shaded edge, and the eye
-   * reads that gradient as "metal" long before it reads the hue.
+   * Back to #B89A67, which is the value he specified himself. Two earlier
+   * passes brightened it for contrast headroom and the drift was real:
    *
-   * So gold is now three tokens and a surface, not one value:
+   *     what he wrote ....... #B89A67   saturation 36%
+   *     pass one ............ #D4A94A   saturation 62%
+   *     pass two ............ #EBC157   saturation 79%
    *
-   *   --color-gold-lit    the highlight, top of the gradient
-   *   --color-gold        the body, and the only value used as flat type
-   *   --color-gold-shade  the shaded lower edge
+   * His brief says "muted gold/tan" and "avoid bright primary colors". More
+   * than doubling the saturation of a colour he called muted was a decision
+   * he never got to make. The contrast reasons were legitimate; the answer is
+   * to solve them inside his hue instead of leaving it.
    *
-   * Measured, alpha composited:
+   * The gloss survives, because gloss is a gradient and a specular edge, not
+   * a hue. All three stops sit on his hue at 38 degrees:
    *
-   *     gold on navy .............. 8.61:1   was 6.70, was 5.44
-   *     gold on navy-glow ......... 7.50:1
-   *     gold on navy-lift ......... 5.77:1   was 4.49 (failed), 3.69 (failed)
-   *     navy on gold, button ...... 8.61:1
-   *     gold-lit on navy .......... 11.6:1
+   *     lit    #D6BE96   navy on it  8.16:1
+   *     body   #B89A67   navy on it  5.50:1   <- his value, unchanged
+   *     shade  #AB9060   navy on it  4.82:1
    *
-   * navy-lift now passes on its own for the first time in this build. The
-   * FORBIDDEN entry for it in audit-contrast.mjs can be retired whenever
-   * somebody wants to; leaving it costs nothing.
+   * The shade stop is the constraint and it is why the gradient stops there.
+   * A darker, better looking shade, #8E7549, measures 3.35:1 and puts the
+   * bottom of the button under AA. That trade is not available.
+   *
+   * gold on navy is 5.50:1 and gold on navy-lift is 3.69:1, so navy-lift
+   * stays on the FORBIDDEN list where it has always been.
    */
-  --color-gold: #ebc157;
-  --color-gold-lit: #f7dc92;
-  --color-gold-shade: #b98d2e;
-
-  /* For hairlines and borders on cream and paper, where the bright gold is
-     too light to clear the 3:1 non-text floor. 3.62:1 on white, 3.30:1 on
-     cream. Never type: --color-gold-ink is still the token for that. */
+  --color-gold: #b89a67;
+  --color-gold-lit: #d6be96;
+  --color-gold-shade: #ab9060;
   --color-gold-deep: #9a7526;
 }
 
@@ -353,10 +352,27 @@ main > section::before {
     radial-gradient(50% 46% at 84% 92%, rgb(41 45 50 / 0.04) 0%, transparent 72%);
 }
 
+/*
+ * THE GRID COMES BACK, BUT ONLY ON DARK BANDS.
+ *
+ * Removing it entirely was an overcorrection. "High-tech" is one of the three
+ * words in the brief and a precise measured grid is the most direct way to
+ * say it; what was actually wrong was that the grid ran everywhere, including
+ * under light editorial prose where it fought the copy and read as noise.
+ *
+ * Now it appears on the three navy bands only, at a finer pitch than before,
+ * so dark surfaces read as instrument panels and light surfaces stay clean
+ * paper. "Clean" and "high-tech" stop competing once each one owns its own
+ * ground.
+ */
 main > section:is(.bg-navy, .navy-wash)::before {
   background-image:
+    repeating-linear-gradient(to right, rgb(247 244 238 / 0.055) 0 1px, transparent 1px 88px),
+    repeating-linear-gradient(to bottom, rgb(247 244 238 / 0.055) 0 1px, transparent 1px 88px),
+    repeating-linear-gradient(to right, rgb(247 244 238 / 0.022) 0 1px, transparent 1px 22px),
+    repeating-linear-gradient(to bottom, rgb(247 244 238 / 0.022) 0 1px, transparent 1px 22px),
     radial-gradient(74% 58% at 76% 4%, rgb(32 54 70 / 0.85) 0%, transparent 66%),
-    radial-gradient(56% 50% at 8% 94%, rgb(235 193 87 / 0.09) 0%, transparent 70%);
+    radial-gradient(56% 50% at 8% 94%, rgb(184 154 103 / 0.10) 0%, transparent 70%);
 }
 
 /*
@@ -979,45 +995,93 @@ main [data-hero-portrait] [data-portrait-frame] {
    ============================================================ */
 
 /*
- * Fraunces replaces Archivo as the display face, set in globals.css.
+ * ARCHIVO, VARIABLE, RUN WIDE. Not a serif.
  *
- * A soft serif with optical sizing rather than a didone: Slash's Ivy Presto
- * is beautiful and would read as a fashion house on a site whose brief says
- * "premium without feeling luxury-exclusive". Fraunces has the editorial
- * weight without the hauteur, its italic is genuinely good, and the optical
- * size axis means it tightens correctly as it grows instead of just scaling.
+ * The previous pass put Fraunces in, a soft serif with a WONK axis, after
+ * studying three editorial references. It was good design pointed at the
+ * wrong brief: a soft serif is editorial and classic, and one of Alex's three
+ * words is high-tech. A serif is close to the opposite of it.
  *
- * The boundary is absolute and it is the point: serif at display sizes, Inter
- * everywhere else. Never cross it.
+ * Archivo returns as the display face, but not as it was. It is a variable
+ * font with a width axis, and display type is set EXPANDED at wdth 112. A
+ * grotesque run wide reads as engineered rather than as a default sans, which
+ * is what "boring" actually meant: not the face, the fact that nothing was
+ * being done with it.
+ *
+ * The high-tech signal is carried by four things, all cheap:
+ *
+ *     display set expanded and tracked tight
+ *     mono doing all the work on numbers, labels and data
+ *     tabular figures everywhere a number appears
+ *     a measured grid, on dark surfaces only
+ *
+ * Inter stays for body. It is an excellent text face and a characterless
+ * display one, which is exactly the division of labour it is good at.
  */
 main :is(h1, h2, h3),
 .display {
-  font-optical-sizing: auto;
-  font-variation-settings: "SOFT" 22, "WONK" 1;
+  font-variation-settings: "wdth" 112;
   letter-spacing: -0.028em;
 }
 
-/* Tracking tightens as size grows, the way Increase does it. */
 main h1,
 .display-xl {
-  letter-spacing: -0.048em;
+  font-variation-settings: "wdth" 108;
+  letter-spacing: -0.042em;
   line-height: 0.96;
 }
 
 /*
- * The accent phrase becomes a second voice: serif italic, and gold.
+ * The accent phrase is the second voice in a headline, and on a high-tech
+ * brief it cannot be an italic serif. It becomes the mono instead: a phrase
+ * inside a display line that switches to a monospaced face is unmistakably
+ * deliberate and unmistakably technical, and it does the same job the italic
+ * was doing.
  *
- * This is the single cheapest way to make a headline stop reading as one
- * uniform block. gvonflue.vercel.app does exactly this with "Real *Estate*"
- * and "Meet *Scout*", and it is why those headlines have a shape.
- *
- * The metallic fill from section 15 still applies on the hero; this adds the
- * italic everywhere the accent phrase appears.
+ * Set at 0.92em because JetBrains Mono runs large on the body, and tracked
+ * slightly open because mono at display size closes up.
  */
 main [data-accent-phrase] {
-  font-style: italic;
-  font-variation-settings: "SOFT" 40, "WONK" 1;
-  letter-spacing: -0.02em;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.92em;
+  letter-spacing: -0.012em;
+  font-variation-settings: normal;
+}
+
+/*
+ * Every number on the site is mono and tabular.
+ *
+ * This is the single highest-signal, lowest-cost high-tech move available:
+ * proportional figures in a grotesque read as marketing, tabular figures in a
+ * monospace read as an instrument. It applies to the stat band, the
+ * calculators, the step numbers and the band counters.
+ */
+main .figure,
+main [data-stat],
+main .tabular,
+main output,
+main .label {
+  font-variant-numeric: tabular-nums;
+}
+
+main .figure,
+main [data-stat] {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/*
+ * Micro-labels get the instrument treatment: mono, uppercase, open tracking,
+ * and a hairline rule. Alex asked for "prompts or info tabs" and this is the
+ * typographic register those live in.
+ */
+main .label {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+  font-size: 0.6875rem;
 }
 
 /* ============================================================
