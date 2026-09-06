@@ -279,6 +279,20 @@ export async function ogImage(variant: OgVariant = "home", headline?: string) {
         </div>
       </div>
     ),
-    { ...OG_SIZE, fonts },
+    /*
+     * `fonts` is spread in only when it exists.
+     *
+     * Passing `fonts: undefined` is not the same as omitting the key. Satori
+     * reads the option, finds nothing, and throws "Cannot read properties of
+     * undefined (reading 'split')" while trying to parse a font family off
+     * it. The result is that the graceful-degradation branch above, and the
+     * comment promising a build never fails because Google Fonts was briefly
+     * unreachable, did the exact opposite: every build with no egress to
+     * fonts.googleapis.com died at /buy/opengraph-image.
+     *
+     * Omitting the key lets next/og fall back to its own bundled face, which
+     * is what the comment always claimed happened.
+     */
+    { ...OG_SIZE, ...(fonts ? { fonts } : {}) },
   );
 }
