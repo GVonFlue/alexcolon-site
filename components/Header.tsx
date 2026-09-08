@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CtaLink } from "./ui";
 
 const NAV = [
@@ -10,7 +10,6 @@ const NAV = [
   { href: "/sell", label: "Sell" },
   { href: "/veterans", label: "Veterans" },
   { href: "/investors", label: "Investors" },
-  { href: "/areas", label: "Areas" },
   { href: "/about", label: "About" },
 ];
 
@@ -44,18 +43,78 @@ export function Header({
   brokerageName: string | null;
 }) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
+  /*
+   * The two header states the brief asks for: full presentation at the top,
+   * shorter and quieter once the visitor has started reading.
+   *
+   * A 24px threshold rather than 0, so a one-pixel scroll or an iOS rubber-band
+   * bounce does not flicker the bar. `passive: true` because this listener
+   * never calls preventDefault and marking it so keeps it off the scroll's
+   * critical path.
+   *
+   * The initial read happens before the listener is attached: a browser that
+   * restores scroll position on back-navigation lands mid-page with no scroll
+   * event, and without this the header would render in its top state over
+   * content it is supposed to be floating above.
+   */
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  /*
+   * Every piece of type in this bar has to flip with the ground under it.
+   * Derived once, here, rather than repeated at seven call sites: the first
+   * version of this hardcoded text-cream throughout and the scrolled state
+   * rendered cream on white, which is invisible rather than merely wrong.
+   */
+  const strong = scrolled ? "text-navy" : "text-cream";
+  const quiet = scrolled ? "text-subtle" : "text-dim";
+  const quietHover = scrolled ? "hover:text-navy" : "hover:text-cream";
+  const edge = scrolled ? "border-ink/25" : "border-cream/50";
+
   return (
-    // Translucent navy, not flat cream: at 92 percent opacity plus a blur the
-    // composited worst case (this over the lightest thing that can scroll
-    // under it) is still far past AA, verified in audit-contrast.mjs, and the
-    // blur means nothing sharp from the page below shows through the way flat
-    // 95 percent cream once let band headings ghost through while scrolling.
-    // on-dark picks up the secondary CTA and gold focus ring every other dark
-    // section already gets.
-    <header className="on-dark sticky top-0 z-50 border-b border-cream/12 bg-navy/92 backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-[76rem] items-center gap-4 px-5 py-3 sm:px-8">
+    /*
+     * LIGHT-FIRST, AND TWO STATES.
+     *
+     * This was translucent navy, chosen when every band on every route was
+     * navy and a light bar read as a different site. The brief inverts that:
+     * white is the dominant ground now, so a navy bar would be the loudest
+     * object on a quiet page and would fight the hero it sits on top of.
+     *
+     * At the top:      transparent, no border, full height. The hero shows
+     *                  through and the header reads as part of it.
+     * After scrolling: translucent white with a blur and a hairline, shorter,
+     *                  and visibly subordinate to the page.
+     *
+     * `on-dark` is applied ONLY in the top state, because that is the only
+     * state sitting on the navy hero. Once scrolled, the bar is light and the
+     * type has to flip with it — carrying on-dark into the scrolled state
+     * would leave cream text on a white bar, which is the exact bug this
+     * comment exists to stop somebody reintroducing.
+     */
+    <header
+      className={[
+        "sticky top-0 z-50 transition-[background-color,border-color,padding,backdrop-filter] duration-300 ease-out",
+        scrolled
+          ? "border-b border-ink/10 bg-paper/85 backdrop-blur-md"
+          : "on-dark border-b border-transparent bg-transparent",
+      ].join(" ")}
+    >
+      {/* The height change is the other half of the state: 12px of padding at
+          the top, 8px once scrolled. Small enough to read as settling rather
+          than as the page jumping. */}
+      <div
+        className={[
+          "mx-auto flex w-full max-w-[76rem] items-center gap-4 px-5 transition-[padding] duration-300 ease-out sm:px-8",
+          scrolled ? "py-2" : "py-3",
+        ].join(" ")}
+      >
         {/*
           The Kansas lockup. K.S.A. 58-3086 requires the supervising broker's
           business name in a readable and identifiable manner, and the
@@ -75,14 +134,14 @@ export function Header({
         >
           <span
             data-compliance-part="agent"
-            className="text-[1.02rem] font-semibold tracking-[-0.015em] text-cream"
+            className={`text-[1.02rem] font-semibold tracking-[-0.015em] ${strong}`}
           >
             {agentName}
           </span>
           {brokerageName && (
             <span
               data-compliance-part="brokerage"
-              className="hidden text-[0.72rem] font-medium tracking-[0.01em] text-dim sm:block"
+              className={`hidden text-[0.72rem] font-medium tracking-[0.01em] ${quiet} sm:block`}
             >
               {brokerageName}
             </span>
@@ -99,7 +158,9 @@ export function Header({
                     href={n.href}
                     aria-current={active ? "page" : undefined}
                     className={`inline-flex min-h-[38px] items-center rounded-full px-3.5 text-[0.92rem] transition-colors duration-150 ${
-                      active ? "bg-cream font-semibold text-navy" : "text-dim hover:text-cream"
+                      active
+                        ? (scrolled ? "bg-navy font-semibold text-cream" : "bg-cream font-semibold text-navy")
+                        : `${quiet} ${quietHover}`
                     }`}
                   >
                     {n.label}
@@ -113,7 +174,7 @@ export function Header({
         {/* Tappable tel in the header, on every route. */}
         <a
           href={telHref}
-          className="ml-auto hidden min-h-[44px] items-center text-[0.95rem] text-dim hover:text-cream lg:ml-4 lg:inline-flex"
+          className={`ml-auto hidden min-h-[44px] items-center text-[0.95rem] ${quiet} ${quietHover} lg:ml-4 lg:inline-flex`}
         >
           <span className="figure">{phoneDisplay}</span>
         </a>
@@ -128,7 +189,7 @@ export function Header({
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-controls="mobile-nav"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-cream/50 text-cream lg:hidden"
+          className={`inline-flex h-11 w-11 items-center justify-center rounded-md border ${edge} ${strong} lg:hidden`}
         >
           <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
           <svg viewBox="0 0 20 20" aria-hidden="true" className="h-5 w-5">

@@ -29,29 +29,6 @@
       "variant": "veterans"
     },
     {
-      "type": "assistant",
-      "eyebrow": "Before you talk to a lender",
-      "heading": "Ask Lark about the VA process",
-      "intro": "Lark knows the two places a VA purchase actually differs from any other, eligibility and the appraisal, and can walk you through either one. Ask before you call a lender, and it will say so the moment it does not know something.",
-      "chips": [
-        {
-          "label": "What does the VA appraisal check?",
-          "prompt": "What does a VA appraisal look for beyond value, and which condition items tend to hold one up?",
-          "kind": "info"
-        },
-        {
-          "label": "How do I get my Certificate of Eligibility?",
-          "prompt": "What is the Certificate of Eligibility, how do I request one, and why should I start it before I am house hunting?",
-          "kind": "info"
-        },
-        {
-          "label": "Send Alex my report date",
-          "prompt": "I have a report date and I would like Alex to work the schedule backward from it and get back to me.",
-          "kind": "conversion"
-        }
-      ]
-    },
-    {
       "type": "prose",
       "heading": "The two places a VA purchase actually differs",
       "body": [
@@ -87,23 +64,6 @@
       ]
     },
     {
-      "type": "contactStrip",
-      "line": "Already have a report date? Send it to Alex directly."
-    },
-    {
-      "type": "tool",
-      "heading": "Put your report date in and see the schedule",
-      "body": [
-        "When the date on the other end is not yours to move, the useful question is not how long things take in general. It is which day each thing has to happen by.",
-        "Enter your report date for the days remaining. Add how long your lender says closing takes and the rest of the schedule builds itself."
-      ],
-      "tool": "vaTimeline"
-    },
-    {
-      "type": "conversion",
-      "magnetId": "va-checklist"
-    },
-    {
       "type": "faq",
       "heading": "What comes up on VA purchases",
       "items": [
@@ -126,33 +86,8 @@
       ]
     },
     {
-      "type": "proof",
-      "heading": "What veteran buyers say about working with Alex"
-    },
-    {
-      "type": "closingCta",
-      "heading": "Send Alex your dates and he will work backward from them",
-      "body": "Even if the move is months out, the Certificate of Eligibility and the lender conversation are worth starting now. Both are free and both are slow.",
-      "ctas": [
-        {
-          "label": "Text Alex your dates",
-          "href": "sms:+18136138822",
-          "kind": "direct",
-          "emphasis": "primary"
-        },
-        {
-          "label": "Call (813) 613-8822",
-          "href": "tel:+18136138822",
-          "kind": "direct",
-          "emphasis": "secondary"
-        },
-        {
-          "label": "Send it in writing instead",
-          "href": "/contact",
-          "kind": "give",
-          "emphasis": "quiet"
-        }
-      ]
+      "type": "conversion",
+      "magnetId": "va-checklist"
     }
   ]
 }

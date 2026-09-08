@@ -135,27 +135,19 @@ for (const area of site.serviceAreas ?? []) {
   }
 }
 
-/**
- * The areas route's own prose gets the strict list too. It is the page the
- * town cards live on, so a characterization in a heading above them is the
- * same violation as one inside them.
+/*
+ * THE AREAS CHECK IS GONE, WITH THE PAGE IT GUARDED.
+ *
+ * /areas was deleted with the seven-town concept, so this block was reading a
+ * file that no longer exists and crashing the whole audit on ENOENT — which
+ * means every OTHER check in this file stopped running too. A guard that takes
+ * the suite down with it protects nothing.
+ *
+ * The strict area rules themselves are NOT gone. scanArea still runs over
+ * site.json's serviceAreas below, which is where the town facts live, and the
+ * general copy rules still cover every page. If an Areas page is ever built
+ * again, restore a block like this one and point it at the new file.
  */
-{
-  const areasJson = JSON.parse(readFileSync(join(CONTENT_DIR, "areas.json"), "utf8"));
-  const strings = [];
-  walk(areasJson, [], strings);
-  const hits = [];
-  for (const { path, text } of strings) {
-    for (const v of scanArea(text, { allowRealtor })) hits.push({ path, ...v });
-  }
-  if (hits.length) {
-    failures += hits.length;
-    console.log(`FAIL  areas.json prose`);
-    for (const h of hits) console.log(`      [${h.ruleSet}] "${h.phrase}"  at ${h.path}`);
-  } else {
-    console.log(`pass  areas.json prose`);
-  }
-}
 
 /**
  * Pronoun ratio, per page. This is a personal brand build, so the doctrine's

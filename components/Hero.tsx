@@ -3,7 +3,6 @@ import type { Band } from "@/lib/schema";
 import { site } from "@/lib/content";
 import { AccentHeadline, CtaLink, Eyebrow, Section } from "./ui";
 import { LineReveal } from "./LineReveal";
-import { ServiceAreaMap } from "./ServiceAreaMap";
 
 /**
  * The hero.
@@ -202,7 +201,6 @@ export function Hero({
 }) {
   const Heading = isH1 ? "h1" : "h2";
   const v = HERO_VARIANTS[band.variant];
-  const featured = band.feature === "areaMap";
   const portrait = band.portrait;
   /*
    * next/image needs real dimensions, and so does a layout that must not
@@ -225,13 +223,21 @@ export function Hero({
    * under the hero, which is the only place on a phone where the town targets
    * are big enough to hit comfortably.
    */
-  const mapCard = featured ? (
-    <div className="hidden w-full md:block">
-      <div className="rounded-[1.25rem] border border-gold/25 bg-navy-deep/90 p-4 shadow-[inset_0_1px_0_0_rgb(247_244_238_/_0.05),0_34px_70px_-30px_rgb(0_0_0_/_0.7)]">
-        <ServiceAreaMap towns={site.serviceAreas} compact phoneE164={site.phone.e164} />
-      </div>
-    </div>
-  ) : null;
+  /*
+   * THE MAP IS GONE, and with it the whole "featured" branch.
+   *
+   * It carried real TIGER/Line river and highway geometry, a town panel with
+   * keyboard focus, and a fair-housing rule set that allowed only facts. It
+   * was the best-engineered thing on the page. It went because the seven-town
+   * concept it existed to express went: the revision brief removes every
+   * seven-town reference and replaces hard-limited service areas with
+   * "Wichita and the surrounding area".
+   *
+   * The geometry survives. BandSeam and BandTexture both draw from the same
+   * generated paths, so the site keeps the local drawing without keeping the
+   * claim about which seven towns Alex will work in.
+   */
+
 
   return (
     <>
@@ -265,7 +271,7 @@ export function Hero({
            * correct: headline, then him, then the rest of the copy.
            */
           className={
-            hasPortrait || featured
+            hasPortrait
               ? "grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.82fr)] lg:gap-14"
               : "grid gap-10"
           }
@@ -366,7 +372,7 @@ export function Hero({
             belongs on a phone anyway: the headline and the call to action
             first, then his face, then the map.
           */}
-          {(hasPortrait || featured) && (
+          {(hasPortrait) && (
             <div className="order-1 flex flex-col gap-5 lg:order-none">
               {hasPortrait && (
                 <PortraitPlate
@@ -380,8 +386,7 @@ export function Hero({
                   className="mx-auto w-full max-w-[22rem] sm:max-w-[26rem] lg:mx-0 lg:max-w-none"
                 />
               )}
-              {mapCard}
-            </div>
+                          </div>
           )}
         </div>
 
@@ -400,11 +405,7 @@ export function Hero({
         width, which is the only place on a phone where its town targets are
         big enough to hit comfortably.
       */}
-      {featured && (
-        <Section tone="navyWash" texture="rivers" className="md:hidden" pad="pb-12 pt-6">
-          <ServiceAreaMap towns={site.serviceAreas} compact phoneE164={site.phone.e164} />
-        </Section>
-      )}
+
     </>
   );
 }

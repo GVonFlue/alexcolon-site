@@ -8,7 +8,6 @@ import buyJson from "@/content/buy.json";
 import sellJson from "@/content/sell.json";
 import veteransJson from "@/content/veterans.json";
 import investorsJson from "@/content/investors.json";
-import areasJson from "@/content/areas.json";
 import aboutJson from "@/content/about.json";
 import contactJson from "@/content/contact.json";
 
@@ -38,7 +37,6 @@ export const pages = {
   sell: parse(PageContent, sellJson, "content/sell.json"),
   veterans: parse(PageContent, veteransJson, "content/veterans.json"),
   investors: parse(PageContent, investorsJson, "content/investors.json"),
-  areas: parse(PageContent, areasJson, "content/areas.json"),
   about: parse(PageContent, aboutJson, "content/about.json"),
   contact: parse(PageContent, contactJson, "content/contact.json"),
 } as const;

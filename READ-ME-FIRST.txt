@@ -1,0 +1,80 @@
+PHASE 1 — BATCH 1 of 4.  Global restructure.
+
+UPLOAD
+  github.com/GVonFlue/alexcolon-site > Add file > Upload files
+  Drag the FIVE FOLDERS -- app, components, content, lib, scripts -- on
+  together. Do not open them. Commit.
+  Do not drag this file in.
+
+THEN DELETE THESE, in the GitHub UI (open the file > trash icon > commit):
+  app/areas/page.tsx          the whole app/areas folder
+  content/areas.json
+  components/ServiceAreaMap.tsx
+  components/TownPanel.tsx
+
+  Uploading cannot delete. These four are gone from the build already -- the
+  route is unreachable and nothing imports the components -- but leaving dead
+  files in the repo is how somebody re-imports one in three months.
+
+WHAT THIS BATCH DOES
+
+  PALETTE INVERTED.  Dark bands went from nine, to four, to THREE: hero,
+  assistant, closingCta. The light rotation was an even third each of cream,
+  paper and wash; it is now paper, cream, paper, wash, so white is in the
+  majority. The brief wants the site to "read as predominantly white at first
+  glance" and navy used "in concentrated places where it adds hierarchy".
+  Proof came OUT of the dark set: it was moved to dark a few passes ago to
+  stop the testimonials vanishing into a navy page, and with a white page
+  around it a warm card with a gold hairline stands out on its own.
+
+  STICKY HEADER, TWO STATES.  Transparent and full height at the top, so the
+  hero shows through. Translucent white with a blur, a hairline and less
+  padding once scrolled past 24px.
+
+  Every colour in the bar flips with the state. The first version hardcoded
+  text-cream at seven call sites and the scrolled state rendered cream on
+  white, which is invisible rather than merely wrong. There is one derived
+  pair of tokens now, not seven literals.
+
+  AREAS DELETED.  Route, content, both nav entries, the 404 link, the map and
+  the town panel. The band type is retired in Bands.tsx and returns null, so a
+  content file still carrying one renders nothing rather than crashing.
+
+  The TIGER/Line geometry SURVIVES. BandSeam and BandTexture both draw from
+  it, so the site keeps the local drawing without keeping the claim about
+  which seven towns Alex will work in.
+
+  SEVEN TOWNS GONE from content: the hero eyebrow, the Lark chip, the buyer
+  guide bullet.
+
+  HERO REWRITTEN.  "Relationships first. Real answers from a real guy." is
+  replaced with "Real estate decisions should come with clear information."
+
+  PAGES CUT to the approved flows:
+      home       11 -> 4       buy        10 -> 5
+      sell       11 -> 6       veterans   10 -> 5
+      investors  10 -> 4       about       8 -> 2
+      contact     4 -> 2
+  40 bands removed. The brief is explicit that shorter IS the result, so do
+  not fill the space.
+
+  LICENCE NUMBER 00252387 replaces the pending placeholder.
+
+ONE BUG FOUND AND FIXED
+  scripts/audit-copy.mjs read content/areas.json directly. With the file gone
+  it crashed on ENOENT, which took every OTHER check in the suite down with
+  it. The area rules themselves are not gone -- they still run over
+  site.json's serviceAreas.
+
+VERIFIED
+  Typecheck clean. Contrast audit passes. Copy audit passes: 243 strings, down
+  from 408. Build compiles.
+
+STILL TO COME
+  Batch 2  Lark as a persistent bottom-right widget, static sections removed
+  Batch 3  the three-mode calculator system
+  Batch 4  page-by-page copy rewrites, About, privacy policy, footer detail
+
+NEEDED FROM ALEX
+  The Google review profile URL and the RealSatisfied profile URL. The
+  testimonial section has slots for both and they are null until he sends them.

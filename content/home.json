@@ -8,9 +8,9 @@
   "bands": [
     {
       "type": "hero",
-      "eyebrow": "Seven towns around Wichita",
-      "headline": "Relationships first. Real answers from a real guy.",
-      "support": "Most people do not need a pitch. They need somebody who will tell them straight what a house is actually worth, what the payment really looks like, and whether the timing makes sense for them right now. I would rather you walk away from a bad deal knowing exactly why than sign something you spend three years regretting. First place, VA benefit you earned, a house you have outgrown, or a rental you are trying to make pencil, you get the same thing from me either way: an honest read, and somebody who is still around after closing.",
+      "eyebrow": "Wichita and the surrounding area",
+      "headline": "Real estate decisions should come with clear information.",
+      "support": "Buying, selling, or investing involves a lot of moving pieces. Alex helps you understand the numbers, the process, and your options so you can make informed decisions with confidence.",
       "ctas": [
         {
           "label": "Send me the buyer's guide",
@@ -27,7 +27,7 @@
       ],
       "image": null,
       "feature": "areaMap",
-      "accentPhrase": "Real answers",
+      "accentPhrase": "clear information",
       "variant": "home",
       "attribution": "Alexander Colón, agent with At Home Wichita Real Estate.",
       "portrait": {
@@ -38,73 +38,6 @@
         "height": 2000,
         "source": "Supplied by Alex Colón, September 2026. Delivered as a 2000x2000 RGBA PNG with the background already removed; file metadata records it as prepared in Canva by Garrett Von Flue. Measured on arrival rather than assumed: the alpha channel is real (54.7 percent of pixels fully transparent, 0.97 percent partial), the subject's bounding box is x 15 to 1999 by y 250 to 1999, and the matte carries no light halo (edge pixels average 4.9 luminance units darker than the opaque pixel beside them, not brighter)."
       }
-    },
-    {
-      "type": "assistant",
-      "eyebrow": "Before you talk to anyone",
-      "heading": "Ask Lark a question first",
-      "intro": "Lark answers questions about buying and selling around Wichita. It says so when it does not know something, and it hands you to Alex the moment you would rather have a person."
-    },
-    {
-      "type": "pickYourDoor",
-      "heading": "Where are you starting from?",
-      "lanes": [
-        {
-          "lane": "Buying",
-          "line": "You have not done this before and you want to know what it costs before anyone runs your credit.",
-          "href": "/buy",
-          "offer": "Work backward from the payment"
-        },
-        {
-          "lane": "Selling",
-          "line": "You want a real number on your house and a straight read on whether now is the time.",
-          "href": "/sell",
-          "offer": "See what you would actually walk away with"
-        },
-        {
-          "lane": "Military",
-          "line": "You have a VA loan, a report date, or both, and the timeline is not something you control.",
-          "href": "/veterans",
-          "offer": "Build the schedule around your report date"
-        },
-        {
-          "lane": "Investing",
-          "line": "You want the rent, the carry, and what is left, worked on a specific address.",
-          "href": "/investors",
-          "offer": "Run the full carry, not just the payment"
-        }
-      ]
-    },
-    {
-      "type": "prose",
-      "heading": "What working with Alex actually looks like",
-      "body": [
-        "Most of what makes a purchase or a sale go badly is not drama, it is being asked to decide on something nobody explained to you first. Alex works the other way around. You get the explanation, then the decision is yours to make with the information in hand.",
-        "That holds from the first conversation through closing. He handles the parts that need handling and tells you about the parts that need you, and he does not disappear into email between them."
-      ]
-    },
-    {
-      "type": "lossAversion",
-      "heading": "What waiting costs, worked on your numbers",
-      "body": [
-        "A house you own while you are deciding is a house you are paying for. The mortgage payment, the taxes, the insurance, and the utilities you keep on all leave your account every month whether the house is listed or not.",
-        "Nobody can tell you what your house will sell for without seeing it, so this does not try. It only does the arithmetic on the money you are already spending while you think about it. Put your own figures in and see the number."
-      ],
-      "calculator": "carryCost"
-    },
-    {
-      "type": "trust",
-      "heading": "Who you would actually be working with",
-      "body": [
-        "Alex works with first time buyers, service members and veterans, people selling a house, and people buying property to rent out. The thread running through all four is that they want to understand what is happening rather than be moved through it.",
-        "If you ask him a question you get the actual answer, including the times the answer is that you should wait, or that the house you are looking at is not worth what they are asking.",
-        "If what you want is someone who will agree with you, he is going to be a poor fit. He would rather you find that out on this page than three weeks into a transaction."
-      ]
-    },
-    {
-      "type": "numbers",
-      "heading": "The numbers, once there are numbers",
-      "intro": null
     },
     {
       "type": "conversion",
@@ -133,31 +66,6 @@
         {
           "q": "What does it cost to talk to him?",
           "a": "Nothing. Agent commission is paid out of the transaction and it is spelled out in writing before you sign anything, so there is no bill attached to asking questions."
-        }
-      ]
-    },
-    {
-      "type": "closingCta",
-      "heading": "Start with a question, not a commitment",
-      "body": "Send Alex the thing you are actually wondering about and see what sort of answer comes back. If it is useful, you will know. If it is not, you have lost a text message.",
-      "ctas": [
-        {
-          "label": "Text Alex a question",
-          "href": "sms:+18136138822",
-          "kind": "direct",
-          "emphasis": "primary"
-        },
-        {
-          "label": "Call (813) 613-8822",
-          "href": "tel:+18136138822",
-          "kind": "direct",
-          "emphasis": "secondary"
-        },
-        {
-          "label": "Send it in writing instead",
-          "href": "/contact",
-          "kind": "give",
-          "emphasis": "quiet"
         }
       ]
     }

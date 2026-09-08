@@ -29,37 +29,6 @@
       "variant": "investors"
     },
     {
-      "type": "assistant",
-      "eyebrow": "Before you run the numbers",
-      "heading": "Ask Lark about rental math",
-      "intro": "Lark knows where rental math on this page usually goes wrong, the rent estimate and the carrying cost, and can walk through either before you send Alex an address. It says so the moment it does not know something.",
-      "chips": [
-        {
-          "label": "What belongs in the carry?",
-          "prompt": "What belongs in the full monthly carrying cost of a rental, beyond principal and interest?",
-          "kind": "info"
-        },
-        {
-          "label": "Why are rent estimates wrong?",
-          "prompt": "Why is a national rent estimator usually wrong for a specific Kansas address, and what should I use instead?",
-          "kind": "info"
-        },
-        {
-          "label": "Have Alex run an address",
-          "prompt": "I have an address I am looking at and I would like Alex to work the rent, the carry and what is left.",
-          "kind": "conversion"
-        }
-      ]
-    },
-    {
-      "type": "prose",
-      "heading": "Where most rental math goes wrong",
-      "body": [
-        "The two errors that account for most bad purchases are a rent figure pulled from a national estimator rather than from what is actually leasing nearby, and a carrying cost that stops at principal and interest.",
-        "Taxes, insurance, vacancy, and maintenance are not rounding. Leave them out and a property that loses money every month can look like it clears a few hundred. Alex runs all of them, and he would rather talk you out of a bad address than sell you one."
-      ]
-    },
-    {
       "type": "tool",
       "heading": "Run it with the whole carry, not just the payment",
       "body": [
@@ -67,37 +36,6 @@
         "If the number at the bottom is negative, it says so in the same size type as everything else."
       ],
       "tool": "rentalCashflow"
-    },
-    {
-      "type": "contactStrip",
-      "line": "Already have an address? Skip the tool and send it to Alex."
-    },
-    {
-      "type": "steps",
-      "heading": "What you get back on a specific address",
-      "intro": null,
-      "steps": [
-        {
-          "title": "Rent, from comparable leases",
-          "detail": "What similar properties nearby are actually renting for right now, not a percentage applied to the purchase price."
-        },
-        {
-          "title": "The full monthly carry",
-          "detail": "Debt service, taxes, insurance, and a maintenance allowance, with the assumption behind each number written down so you can argue with it."
-        },
-        {
-          "title": "What is left",
-          "detail": "The number at the bottom, before and after vacancy. If it is negative, it says so in the same size type as everything else."
-        },
-        {
-          "title": "What it needs before a tenant",
-          "detail": "The work required to make it rentable and roughly what that runs, because a purchase price plus fifteen thousand dollars of deferred maintenance is a different deal."
-        },
-        {
-          "title": "Alex's read",
-          "detail": "Whether he would buy it, and why. This is the part that is worth asking for, and it is the part he will not soften."
-        }
-      ]
     },
     {
       "type": "conversion",
@@ -122,35 +60,6 @@
         {
           "q": "What about properties that need significant work?",
           "a": "Those need a scope and a contractor number before the analysis means anything. Alex will tell you when a property cannot be evaluated responsibly without one rather than guessing at a rehab figure."
-        }
-      ]
-    },
-    {
-      "type": "proof",
-      "heading": "What investors say about working with Alex"
-    },
-    {
-      "type": "closingCta",
-      "heading": "Send the address you are already looking at",
-      "body": "You are probably running numbers on something right now. Send it over and see whether the analysis you get back is better than the one you did.",
-      "ctas": [
-        {
-          "label": "Text Alex an address",
-          "href": "sms:+18136138822",
-          "kind": "direct",
-          "emphasis": "primary"
-        },
-        {
-          "label": "Call (813) 613-8822",
-          "href": "tel:+18136138822",
-          "kind": "direct",
-          "emphasis": "secondary"
-        },
-        {
-          "label": "Send it in writing instead",
-          "href": "/contact",
-          "kind": "give",
-          "emphasis": "quiet"
         }
       ]
     }

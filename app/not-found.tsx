@@ -19,7 +19,6 @@ export default function NotFound() {
     { href: "/sell", label: "Selling a house" },
     { href: "/veterans", label: "VA loan purchases" },
     { href: "/investors", label: "Investment property" },
-    { href: "/areas", label: "Where Alex works" },
     { href: "/about", label: "About Alex" },
     { href: "/contact", label: "Contact" },
   ];

@@ -29,48 +29,12 @@
       "variant": "selling"
     },
     {
-      "type": "assistant",
-      "eyebrow": "Before you list",
-      "heading": "Ask Lark what selling actually costs",
-      "intro": "Lark knows what leaves your account when a house sells here, in what order, and what the automated number on your screen usually gets wrong. Ask before you talk to Alex, and it will say so the moment it does not know something.",
-      "chips": [
-        {
-          "label": "What comes out of the sale price?",
-          "prompt": "When a house sells around Wichita, what actually comes out of the sale price before the money reaches me?",
-          "kind": "info"
-        },
-        {
-          "label": "Why is the online estimate off?",
-          "prompt": "Why is the automated estimate of my home's value usually wrong, and what would change the number in either direction?",
-          "kind": "info"
-        },
-        {
-          "label": "Have Alex value my house",
-          "prompt": "I would like Alex to put a real number on my house and send me the comparable sales he used.",
-          "kind": "conversion"
-        }
-      ]
-    },
-    {
       "type": "prose",
       "heading": "Why the number on your screen is usually wrong",
       "body": [
         "Automated valuations work from public records and recent nearby sales. They have never been inside your house, so they cannot see the kitchen you redid, the roof that is at the end of its life, or the fact that your lot backs onto something that changes what a buyer will pay.",
         "That is not a reason to distrust them entirely. It is a reason to treat the number as a starting point and get a person to look at the specific things about your house that move it in either direction."
       ]
-    },
-    {
-      "type": "lossAversion",
-      "heading": "What every month of deciding costs you",
-      "body": [
-        "While you are thinking about it, you are still paying for the house. The mortgage payment, the taxes, the insurance, and the utilities you keep on continue whether the sign is in the yard or not.",
-        "This does not predict what your house will sell for, because nobody can do that from a web page. It only totals what you are already spending while you decide. Put your own figures in and the arithmetic is the arithmetic."
-      ],
-      "calculator": "none"
-    },
-    {
-      "type": "contactStrip",
-      "line": "Already know you want a number on your house? Skip the reading."
     },
     {
       "type": "tool",
@@ -135,35 +99,6 @@
         {
           "q": "How is the commission handled?",
           "a": "It is agreed in writing before anything is listed, and you will see exactly what is paid and to whom. Ask Alex to walk you through the agreement line by line before you sign it. He would rather you did."
-        }
-      ]
-    },
-    {
-      "type": "proof",
-      "heading": "What sellers say about working with Alex"
-    },
-    {
-      "type": "closingCta",
-      "heading": "Get the number first, decide after",
-      "body": "The valuation costs you nothing and commits you to nothing. Plenty of people get one, sit on it for a year, and come back later.",
-      "ctas": [
-        {
-          "label": "Text Alex about your house",
-          "href": "sms:+18136138822",
-          "kind": "direct",
-          "emphasis": "primary"
-        },
-        {
-          "label": "Call (813) 613-8822",
-          "href": "tel:+18136138822",
-          "kind": "direct",
-          "emphasis": "secondary"
-        },
-        {
-          "label": "Send it in writing instead",
-          "href": "/contact",
-          "kind": "give",
-          "emphasis": "quiet"
         }
       ]
     }

@@ -302,8 +302,8 @@
       "source": "athomewichita.com site footer. Confirm with Alex before launch."
     },
     "licenseNumber": {
-      "value": null,
-      "pending": "Alex's Kansas real estate license number. Not published anywhere public that could be verified, and a license number that reaches production wrong is the exact failure hard stop 6 exists to prevent. Needed from Alex directly, in writing."
+      "value": "00252387",
+      "source": "Provided by Alexander Colón, September 2026. Kansas real estate salesperson licence."
     },
     "narMembershipConfirmed": false,
     "equalHousing": true,
@@ -360,7 +360,7 @@
     "goodAt": [
       "Buying questions",
       "Selling questions",
-      "The seven towns",
+      "Wichita and the surrounding area",
       "Hands you to Alex"
     ]
   }

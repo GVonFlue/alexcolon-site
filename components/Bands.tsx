@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Band, PageContent, Testimonial } from "@/lib/schema";
 import { site, magnet, telHref, smsHref } from "@/lib/content";
 import { AccentHeadline, CtaLink, Eyebrow, H2, Prose, Section, SectionRule, Split, type SectionTone } from "./ui";
-import { ServiceAreaMap } from "./ServiceAreaMap";
 import { Assistant } from "./Assistant";
 import { LeadForm } from "./LeadForm";
 import { CarryCostCalculator } from "./CarryCostCalculator";
@@ -35,7 +34,20 @@ const TOOLS = {
  * light ones. The light bands still rotate through these three so two
  * light bands next to each other are not the same flat fill twice.
  */
-const LIGHT_TONES: SectionTone[] = ["cream", "paper", "wash"];
+/*
+ * THE LIGHT ROTATION, WEIGHTED TOWARD WHITE.
+ *
+ * Was ["cream", "paper", "wash"], an even third each, which made warm cream
+ * the dominant impression on a page of light bands. The brief wants white as
+ * "the primary page background and dominant negative space", with cream as
+ * "subtle warm/off-white section backgrounds and soft contrast" — a break from
+ * white, not a co-equal.
+ *
+ * Paper twice in four keeps white in the majority; wash is the gradient
+ * between the two and reads as neither, so it does the work of a divider
+ * without one being drawn.
+ */
+const LIGHT_TONES: SectionTone[] = ["paper", "cream", "paper", "wash"];
 
 /**
  * One geometry fragment per lane, so the four cards are visibly four. Same
@@ -573,34 +585,14 @@ export function Bands({ page }: { page: PageContent }) {
               </Section>
             );
 
+          /*
+           * areaMap is retired with the seven-town concept. The band type
+           * stays in the schema so no content file fails to parse, and any
+           * page still carrying one renders nothing rather than crashing.
+           * Remove the type once every content file is rebuilt.
+           */
           case "areaMap":
-            // Dark, to match the map's own redesign: cream and gold marks on
-            // navy, not grey dots on a white card. Stacked, not Split: a
-            // short heading and intro next to a map this size left the map
-            // squeezed into Split's narrower content lane while the heading
-            // column sat mostly empty beside it, wasted width on one side
-            // and a wasted-looking excess of height on the other. The map
-            // is this page's actual subject, not a content-column
-            // illustration, so it gets the full band width to be as large
-            // as its own aspect ratio calls for instead of being fit to a
-            // column sized for prose.
-            return (
-              <Section key={i} seam={seam} tone={nextLightTone()}>
-                <div className="max-w-[42rem]">
-                  <SectionRule />
-                  <H2>{band.heading}</H2>
-                  <p className="mt-4 text-[1.02rem] leading-[1.7] text-subtle">{band.intro}</p>
-                </div>
-                <ServiceAreaMap towns={site.serviceAreas} phoneE164={site.phone.e164} />
-                <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2">
-                  {site.serviceAreas.map((a) => (
-                    <li key={a.name} className="label text-subtle">
-                      {a.name}
-                    </li>
-                  ))}
-                </ul>
-              </Section>
-            );
+            return null;
 
           case "conversion": {
             const m = magnet(band.magnetId);
