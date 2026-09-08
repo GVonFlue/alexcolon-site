@@ -353,33 +353,16 @@ export function Bands({ page }: { page: PageContent }) {
             // in its own file instead of another branch of this switch.
             return <Hero key={i} band={band} isH1 />;
 
+          /*
+           * The assistant band is retired. Lark is mounted once in
+           * app/layout.tsx as a persistent launcher, so a band here would be a
+           * second instance of the same conversation on the same page.
+           *
+           * Kept as a null case rather than deleted from the schema: a content
+           * file that still carries one renders nothing instead of throwing.
+           */
           case "assistant":
-            // Dark on purpose: this is the direct analog of the reference's
-            // own "Meet Scout" section, a character introduction rather than
-            // a form bolted onto the page.
-            return (
-              <Section key={i} seam={seam} tone="navyWash" id="ask">
-                <Assistant
-                  eyebrow={band.eyebrow}
-                  heading={band.heading}
-                  intro={band.intro}
-                  name={site.assistant.name}
-                  siteName={site.siteName}
-                  introduction={site.assistant.introduction}
-                  // This route's own chips if it has them, the site-wide set
-                  // if it does not. The same three chips on all eight routes
-                  // is the tell that the assistant is decoration.
-                  chips={band.chips ?? site.assistant.chips}
-                  route={page.route}
-                  // Read on the server, so the first paint tells the truth
-                  // about whether anything is going to answer. See Assistant.
-                  initialConfigured={Boolean(process.env.ANTHROPIC_API_KEY)}
-                  goodAt={site.assistant.goodAt}
-                  phoneDisplay={site.phone.display}
-                  telHref={telHref()}
-                />
-              </Section>
-            );
+            return null;
 
           case "contactStrip":
             // A door, not a form: a compact band between two content bands

@@ -3,6 +3,7 @@ import "./globals.css";
 import { site, telHref, smsHref } from "@/lib/content";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { LarkLauncher } from "@/components/LarkLauncher";
 import { SkipLink } from "@/components/ui";
 import { isIndexable, siteOrigin } from "@/lib/origin";
 
@@ -124,6 +125,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <main id="main">{children}</main>
         <Footer />
+        {/*
+          Lark rides every page from here, rather than being a band inside
+          seven different content files. The brief: "Lark is a persistent
+          interface element, not a repeated page section."
+
+          Mounted after the footer so it is last in the DOM, which puts it last
+          in the tab order too. A launcher that intercepts tab focus before the
+          navigation would be worse than not having one.
+
+          `initialConfigured` is read on the SERVER, so the first paint already
+          knows whether there is an API key. Without that, a visitor with slow
+          JS sees an online dot on an assistant that cannot answer.
+        */}
+        <LarkLauncher
+          name={site.assistant.name}
+          siteName={site.agentName}
+          introduction={site.assistant.introduction}
+          goodAt={site.assistant.goodAt}
+          phoneDisplay={site.phone.display}
+          telHref={`tel:${site.phone.e164}`}
+          initialConfigured={Boolean(process.env.ANTHROPIC_API_KEY)}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

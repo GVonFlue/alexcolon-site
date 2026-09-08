@@ -36,6 +36,7 @@ export function Assistant({
   telHref,
   route,
   initialConfigured,
+  compact = false,
 }: {
   eyebrow?: string;
   heading: string;
@@ -47,6 +48,16 @@ export function Assistant({
   goodAt: string[];
   phoneDisplay: string;
   telHref: string;
+  /*
+   * Compact means "you are inside the LarkLauncher panel, not a page band".
+   *
+   * The launcher supplies its own header bar, its own avatar and its own
+   * close control, so everything above the conversation here would be a
+   * second heading inside a panel that already has one. It also drops the
+   * outer max-width, because the panel is already narrow and constraining it
+   * twice wastes a quarter of a 390px screen.
+   */
+  compact?: boolean;
   /** Which page this instance is on. Sent with every request. */
   route: string;
   /**
@@ -198,8 +209,8 @@ export function Assistant({
   const offline = status === "offline";
 
   return (
-    <div className="mx-auto max-w-[42rem]">
-      <div className="text-center">
+    <div className={compact ? "" : "mx-auto max-w-[42rem]"}>
+      <div className={compact ? "hidden" : "text-center"}>
         {eyebrow && (
           <div className="flex justify-center">
             <Eyebrow tone="dark">{eyebrow}</Eyebrow>

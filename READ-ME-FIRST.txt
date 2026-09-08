@@ -1,80 +1,98 @@
-PHASE 1 — BATCH 1 of 4.  Global restructure.
+PHASE 1 — BATCH 2 of 4.  Lark as a persistent widget, plus two bug fixes.
 
 UPLOAD
-  github.com/GVonFlue/alexcolon-site > Add file > Upload files
-  Drag the FIVE FOLDERS -- app, components, content, lib, scripts -- on
-  together. Do not open them. Commit.
+  Drag the TWO FOLDERS -- app and components -- on together. Do not open them.
+  Commit. Nothing to delete this time.
   Do not drag this file in.
 
-THEN DELETE THESE, in the GitHub UI (open the file > trash icon > commit):
-  app/areas/page.tsx          the whole app/areas folder
-  content/areas.json
-  components/ServiceAreaMap.tsx
-  components/TownPanel.tsx
+--------------------------------------------------------------------------
+TWO BUGS FROM THE SCREENSHOT, BOTH FIXED
+--------------------------------------------------------------------------
 
-  Uploading cannot delete. These four are gone from the build already -- the
-  route is unreachable and nothing imports the components -- but leaving dead
-  files in the repo is how somebody re-imports one in three months.
+THE WASHED-OUT NAV.  app/ground.css and components/Header.tsx were both
+styling the same element and fighting.
 
-WHAT THIS BATCH DOES
+  ground.css      body > header { background: navy; border: 4px gold }
+  Header.tsx      className="... bg-transparent" for the top state
 
-  PALETTE INVERTED.  Dark bands went from nine, to four, to THREE: hero,
-  assistant, closingCta. The light rotation was an even third each of cream,
-  paper and wash; it is now paper, cream, paper, wash, so white is in the
-  majority. The brief wants the site to "read as predominantly white at first
-  glance" and navy used "in concentrated places where it adds hierarchy".
-  Proof came OUT of the dark set: it was moved to dark a few passes ago to
-  stop the testimonials vanishing into a navy page, and with a white page
-  around it a warm card with a gold hairline stands out on its own.
+A Tailwind utility beats `body > header` on specificity, so the navy fill lost
+and the gold border stayed. The cream type then painted onto the white page
+behind it. That is the pale bar in the gold box.
 
-  STICKY HEADER, TWO STATES.  Transparent and full height at the top, so the
-  hero shows through. Translucent white with a blur, a hairline and less
-  padding once scrolled past 24px.
+The deeper mistake was mine: I built the top state assuming it sat on the navy
+hero. It does not. ground.css frames the page in white gutters, so the bar
+floats above the hero on white.
 
-  Every colour in the bar flips with the state. The first version hardcoded
-  text-cream at seven call sites and the scrolled state rendered cream on
-  white, which is invisible rather than merely wrong. There is one derived
-  pair of tokens now, not seven literals.
+Fixed both ways round. ground.css now owns GEOMETRY ONLY -- width and sticky
+offset -- and the component owns appearance, because the component is the only
+thing that knows which scroll state it is in. And the bar is LIGHT in both
+states: solid white with a gold hairline at the top, translucent white with a
+blur and less padding once scrolling. What changes is weight, not colour, so
+it never has to guess what is behind it.
 
-  AREAS DELETED.  Route, content, both nav entries, the 404 link, the map and
-  the town panel. The band type is retired in Bands.tsx and returns null, so a
-  content file still carrying one renders nothing rather than crashing.
+THE HERO TYPE.  The accent phrase was set in JetBrains Mono. That was chosen
+when the brief for this site said "high-tech" and a monospaced phrase inside a
+display line read as deliberate. On the light redesign it reads as a rendering
+fault -- two words of wide monospace mid-headline look like a font failed to
+load. It is gold in the display face now.
 
-  The TIGER/Line geometry SURVIVES. BandSeam and BandTexture both draw from
-  it, so the site keeps the local drawing without keeping the claim about
-  which seven towns Alex will work in.
+The headline was also clamp(3.4rem, 5.2vw, 5rem) at a 0.94 line height, sized
+for a dark page where it was the only thing on screen. Six words over four
+lines, each nearly as tall as the portrait. Now clamp(2.6rem, 3.5vw, 3.7rem),
+line height 1.04, tracking -0.032em, capped at 15ch so it breaks sensibly.
+Crisp is tracking and line height far more than size.
 
-  SEVEN TOWNS GONE from content: the hero eyebrow, the Lark chip, the buyer
-  guide bullet.
+--------------------------------------------------------------------------
+LARK, AS A PERSISTENT WIDGET
+--------------------------------------------------------------------------
 
-  HERO REWRITTEN.  "Relationships first. Real answers from a real guy." is
-  replaced with "Real estate decisions should come with clear information."
+components/LarkLauncher.tsx is new. It WRAPS the existing Assistant rather
+than replacing it, so the two-turn capture bound, the server-rendered offline
+state, the refusal handling and the source tagging all carry over untouched.
+Only the shell is new.
 
-  PAGES CUT to the approved flows:
-      home       11 -> 4       buy        10 -> 5
-      sell       11 -> 6       veterans   10 -> 5
-      investors  10 -> 4       about       8 -> 2
-      contact     4 -> 2
-  40 bands removed. The brief is explicit that shorter IS the result, so do
-  not fill the space.
+  Collapsed   small bottom-right pill: the meadowlark mark, "Lark", a green
+              online dot with a screen-reader label, and "Have a real estate
+              question?"
+  Expanded    a 26rem card on desktop, full width on a phone. Not a takeover.
+  Escape      closes it AND returns focus to the launcher, so a keyboard
+              visitor does not land back at the top of the document.
 
-  LICENCE NUMBER 00252387 replaces the pending placeholder.
+NO BIRD LORE. The mark stays as a silent avatar, as agreed. What is gone is
+the paragraph explaining what a lark is. An avatar is a face, not a story.
 
-ONE BUG FOUND AND FIXED
-  scripts/audit-copy.mjs read content/areas.json directly. With the file gone
-  it crashed on ENOENT, which took every OTHER check in the suite down with
-  it. The area rules themselves are not gone -- they still run over
-  site.json's serviceAreas.
+PAGE-AWARE CHIPS, from section 11.3, living in the component rather than in
+content/site.json: a chip is a property of the interface, not of the page's
+copy. It changes when the route's JOB changes, not when its wording does.
+
+Exactly three per route, because lib/schema.ts declares
+AssistantChip.array().length(3). The brief lists four for home; "Help me
+analyze a rental" is dropped, since the investors page carries it and a
+duplicate earns the least.
+
+MOBILE. The pill sits bottom-right and the panel is full width there. The brief
+forbids covering a submit button or a consent control, and a floating card over
+the middle of a 390px screen does exactly that. Panel height uses dvh, not vh,
+so iOS Safari's collapsing toolbar cannot push the input off screen.
+
+MOUNTED AFTER THE FOOTER in app/layout.tsx, so it is last in the DOM and last
+in the tab order. A launcher that grabs focus before the navigation would be
+worse than not having one.
+
+`initialConfigured` is read on the SERVER, so the first paint already knows
+whether an API key exists. Without it a visitor with slow JS sees an online dot
+on an assistant that cannot answer.
+
+The assistant BAND is retired in Bands.tsx and returns null. Zero content files
+still carried one -- batch 1's page cuts had already removed them all.
 
 VERIFIED
-  Typecheck clean. Contrast audit passes. Copy audit passes: 243 strings, down
-  from 408. Build compiles.
+  Typecheck clean. Contrast audit passes. Copy audit passes, 243 strings.
+  Build compiles.
 
 STILL TO COME
-  Batch 2  Lark as a persistent bottom-right widget, static sections removed
   Batch 3  the three-mode calculator system
-  Batch 4  page-by-page copy rewrites, About, privacy policy, footer detail
+  Batch 4  page copy rewrites, About, privacy policy, footer detail
 
-NEEDED FROM ALEX
-  The Google review profile URL and the RealSatisfied profile URL. The
-  testimonial section has slots for both and they are null until he sends them.
+STILL NEEDED FROM ALEX
+  Google review profile URL, RealSatisfied profile URL.

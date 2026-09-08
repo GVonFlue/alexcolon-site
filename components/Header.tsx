@@ -73,10 +73,25 @@ export function Header({
    * version of this hardcoded text-cream throughout and the scrolled state
    * rendered cream on white, which is invisible rather than merely wrong.
    */
-  const strong = scrolled ? "text-navy" : "text-cream";
-  const quiet = scrolled ? "text-subtle" : "text-dim";
-  const quietHover = scrolled ? "hover:text-navy" : "hover:text-cream";
-  const edge = scrolled ? "border-ink/25" : "border-cream/50";
+  /*
+   * THE BAR IS LIGHT IN BOTH STATES, and that is the fix for the washed-out
+   * header.
+   *
+   * The first version made the top state transparent with `on-dark`, on the
+   * assumption it sat on the navy hero. It does not: app/ground.css frames the
+   * page in white gutters and the bar floats ABOVE the hero on the white page
+   * background. Cream type on white is invisible, inside a gold box.
+   *
+   * On a white-first site the header is a light object throughout. What
+   * changes between the states is weight, not colour: solid and full height at
+   * the top, translucent with a blur and less padding once scrolling. That is
+   * what the brief asks for — "full branded presentation" then "slightly
+   * shorter, more subdued" — and it never has to guess what is behind it.
+   */
+  const strong = "text-navy";
+  const quiet = "text-subtle";
+  const quietHover = "hover:text-navy";
+  const edge = "border-ink/25";
 
   return (
     /*
@@ -102,8 +117,8 @@ export function Header({
       className={[
         "sticky top-0 z-50 transition-[background-color,border-color,padding,backdrop-filter] duration-300 ease-out",
         scrolled
-          ? "border-b border-ink/10 bg-paper/85 backdrop-blur-md"
-          : "on-dark border-b border-transparent bg-transparent",
+          ? "border border-ink/10 bg-paper/85 shadow-[0_10px_30px_-18px_rgb(23_42_58_/_0.35)] backdrop-blur-md"
+          : "border border-gold/45 bg-paper shadow-[0_14px_34px_-20px_rgb(23_42_58_/_0.4)]",
       ].join(" ")}
     >
       {/* The height change is the other half of the state: 12px of padding at
@@ -158,9 +173,7 @@ export function Header({
                     href={n.href}
                     aria-current={active ? "page" : undefined}
                     className={`inline-flex min-h-[38px] items-center rounded-full px-3.5 text-[0.92rem] transition-colors duration-150 ${
-                      active
-                        ? (scrolled ? "bg-navy font-semibold text-cream" : "bg-cream font-semibold text-navy")
-                        : `${quiet} ${quietHover}`
+                      active ? "bg-navy font-semibold text-cream" : `${quiet} ${quietHover}`
                     }`}
                   >
                     {n.label}
