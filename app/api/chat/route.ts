@@ -9,6 +9,7 @@ import {
   systemPrompt,
 } from "@/lib/assistant";
 import { BUCKETS, clientIp, originAllowed, rateLimit } from "@/lib/guards";
+import { costOf, logSpend, withinDailyCap } from "@/lib/spend";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,6 +52,21 @@ export async function POST(req: Request) {
   if (!key) {
     // Honest degradation, with the correct number for this brand.
     return NextResponse.json({ ok: true, reply: offlineMessage(), offline: true });
+  }
+
+  /* The daily dollar ceiling, checked BEFORE the per-connection rate limit.
+     The rate limit protects against one visitor hammering it; this protects
+     the bill regardless of how many visitors there are, which is the failure
+     mode a limiter cannot see. Checked before any token is spent. */
+  const budget = await withinDailyCap();
+  if (!budget.allowed) {
+    console.warn(
+      `[spend] the assistant is over its daily cap: $${budget.spent?.toFixed(2)} of $${budget.cap?.toFixed(2)}. Answering with the phone number until midnight UTC.`,
+    );
+    return NextResponse.json({
+      ok: true,
+      reply: `The assistant is offline for the rest of today. Call or text Alex at ${site.phone.display} and he will answer it himself.`,
+    });
   }
 
   const ip = clientIp(req);
@@ -112,10 +128,17 @@ export async function POST(req: Request) {
       signal: AbortSignal.timeout(25000),
     });
     if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
-    return (await res.json()) as {
+    const json = (await res.json()) as {
       content: { type: string; text?: string; id?: string; name?: string; input?: Record<string, unknown> }[];
       stop_reason: string;
+      model?: string;
+      usage?: Record<string, number>;
     };
+    /* Record what it cost, without awaiting. The visitor is waiting on a
+       reply, not on our bookkeeping, and a failed write must never fail their
+       request: the tokens are already spent either way. */
+    void logSpend(costOf(json.model || MODEL, json.usage));
+    return json;
   }
 
   try {
