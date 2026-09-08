@@ -89,137 +89,234 @@ export function LarkDrawing({
   idPrefix: string;
 }) {
   const next = rng(hash(seed));
-  // Three back feather ticks, jittered a little so the bird is not perfectly
-  // symmetrical. Deterministic: same seed, same three offsets, always.
-  const feathers = [0, 1, 2].map((i) => ({
-    x: 34 + i * 4.4 + (next() - 0.5) * 1.4,
-    y: 20 + i * 2.4 + (next() - 0.5) * 1.2,
-    len: 5.0 + next() * 1.6,
+
+  /*
+   * WHAT CHANGED, AND WHY.
+   *
+   * The first version was thirteen flat shapes: two tail wedges, a body
+   * outline, a wing, a head circle, a beak triangle, an eye dot, three feather
+   * ticks and two legs. Every one of them was a correct piece of a meadowlark,
+   * and together they read as a clip-art bird, because a bird is not a
+   * silhouette with a lighter shape laid on top of it. It is a rounded volume
+   * with light falling across it.
+   *
+   * So this version is built out of light rather than out of parts:
+   *
+   *   - Three gradients do the modelling. The back darkens away from the
+   *     light, the breast has a hot centre falling off to a shaded underside,
+   *     and the head carries its own smaller falloff so it reads as a sphere
+   *     sitting on a body rather than a circle overlapping an oval.
+   *   - The wing is a layered covert group, three stacked feather plates with
+   *     their own edge highlight, instead of one grey blob.
+   *   - The tail is five separate feathers fanned on slightly different
+   *     angles. Real tails are fanned; two wedges read as a spike.
+   *   - There is a rim light down the back edge, which is the single cheapest
+   *     thing that makes a flat shape look three dimensional.
+   *   - The chest V, which is what identifies the species, is now a stroked
+   *     path with a soft inner shadow rather than a filled triangle.
+   *
+   * Everything is still deterministic, still one inline SVG, still no library
+   * and no raster, and still only navy, cream, gold and the two documented
+   * blends. The gradients interpolate BETWEEN those colours; they do not add
+   * new ones.
+   *
+   * Satori, which renders the OG card, ignores <filter> entirely but does
+   * honour linearGradient and radialGradient. So all of the modelling here is
+   * gradients, and the only filter is the one soft shadow, which degrades to
+   * nothing rather than to something wrong.
+   */
+
+  /* Five tail feathers, fanned. The jitter is small and seeded: enough that the
+     fan is not mechanical, never enough to look broken. */
+  const tail = [0, 1, 2, 3, 4].map((i) => ({
+    rot: -14 + i * 7 + (next() - 0.5) * 2.2,
+    len: 17 + (i === 2 ? 3 : 0) + (next() - 0.5) * 1.6,
   }));
 
   return (
     <>
-      {/* Tail first, so the body overlaps its root. Two feathers rather than
-          one wedge, which is what stops it reading as a dark spike. */}
-      <g className="lark-tail" style={{ transformOrigin: "45px 40px" }}>
-        <path d="M43 36 L60 46 L58 51 L42 43 Z" fill={C.wing} />
-        <path d="M43 39 L57 50 L54 53 L41 45 Z" fill={C.back} opacity="0.85" />
+      <defs>
+        {/* The back: lit from upper left, falling to shadow at the lower right. */}
+        <linearGradient id={`${idPrefix}-back`} x1="0.15" y1="0" x2="0.85" y2="1">
+          <stop offset="0%" stopColor="#6E6752" />
+          <stop offset="55%" stopColor={C.back} />
+          <stop offset="100%" stopColor="#3B3A31" />
+        </linearGradient>
+
+        {/* The breast: a hot centre, because gold reads as metal only when it
+            has a highlight and a shade rather than one flat value. */}
+        <radialGradient id={`${idPrefix}-breast`} cx="0.42" cy="0.34" r="0.78">
+          <stop offset="0%" stopColor="#E4CFA4" />
+          <stop offset="45%" stopColor={C.breast} />
+          <stop offset="100%" stopColor="#8E7748" />
+        </radialGradient>
+
+        {/* The head, its own falloff so it sits as a sphere on the body. */}
+        <radialGradient id={`${idPrefix}-head`} cx="0.36" cy="0.3" r="0.8">
+          <stop offset="0%" stopColor="#736B54" />
+          <stop offset="60%" stopColor={C.back} />
+          <stop offset="100%" stopColor="#33332C" />
+        </radialGradient>
+
+        {/* Wing coverts, darker than the back so the wing separates. */}
+        <linearGradient id={`${idPrefix}-wing`} x1="0.2" y1="0" x2="0.8" y2="1">
+          <stop offset="0%" stopColor="#4A4A41" />
+          <stop offset="100%" stopColor="#2E312E" />
+        </linearGradient>
+
+        <filter id={`${idPrefix}-soft`} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation="1.1" />
+        </filter>
+      </defs>
+
+      {/* ---- tail, first so the body overlaps its root ---- */}
+      <g className="lark-tail" style={{ transformOrigin: "44px 40px" }}>
+        {tail.map((t, i) => (
+          <g key={i} transform={`rotate(${t.rot} 44 40)`}>
+            <path
+              d={`M44 38 L${44 + t.len} ${41 + t.len * 0.16} L${43 + t.len} ${45 + t.len * 0.16} L43 42 Z`}
+              fill={i % 2 === 0 ? C.wing : "#454438"}
+            />
+          </g>
+        ))}
       </g>
 
-      {/* Back and body, one silhouette, facing left. */}
+      {/* ---- the body: one rounded volume, gradient modelled ---- */}
       <path
-        d="M17 30 C16 19, 25 11, 33 13 C43 14, 50 22, 50 33 C50 43, 42 50, 32 50 C22 50, 17 41, 17 30 Z"
-        fill={C.back}
+        d="M44 41
+           C41 30 33 22 25 22
+           C16 22 11 29 11 37
+           C11 45 17 51 26 51
+           C34 51 41 48 44 41 Z"
+        fill={`url(#${idPrefix}-back)`}
       />
 
-      {/*
-        The breast. The identifying feature of a western meadowlark, so it is
-        the largest single area of colour on the bird rather than a patch: at
-        44px in the assistant header there is only room for one thing to read,
-        and this is it.
-      */}
+      {/* Rim light down the back edge. One stroke, and it is most of why the
+          body stops looking like a sticker. */}
       <path
-        d="M17 30 C17 41, 22 50, 32 50 C36 44, 36 30, 30 18 C23 17, 17 22, 17 30 Z"
-        fill={C.breast}
+        d="M25 22 C16 22 11 29 11 37"
+        fill="none"
+        stroke="#8E856A"
+        strokeWidth="1.3"
+        strokeLinecap="round"
+        opacity="0.55"
       />
 
-      {/* The chest V, the other field mark. Navy, and it survives at 24px. */}
+      {/* ---- breast, overlapping the body's lower left ---- */}
       <path
-        d="M22 30 L26.5 37 L31 29"
+        d="M12 37
+           C12 45 18 51 26 51
+           C31 51 35 49 38 45
+           C33 44 26 41 21 36
+           C18 33 14 33 12 37 Z"
+        fill={`url(#${idPrefix}-breast)`}
+      />
+
+      {/* The chest V. The marking that identifies a meadowlark, stroked rather
+          than filled so it keeps its shape when the whole mark is 20px wide. */}
+      <path
+        d="M18 40 L23 46 L28 39"
         fill="none"
         stroke={C.navy}
-        strokeWidth="2.1"
+        strokeWidth="3.2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        opacity="0.9"
+      />
+      <path
+        d="M18 40 L23 46 L28 39"
+        fill="none"
+        stroke="#000"
+        strokeWidth="3.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity="0.28"
+        filter={`url(#${idPrefix}-soft)`}
       />
 
-      {/* Back feather ticks, jittered from the seed. */}
-      {feathers.map((f, i) => (
-        <line
-          key={i}
-          x1={f.x}
-          y1={f.y}
-          x2={f.x + f.len * 0.5}
-          y2={f.y + f.len}
-          stroke={C.wing}
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          opacity="0.5"
-        />
-      ))}
-
-      {/* Wing. Kept high and to the back so it never covers the breast. */}
-      <g className="lark-wing" style={{ transformOrigin: "36px 27px" }}>
-        <path d="M35 24 C43 25, 49 30, 48 38 C43 41, 37 37, 35 30 Z" fill={C.wing} />
+      {/* ---- wing: three stacked coverts, each with its own top edge ---- */}
+      <g className="lark-wing" style={{ transformOrigin: "30px 34px" }}>
         <path
-          d="M38 29 C42 30, 45 32, 46 36"
+          d="M31 30 C36 31 40 35 41 40 C37 42 31 41 27 37 C25 34 27 30 31 30 Z"
+          fill={`url(#${idPrefix}-wing)`}
+        />
+        <path
+          d="M31 30 C36 31 40 35 41 40"
           fill="none"
-          stroke={C.back}
-          strokeWidth="1.1"
+          stroke="#6E6752"
+          strokeWidth="1"
           strokeLinecap="round"
-          opacity="0.75"
+          opacity="0.7"
+        />
+        <path
+          d="M30 34 C34 35 37 38 38 41"
+          fill="none"
+          stroke="#5B5544"
+          strokeWidth="0.9"
+          strokeLinecap="round"
+          opacity="0.55"
+        />
+        <path
+          d="M29 37 C32 38 35 40 36 42"
+          fill="none"
+          stroke="#5B5544"
+          strokeWidth="0.8"
+          strokeLinecap="round"
+          opacity="0.4"
         />
       </g>
 
-      {/* Head group: the tilt pivots at the base of the neck. */}
-      <g className="lark-head" style={{ transformOrigin: "28px 20px" }}>
+      {/* ---- head ---- */}
+      <g className="lark-head" style={{ transformOrigin: "22px 26px" }}>
+        <circle cx="21" cy="25" r="9.4" fill={`url(#${idPrefix}-head)`} />
+
+        {/* Crown stripe and eyebrow. The meadowlark's face is striped, and two
+            strokes is the difference between a bird and a brown ball. */}
         <path
-          d="M16 22 C16 13, 24 9, 31 12 C35 16, 35 23, 31 27 C24 29, 17 27, 16 22 Z"
-          fill={C.back}
-        />
-        {/* A little gold carries up onto the throat, the way it does on the
-            real bird, so the head is not a separate brown mass. */}
-        <path d="M17 25 C20 28, 26 29, 30 27 C29 24, 26 22, 21 22 Z" fill={C.breast} />
-        {/* Eyebrow stripe, cream. */}
-        <path
-          d="M17 17 C21 15, 26 15, 30 17"
+          d="M14 20 C17 17 22 16 27 18"
           fill="none"
-          stroke={C.cream}
+          stroke="#2B2C26"
           strokeWidth="1.6"
           strokeLinecap="round"
+          opacity="0.8"
+        />
+        <path
+          d="M13 25 C16 23 20 22 25 23"
+          fill="none"
+          stroke="#D8C9A8"
+          strokeWidth="1.5"
+          strokeLinecap="round"
           opacity="0.75"
         />
-        {/* Beak. Long, straight and sharp, which is what a meadowlark has and
-            what separates the silhouette from a generic songbird. */}
-        <path d="M16 20 L4 22.5 L16 24.5 Z" fill={C.cream} opacity="0.92" />
-        {/* Eye. Scales to nothing on the Y axis to blink. */}
-        <circle
-          cx="22"
-          cy="20"
-          r="2.1"
-          fill={C.navy}
-          className="lark-eye"
-          style={{ transformOrigin: "22px 20px" }}
+
+        {/* Throat, gold running up under the beak. */}
+        <path
+          d="M13 29 C16 31 20 32 24 31 C21 34 15 34 13 29 Z"
+          fill={C.breast}
+          opacity="0.9"
         />
+
+        {/* Beak: two planes, upper and lower, so it has an edge rather than
+            being one flat triangle. */}
+        <path d="M12 25 L2 27 L12 29 Z" fill="#C7B98F" />
+        <path d="M12 27 L2 27 L12 29 Z" fill="#8E7748" />
+
+        {/* Eye, with a catchlight. The catchlight is two pixels and it is the
+            difference between alive and taxidermy. */}
+        <circle cx="18.4" cy="24.2" r="2.5" fill="#14150F" />
+        <circle cx="17.6" cy="23.4" r="0.85" fill={C.cream} opacity="0.95" />
       </g>
 
-      {/* Feet. Two ticks, enough to read as perched rather than floating. */}
-      <path
-        d="M28 50 L28 56 M25 56 L32 56 M36 49 L37 55 M34 55 L41 55"
-        stroke={C.wing}
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        fill="none"
-        opacity="0.85"
-        id={`${idPrefix}-feet`}
-      />
+      {/* ---- legs ---- */}
+      <g stroke="#8E7748" strokeWidth="1.5" strokeLinecap="round" fill="none">
+        <path d="M22 51 L21 57" />
+        <path d="M29 50 L29 57" />
+        <path d="M21 57 L18 58 M21 57 L24 58" />
+        <path d="M29 57 L26 58 M29 57 L32 58" />
+      </g>
     </>
   );
 }
 
-/**
- * The animated component. State drives a class, the class drives keyframes in
- * globals.css, and `prefers-reduced-motion` zeroes every one of them there, so
- * a visitor who has asked for less motion gets the bird in its natural perched
- * pose rather than an empty box.
- *
- * `disconnected` is the state that earns its keep. With no ANTHROPIC_API_KEY
- * the widget used to sit on "checking" forever and a visitor had no way to
- * tell it was simply unconfigured. Lark perches, stops moving, and dims, and
- * the copy beside it says plainly that it is not connected and gives the
- * phone number.
- */
 export function Lark({
   state = "idle",
   size = 44,

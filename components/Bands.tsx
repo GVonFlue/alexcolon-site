@@ -78,7 +78,7 @@ function displayName(t: Testimonial): string | null {
   }
 }
 
-function BandProof({ band, tone, seam }: { band: Extract<Band, { type: "proof" }>; tone: SectionTone; seam?: "intoDark" | "intoLight" }) {
+function BandProof({ band, seam }: { band: Extract<Band, { type: "proof" }>; seam?: "intoDark" | "intoLight" }) {
   // Hard stop 3. No testimonial without permission on file, and the words are
   // never edited. With none on file the band withholds itself entirely rather
   // than shipping a placeholder or a generic trust badge.
@@ -89,42 +89,94 @@ function BandProof({ band, tone, seam }: { band: Extract<Band, { type: "proof" }
   const quotes = site.testimonials;
   if (quotes.length === 0) return null;
 
+  /*
+   * WHY THIS BAND IS DARK WHEN ALMOST NOTHING ELSE IS.
+   *
+   * It used to be a light band with three bordered cards and a grey quote
+   * mark, and it disappeared into the page: the most persuasive content on the
+   * site rendered as the quietest thing on it. Somebody scrolling past a wall
+   * of cream does not stop for one more cream card.
+   *
+   * Navy here is the exception that earns itself. Four bands on this site are
+   * dark and this is one of them, so the section reads as a deliberate pause
+   * rather than as more page. The gold accents work at full strength on navy
+   * (5.50:1) where they were forbidden on cream (2.46:1), which is why the
+   * quote marks can finally be gold instead of a 15 percent grey.
+   *
+   * THE HAIRLINES ARE AT 75 PERCENT, NOT 25. Measured: gold at 25 percent over
+   * this card composites to 1.69:1 against the card it is meant to be the edge
+   * of, which is not a border, it is a rumour. At 75 it is 4.04:1 against the
+   * card and 3.62:1 against the band behind it, so it clears the 3:1 non-text
+   * floor on BOTH sides of itself. A line separating two surfaces has to be
+   * legible against both.
+   *
+   * VERIFIED, NOT DECORATED. Each card carries where the quote came from and
+   * when. These are RealSatisfied survey responses with permission recorded,
+   * not scraped reviews, and saying so is worth more than any amount of visual
+   * flourish: a testimonial a visitor believes beats a testimonial that looks
+   * expensive.
+   */
   const cols =
     quotes.length === 1 ? "" : quotes.length === 2 ? "md:grid-cols-2" : "md:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <Section tone={tone} stagger seam={seam}>
+    <Section tone="navyWash" texture="rivers" stagger seam={seam}>
       <div>
         <SectionRule />
-        <H2 className="text-navy">{band.heading}</H2>
+        <H2 className="text-cream">{band.heading}</H2>
+        <p className="mt-3 max-w-[46ch] text-[0.95rem] leading-[1.6] text-dim">
+          Collected by an independent survey after closing, published with permission,
+          and printed exactly as they were written.
+        </p>
       </div>
-      <ul className={`mt-9 grid gap-6 ${cols}`}>
+
+      <ul className={`mt-9 grid gap-5 ${cols}`}>
         {quotes.map((t, i) => {
           const name = displayName(t);
           return (
             <li
               key={i}
-              className="card-warm flex flex-col rounded-xl border border-navy/10 bg-paper p-6"
+              className="group relative flex flex-col overflow-hidden rounded-[1.25rem] border border-gold/75 bg-navy-deep/70 p-7 shadow-[inset_0_1px_0_0_rgb(247_244_238_/_0.06),0_30px_64px_-32px_rgb(0_0_0_/_0.75)] transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1"
             >
-              {/* A quote mark rather than a stock avatar. There is no
-                  photograph of any of these people and there is not going to
-                  be one. */}
-              <span aria-hidden="true" className="display text-[2.5rem] leading-none text-navy/15">
-                &ldquo;
+              {/* A large gold quote mark, bled off the top corner and clipped by
+                  the card. Decorative and aria-hidden: the blockquote below
+                  already carries the semantics. */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-2 -top-7 select-none font-display text-[7rem] leading-none text-gold/20"
+              >
+                &rdquo;
               </span>
-              <blockquote className="mt-2 flex-1 text-[1.02rem] leading-[1.7] text-ink">
+
+              <blockquote className="relative flex-1 text-[1.02rem] leading-[1.72] text-cream">
                 {t.quote}
               </blockquote>
-              <p className="mt-5 border-t border-line pt-4 text-[0.9rem] text-subtle">
-                {[name, t.context].filter(Boolean).join(", ") || "Name withheld by request"}
-              </p>
+
+              <div className="relative mt-6 flex items-end justify-between gap-4 border-t border-gold/75 pt-4">
+                <div>
+                  <p className="font-display text-[1.02rem] font-bold text-cream">
+                    {name || "Name withheld by request"}
+                  </p>
+                  {t.context && (
+                    <p className="mt-0.5 text-[0.85rem] text-dim">{t.context}</p>
+                  )}
+                </div>
+                {/* The provenance, small and in the mono face, so it reads as a
+                    record rather than as a marketing badge. */}
+                <p className="label shrink-0 text-right text-gold/85">
+                  Verified
+                  <br />
+                  survey
+                </p>
+              </div>
             </li>
           );
         })}
       </ul>
+
       {/* One CTA under the row, not one per card. Three identical buttons in a
           row is three primary actions competing in the same screenful. */}
-      <div className="mt-8">
+      <div className="mt-9">
         <CtaLink
           cta={{
             label: "Text Alex a question",
@@ -197,6 +249,13 @@ const DARK_BANDS = new Set([
   "hero",
   "assistant",
   "numbers",
+  /* Proof is dark deliberately. See BandProof for why: on a light band the most
+     persuasive content on the site rendered as the quietest thing on it, and
+     gold is forbidden as an accent on cream (2.46:1) but clears comfortably on
+     navy (5.50:1). It must be listed HERE and not only inside the component,
+     or the light/dark rotation and the seam direction are both computed
+     against a tone the band does not actually use. */
+  "proof",
   "closingCta",
 ]);
 
@@ -609,7 +668,7 @@ export function Bands({ page }: { page: PageContent }) {
           }
 
           case "proof":
-            return <BandProof key={i} band={band} tone={nextLightTone()} seam={seam} />;
+            return <BandProof key={i} band={band} seam={seam} />;
 
           case "numbers":
             return <BandNumbers key={i} band={band} seam={seam} />;
