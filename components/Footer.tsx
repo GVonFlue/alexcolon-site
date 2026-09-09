@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { site, complianceLines, telHref, smsHref } from "@/lib/content";
+import { site, complianceLines } from "@/lib/content";
 
 const NAV = [
   { href: "/buy", label: "Buy" },
@@ -8,6 +8,7 @@ const NAV = [
   { href: "/investors", label: "Investors" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
+  { href: "/privacy", label: "Privacy Policy" },
 ];
 
 function EqualHousingMark() {
@@ -60,21 +61,20 @@ export function Footer() {
             </div>
             <p className="mt-3 text-[0.98rem] leading-relaxed text-dim">{site.tagline}</p>
 
-            <div className="mt-6 flex flex-col gap-1">
-              {/* Tappable tel in the footer, on every route. */}
-              <a href={telHref()} className="inline-flex min-h-[44px] items-center text-[1.05rem] font-semibold">
-                <span className="figure">{site.phone.display}</span>
-              </a>
-              <a href={smsHref()} className="inline-flex min-h-[44px] items-center text-[0.98rem] text-dim hover:text-cream">
-                Text the same number
-              </a>
-              <a
-                href={`mailto:${site.email}`}
-                className="inline-flex min-h-[44px] items-center text-[0.98rem] text-dim hover:text-cream"
-              >
-                {site.email}
-              </a>
-            </div>
+            {/*
+              NO PHONE, EMAIL OR TEXT LINK HERE ANY MORE.
+              
+              The brief: "Do not repeat Alex's personal phone/email in the
+              footer if those are already accessible through the header,
+              Contact page and other intentional touchpoints." They are — the
+              header carries a tel link on every route, Contact exists for
+              exactly this, and Lark sits in the corner of every page.
+
+              A footer is where a visitor looks for navigation and legal
+              information. Three more ways to call the same number is not
+              navigation, it is the fourth ask on a page that has already made
+              three.
+            */}
           </div>
 
           <div>

@@ -151,10 +151,47 @@ function BandProof({ band, seam }: { band: Extract<Band, { type: "proof" }>; sea
       <div>
         <SectionRule />
         <H2 className="text-cream">{band.heading}</H2>
-        <p className="mt-3 max-w-[46ch] text-[0.95rem] leading-[1.6] text-dim">
-          Collected by an independent survey after closing, published with permission,
-          and printed exactly as they were written.
+        <p className="mt-3 max-w-[52ch] text-[0.95rem] leading-[1.6] text-subtle">
+          Printed exactly as they were written, published with permission.
         </p>
+
+        {/*
+          The source links, at SECTION level rather than on the cards.
+          
+          Deliberate, and the brief is specific about why: the quotes below came
+          from RealSatisfied post-closing surveys, not from Google. Putting a
+          Google badge on a card that holds a survey response would claim a
+          provenance the quote does not have. At section level they read as
+          "here is where you can go and check", which is true of both.
+
+          Rendered only when a URL exists. A "Read more on Google" link that
+          goes nowhere is worse than no link, because it implies a profile the
+          visitor then cannot find.
+        */}
+        {(site.reviewLinks.google || site.reviewLinks.realSatisfied) && (
+          <p className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-[0.9rem]">
+            {site.reviewLinks.google && (
+              <a
+                href={site.reviewLinks.google}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link-underline text-navy"
+              >
+                Read the Google reviews
+              </a>
+            )}
+            {site.reviewLinks.realSatisfied && (
+              <a
+                href={site.reviewLinks.realSatisfied}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="link-underline text-navy"
+              >
+                See the RealSatisfied profile
+              </a>
+            )}
+          </p>
+        )}
       </div>
 
       <ul className={`mt-9 grid gap-5 ${cols}`}>
@@ -180,20 +217,12 @@ function BandProof({ band, seam }: { band: Extract<Band, { type: "proof" }>; sea
               </blockquote>
 
               <div className="relative mt-6 flex items-end justify-between gap-4 border-t border-gold/75 pt-4">
-                <div>
-                  <p className="font-display text-[1.02rem] font-bold text-cream">
-                    {name || "Name withheld by request"}
-                  </p>
-                  {t.context && (
-                    <p className="mt-0.5 text-[0.85rem] text-dim">{t.context}</p>
-                  )}
-                </div>
-                {/* The provenance, small and in the mono face, so it reads as a
-                    record rather than as a marketing badge. */}
-                <p className="label shrink-0 text-right text-gold/85">
-                  Verified
-                  <br />
-                  survey
+                {/* Name only. The brief removes the location labels and the
+                    "Verified survey" mark: the section line above already says
+                    where these came from, and repeating it on every card reads
+                    as protesting rather than as provenance. */}
+                <p className="font-display text-[1.02rem] font-bold text-cream">
+                  {name || "Name withheld by request"}
                 </p>
               </div>
             </li>

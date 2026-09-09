@@ -256,6 +256,22 @@ export const SiteConfig = z.object({
     }),
   ),
   testimonials: z.array(Testimonial),
+  /*
+   * Where a visitor can go and read the reviews themselves.
+   *
+   * Null until Alex supplies them, and rendered only when present: a "Read
+   * more on Google" link that goes nowhere is worse than no link, because it
+   * implies a profile that a visitor then cannot find.
+   *
+   * The two are kept SEPARATE and labelled separately on purpose. The
+   * testimonials on this site came from RealSatisfied post-closing surveys,
+   * not from Google, and presenting survey responses under a Google star
+   * rating would misrepresent where they came from.
+   */
+  reviewLinks: z.object({
+    google: z.string().url().nullable(),
+    realSatisfied: z.string().url().nullable(),
+  }),
   headshot: ImageSlot,
   assistant: z.object({
     name: z.string().min(1),

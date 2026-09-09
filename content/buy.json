@@ -8,9 +8,9 @@
   "bands": [
     {
       "type": "hero",
-      "eyebrow": "First time buyers",
-      "headline": "Buying a house here, explained before you are asked to decide anything",
-      "support": "Most of the stress in a first purchase comes from finding out what something costs on the day it is due. This page is the part that usually gets skipped.",
+      "eyebrow": "Buying in the Wichita area",
+      "headline": "Buying a home in the Wichita area, with the numbers and the process explained clearly.",
+      "support": "Whether this is your first purchase or your fourth, the same questions come up: what you can afford, what the monthly payment really includes, and what happens in what order. Start with the numbers below.",
       "ctas": [
         {
           "label": "Send me the buyer's guide",
@@ -26,12 +26,13 @@
         }
       ],
       "image": null,
-      "variant": "buying"
+      "variant": "buying",
+      "accentPhrase": "explained clearly"
     },
     {
       "type": "steps",
-      "heading": "The order things actually happen in",
-      "intro": "Six stages, and the money leaves your account at three of them. Knowing which three is most of what makes this manageable.",
+      "heading": "How buying works",
+      "intro": "Six stages from financing to keys. Timing and terms vary by contract and lender, so treat this as the shape of the process rather than a fixed schedule.",
       "steps": [
         {
           "title": "Get pre approved",
@@ -61,10 +62,9 @@
     },
     {
       "type": "tool",
-      "heading": "Work backward from the payment, not the price",
+      "heading": "Home price and payment",
       "body": [
-        "Most people start with a price and hope the payment works out. It is easier the other way around: decide what you are comfortable paying every month, then see what price that supports.",
-        "The rate field is blank because this page will not quote you one. Use the rate a lender actually gave you and the answer means something."
+        "Start from the monthly payment you want to stay under and see roughly what price that supports, or start from a price and see the payment. Estimated cash to close is included."
       ],
       "tool": "affordability"
     },
@@ -74,7 +74,7 @@
     },
     {
       "type": "faq",
-      "heading": "The questions buyers ask first",
+      "heading": "Buyer questions",
       "items": [
         {
           "q": "How much do I need saved before I start?",

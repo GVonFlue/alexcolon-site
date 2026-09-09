@@ -33,7 +33,7 @@
       "assetReady": false,
       "sourceTag": "Colon - Buyer Guide Request",
       "submitLabel": "Send me the buyer's guide",
-      "consentLine": "By sending this you are asking for the guide. You are not signing up for a drip campaign, and you are not agreeing to work with anyone.",
+      "consentLine": "Alex will send the guide and may follow up about it. See the privacy policy for how your information is handled.",
       "successMessage": "Alex puts these together himself rather than sending an automated download, so it arrives as a real email from him. If you would rather just ask a question, text him at (813) 613-8822."
     },
     {
@@ -65,7 +65,7 @@
       "assetReady": true,
       "sourceTag": "Colon - Home Valuation Request",
       "submitLabel": "Send me my home value",
-      "consentLine": "By sending this you are asking for one valuation. You are not signing up for a drip campaign, and you are not agreeing to list.",
+      "consentLine": "Alex will review the property and get back to you. See the privacy policy for how your information is handled.",
       "successMessage": "Alex puts valuations together himself rather than sending an automated estimate, so it arrives as a real email from him with the comparable sales attached. If you want to add context about the house, text him at (813) 613-8822."
     },
     {
@@ -101,7 +101,7 @@
       "assetReady": false,
       "sourceTag": "Colon - VA Checklist Request",
       "submitLabel": "Send me the VA checklist",
-      "consentLine": "By sending this you are asking for the checklist. You are not signing up for a drip campaign.",
+      "consentLine": "Alex will send the checklist and may follow up about it. See the privacy policy for how your information is handled.",
       "successMessage": "Alex sends this one himself, so it arrives as a real email from him. If your timeline is tight, text him at (813) 613-8822 and say what your dates are."
     },
     {
@@ -133,7 +133,7 @@
       "assetReady": true,
       "sourceTag": "Colon - Investment Analysis Request",
       "submitLabel": "Run the numbers on this one",
-      "consentLine": "By sending this you are asking for one analysis. You are not signing up for a drip campaign.",
+      "consentLine": "Alex will run the numbers and get back to you. See the privacy policy for how your information is handled.",
       "successMessage": "Alex works these by hand, so it arrives as a real email from him with the rent comparables attached. If you are looking at more than one property, text him at (813) 613-8822."
     },
     {
@@ -161,7 +161,7 @@
       "assetReady": true,
       "sourceTag": "Colon - General Question",
       "submitLabel": "Send Alex my question",
-      "consentLine": "By sending this you are asking one question. You are not signing up for a drip campaign.",
+      "consentLine": "Alex will get back to you. See the privacy policy for how your information is handled.",
       "successMessage": "This goes straight to Alex. He answers these himself, so the reply comes from him rather than from an autoresponder. If it is time sensitive, text him at (813) 613-8822."
     }
   ]

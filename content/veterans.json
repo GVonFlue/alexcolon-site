@@ -8,9 +8,9 @@
   "bands": [
     {
       "type": "hero",
-      "eyebrow": "Service members and veterans",
-      "headline": "Buying with a VA loan when the timeline is not yours to set",
-      "support": "A VA purchase is not harder than any other purchase. It has different requirements and a different appraisal, and both of them are predictable once somebody tells you what they are.",
+      "eyebrow": "VA financing",
+      "headline": "Buying a home with a VA loan.",
+      "support": "A VA loan can be one of the strongest home-buying benefits available to eligible veterans and service members. Alex served eleven years on active duty in the Air Force and has used the benefit himself, and he helps buyers understand how a VA purchase differs from a conventional one.",
       "ctas": [
         {
           "label": "Send me the VA checklist",
@@ -26,20 +26,22 @@
         }
       ],
       "image": null,
-      "variant": "veterans"
+      "variant": "veterans",
+      "accentPhrase": "VA loan"
     },
     {
       "type": "prose",
-      "heading": "The two places a VA purchase actually differs",
+      "heading": "The main differences",
       "body": [
-        "The first is eligibility. You need a Certificate of Eligibility, and how much entitlement you have available changes what you can do, particularly if you have used the benefit before or still own a house you bought with it.",
-        "The second is the appraisal. A VA appraisal checks condition against a set of minimum property requirements as well as value, so a house can appraise at the number and still need work before it will pass. Knowing which condition items trip it is the difference between finding out in week one and finding out in week five."
+        "No down payment is required in many eligible purchases, subject to the lender and to the appraised value. There is no monthly mortgage insurance on a VA loan, which is often the largest month-to-month difference against a conventional purchase with a small down payment.",
+        "A VA appraisal includes an opinion of value and a set of Minimum Property Requirements. It is not a home inspection and it is not a substitute for one. A funding fee may apply, and some borrowers are exempt, including many with a service-connected disability rating. VA purchase financing is generally for a home the borrower intends to occupy as a primary residence.",
+        "Your lender confirms eligibility, the funding fee and the loan-specific numbers. The official details are on VA.gov, linked in the answers below."
       ]
     },
     {
       "type": "steps",
-      "heading": "Working backward from a date you cannot move",
-      "intro": "When there is a report date on the other end, the schedule gets built in reverse.",
+      "heading": "How a VA purchase works",
+      "intro": "The same shape as any purchase, with two steps that are specific to the benefit.",
       "steps": [
         {
           "title": "Start with the date you have to be there",
@@ -65,7 +67,7 @@
     },
     {
       "type": "faq",
-      "heading": "What comes up on VA purchases",
+      "heading": "VA questions",
       "items": [
         {
           "q": "Do sellers turn down VA offers?",

@@ -9,8 +9,8 @@
     {
       "type": "hero",
       "eyebrow": "Investment property",
-      "headline": "Send an address and get the numbers worked, including when they do not work",
-      "support": "Rent from comparable local leases, the full carry rather than principal and interest, and the figure that is left at the bottom. Stated plainly, including when it is negative.",
+      "headline": "Real estate investing starts with the numbers.",
+      "support": "Whether you are looking at a first rental or adding another property, the question is the same: what does it cost, what does it rent for, and what is left. Alex owns rental property himself and looks at these from both the agent side and the owner side.",
       "ctas": [
         {
           "label": "Run the numbers on this one",
@@ -26,14 +26,14 @@
         }
       ],
       "image": null,
-      "variant": "investors"
+      "variant": "investors",
+      "accentPhrase": "the numbers"
     },
     {
       "type": "tool",
-      "heading": "Run it with the whole carry, not just the payment",
+      "heading": "Long-term rental analysis",
       "body": [
-        "Vacancy and maintenance are fields here rather than footnotes, because leaving them out is what turns a property that loses money every month into one that looks like it clears a few hundred.",
-        "If the number at the bottom is negative, it says so in the same size type as everything else."
+        "Purchase price, financing, rent and the running costs, worked through to monthly cash flow, NOI, cash-on-cash return and how long the cash you put in takes to come back."
       ],
       "tool": "rentalCashflow"
     },
@@ -43,7 +43,7 @@
     },
     {
       "type": "faq",
-      "heading": "Questions investors ask",
+      "heading": "Investor terms, plainly",
       "items": [
         {
           "q": "Will you tell me a deal is bad?",

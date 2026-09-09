@@ -316,15 +316,15 @@
       "quote": "This was our fourth house purchase, therefore, my husband and I knew exactly what we needed and wanted in this new home. Alex was very attentive and beyond patient while looking for the right home.  We searched high and low in many parts of the city until we came across - the one - by chance, as it was being presented as an estate sale. Once we let Alex know our interest it was up to him to complete the sale and closed on our home in 21 days.",
       "attribution": "Aaron Ota",
       "permissionOnFile": true,
-      "displayAs": "full",
-      "context": "Wichita, KS"
+      "displayAs": "firstAndLastInitial",
+      "context": null
     },
     {
       "quote": "Service excellent . Good communication. Very fast in the process. I recommended others people family and friends.",
       "attribution": "Carlos Villafuerte",
       "permissionOnFile": true,
-      "displayAs": "full",
-      "context": "Wichita, KS"
+      "displayAs": "firstAndLastInitial",
+      "context": null
     }
   ],
   "headshot": {
@@ -337,7 +337,7 @@
   },
   "assistant": {
     "name": "Lark",
-    "introduction": "Lark is an assistant on this site, not Alex. It is a western meadowlark, which is the Kansas state bird, and it answers questions about buying and selling in the Wichita area. It hands you to Alex the moment you want a person.",
+    "introduction": "Lark is an assistant on this site, not Alex. It answers questions about buying and selling in the Wichita area, and hands you to Alex the moment you want a person.",
     "chips": [
       {
         "label": "What does it cost to buy here?",
@@ -363,5 +363,9 @@
       "Wichita and the surrounding area",
       "Hands you to Alex"
     ]
+  },
+  "reviewLinks": {
+    "google": null,
+    "realSatisfied": null
   }
 }

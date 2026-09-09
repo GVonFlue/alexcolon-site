@@ -9,8 +9,8 @@
     {
       "type": "hero",
       "eyebrow": "Contact",
-      "headline": "Get in touch",
-      "support": "Call or text (813) 613-8822, or email alex@athomewichita.com. If you would rather write it out and not talk to anybody yet, the form below goes to the same place.",
+      "headline": "Contact Alex.",
+      "support": "Call or text (813) 613-8822, or send a note below. Lark, the assistant in the corner, can answer a lot of questions on its own if you would rather start there.",
       "ctas": [
         {
           "label": "Text Alex a question",
@@ -26,7 +26,8 @@
         }
       ],
       "image": null,
-      "variant": "plain"
+      "variant": "plain",
+      "accentPhrase": "Alex"
     },
     {
       "type": "conversion",

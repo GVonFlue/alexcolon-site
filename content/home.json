@@ -2,7 +2,7 @@
   "route": "/",
   "title": "Alexander Colón, Wichita Area Real Estate Agent",
   "description": "Straight answers about buying and selling in Wichita, Maize, Derby, Andover, Goddard, Park City, and Rose Hill. Ask a question before you commit to anything.",
-  "h1": "Relationships first. Real answers from a real guy.",
+  "h1": "Real estate decisions should come with clear information.",
   "job": "Sort the visitor into the lane that fits them, and answer enough of their question that contacting Alex is the obvious next step.",
   "primaryPrinciple": "Reciprocity. The give comes before the ask.",
   "bands": [
@@ -40,32 +40,44 @@
       }
     },
     {
+      "type": "tool",
+      "heading": "Run the numbers",
+      "body": [
+        "Three calculators in one place: what a monthly payment buys, what a seller walks away with, and what a rental actually returns. Nothing is sent anywhere and nothing is stored."
+      ],
+      "tool": "affordability"
+    },
+    {
       "type": "conversion",
       "magnetId": "buyer-guide"
     },
     {
       "type": "proof",
-      "heading": "What people say about working with Alex"
+      "heading": "Testimonials"
     },
     {
       "type": "faq",
-      "heading": "What happens if you contact him",
+      "heading": "Where do you want to start?",
       "items": [
         {
-          "q": "Does contacting Alex sign me up for anything?",
-          "a": "No. A question is a question. There is no sequence behind these forms, and asking one thing does not put you on a list that mails you every week."
+          "q": "How do I know what I can afford?",
+          "a": "Start with the calculator above. Put in the monthly payment you want to stay under and it works backward to roughly what price that supports, including an estimate of the cash you would need at closing. The Buy page walks through the rest of the process."
         },
         {
-          "q": "Will he push me to buy or sell before I am ready?",
-          "a": "No. He works with people months out from doing anything, and a fair number of those conversations end with him saying the timing is wrong. That is a normal outcome, not a failed one."
+          "q": "How do I find out what my home could sell for?",
+          "a": "The Sell page explains how value is actually determined, and has a calculator for what you would walk away with after payoff, compensation and closing costs. If you want a number on your specific address, ask Alex to review it."
         },
         {
-          "q": "How do I reach him, and which does he prefer?",
-          "a": "Call or text (813) 613-8822, or email alex@athomewichita.com. Text is usually the fastest way to get him, and he is fine handling an entire question that way if you never want to be on the phone."
+          "q": "Can you help with a VA loan?",
+          "a": "Yes. Alex served eleven years on active duty in the Air Force and has used the benefit himself. The Veterans page covers the main differences between a VA purchase and a conventional one, with links to the official VA.gov sources."
         },
         {
-          "q": "What does it cost to talk to him?",
-          "a": "Nothing. Agent commission is paid out of the transaction and it is spelled out in writing before you sign anything, so there is no bill attached to asking questions."
+          "q": "Can you help me analyze a rental property?",
+          "a": "The Investors page has a long-term rental calculator that works through cash flow, NOI and cash-on-cash return. Alex owns rental property himself, so on a specific address he can look at it as an owner as well as an agent."
+        },
+        {
+          "q": "I just have a real estate question.",
+          "a": "Ask Lark, the assistant in the bottom-right corner. It answers questions about buying and selling around Wichita, says so when it does not know something, and hands you to Alex whenever you would rather have a person."
         }
       ]
     }
