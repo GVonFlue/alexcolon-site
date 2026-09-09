@@ -3,23 +3,38 @@ import type { Band, PageContent, Testimonial } from "@/lib/schema";
 import { site, magnet, telHref, smsHref } from "@/lib/content";
 import { AccentHeadline, CtaLink, Eyebrow, H2, Prose, Section, SectionRule, Split, type SectionTone } from "./ui";
 import { Assistant } from "./Assistant";
+import { Calculator } from "./tools/Calculator";
 import { LeadForm } from "./LeadForm";
 import { CarryCostCalculator } from "./CarryCostCalculator";
 import { Hero } from "./Hero";
 import { BandTexture } from "./BandTexture";
 import { CountUp } from "./CountUp";
 import { Headshot } from "./Headshot";
-import { NetProceeds } from "./tools/NetProceeds";
-import { Affordability } from "./tools/Affordability";
-import { VaTimeline } from "./tools/VaTimeline";
-import { RentalCashflow } from "./tools/RentalCashflow";
 
 /** The interactive tools, keyed by the name the content file uses. */
-const TOOLS = {
-  netProceeds: NetProceeds,
-  affordability: Affordability,
-  vaTimeline: VaTimeline,
-  rentalCashflow: RentalCashflow,
+/*
+ * ONE CALCULATOR, THREE MODES.
+ *
+ * Was four unrelated widgets on four pages. The brief: "The calculator is one
+ * shared system with three modes, not a collection of unrelated widgets
+ * scattered around the site", and separately "Do not create a separate VA
+ * calculator" — which retires vaTimeline outright.
+ *
+ * The old tool KEYS still map, so no content file has to change and no page
+ * breaks mid-migration. Each one now opens the shared calculator on the mode
+ * that page is for: /sell lands on proceeds, /buy on payment, /investors on
+ * rental. A visitor on the sell page should not have to pick "seller" out of a
+ * list before the page starts being useful.
+ *
+ * vaTimeline maps to the payment mode rather than to nothing, because the
+ * veterans page's own band is being cut in batch 4 and a null here would leave
+ * a heading with a hole under it until then.
+ */
+const TOOL_MODE = {
+  netProceeds: "proceeds",
+  affordability: "payment",
+  rentalCashflow: "rental",
+  vaTimeline: "payment",
 } as const;
 
 /**
@@ -620,7 +635,7 @@ export function Bands({ page }: { page: PageContent }) {
           }
 
           case "tool": {
-            const Tool = TOOLS[band.tool];
+            const mode = TOOL_MODE[band.tool];
             return (
               <Section key={i} seam={seam} tone={nextLightTone()} id={band.tool}>
                 <Split
@@ -637,7 +652,7 @@ export function Bands({ page }: { page: PageContent }) {
                     calculator: Split's content column is sized for a 62
                     character measure, and a two-column field grid inside it
                     wraps its own labels. */}
-                <Tool />
+                <Calculator initial={mode} />
               </Section>
             );
           }
