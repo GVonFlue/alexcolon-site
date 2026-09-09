@@ -20,7 +20,7 @@ import { LOCKUPS } from "./compliance-type";
  *     use (lib/compliance-type.ts), which throws if the ratio is ever illegal.
  *   - Nothing invented. There is no number, no testimonial, no claim on the
  *     card, because there is none to make. It carries his name, the brokerage,
- *     the seven towns, and Lark.
+ *     the service area, and Lark.
  *   - The palette, unchanged. Navy field, cream type, one gold hairline.
  *
  * DESIGNED FOR THE SIZE IT ACTUALLY RENDERS AT, WHICH IS NOT 1200x630.
@@ -33,7 +33,7 @@ import { LOCKUPS } from "./compliance-type";
  *   his face          ~225px  ->  ~56px   the only element that reads instantly
  *   his name           74px   ->  ~18px   readable
  *   the brokerage      40px   ->  ~10px   legible as a line, not as words
- *   the seven towns    21px   ->  ~5px    texture at preview size, real at full
+ *   the service area   21px   ->  ~5px    texture at preview size, real at full
  *
  * The long headline the card used to carry measured about 13px after that
  * reduction, which is a sentence nobody can read taking the space his face
@@ -147,12 +147,6 @@ function LarkMark({ size }: { size: number }) {
  */
 export type OgVariant = "home" | "buy" | "sell" | "veterans" | "investors";
 
-/** The town list as two balanced lines. See the call site for why. */
-function townLines(names: string[]): string[] {
-  const half = Math.ceil(names.length / 2);
-  const sep = "  \u00b7  ";
-  return [names.slice(0, half).join(sep), names.slice(half).join(sep)].filter(Boolean);
-}
 
 const VARIANTS: Record<OgVariant, { eyebrow: string; glow: string }> = {
   home: { eyebrow: "Wichita area real estate", glow: "50% -10%" },
@@ -254,21 +248,18 @@ export async function ogImage(variant: OgVariant = "home", headline?: string) {
               </div>
             )}
             {/*
-              The seven towns, split into two balanced lines in code rather than
-              left to wrap. Wrapping put a leading separator at the start of the
-              second line ("\u00b7 Rose Hill"), which reads as a typo. The split
-              is computed from the list's own length, so an eighth town or a
-              renamed one still balances with no edit here.
+              THE TOWN LIST IS GONE, and this was live code rather than a
+              comment: the card that previews in every text message and every
+              shared link was still printing the seven towns. The revision
+              brief removes the concept everywhere, and a link preview is the
+              most-seen surface on the whole site — Alex leads with text.
+
+              Replaced with the service area as it is now described. One line,
+              which also gives the card more room to breathe than seven names
+              across two lines did.
             */}
-            <div style={{ display: "flex", flexDirection: "column", marginTop: 22 }}>
-              {townLines(site.serviceAreas.map((a) => a.name)).map((line) => (
-                <div
-                  key={line}
-                  style={{ display: "flex", fontSize: 21, lineHeight: 1.45, color: "#C9CDD2" }}
-                >
-                  {line}
-                </div>
-              ))}
+            <div style={{ display: "flex", marginTop: 22, fontSize: 21, lineHeight: 1.45, color: "#C9CDD2" }}>
+              Wichita and the surrounding area
             </div>
             {/* Lark, small. It is a mark beside a name that is also written
                 out, so shrinking it costs no information. */}

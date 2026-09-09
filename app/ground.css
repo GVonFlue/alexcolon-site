@@ -216,7 +216,16 @@ body > header {
   width: var(--column);
   max-width: 1560px;
   margin-inline: auto;
-  margin-block: 14px 0;
+  /*
+   * A real gap under the bar, not zero.
+   *
+   * This was `14px 0` and the hero sat directly against the header, which on a
+   * white page reads as the nav resting on top of the hero rather than
+   * floating above it. The bar is a separate object now — rounded, with its
+   * own border and shadow — and an object with no space under it does not read
+   * as floating, it reads as stuck.
+   */
+  margin-block: 16px 20px;
   border-radius: var(--nav-r);
 }
 

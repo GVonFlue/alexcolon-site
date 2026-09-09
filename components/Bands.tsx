@@ -304,14 +304,6 @@ function BandNumbers({ band, seam }: { band: Extract<Band, { type: "numbers" }>;
 const DARK_BANDS = new Set([
   "hero",
   "assistant",
-  "numbers",
-  /* Proof is dark deliberately. See BandProof for why: on a light band the most
-     persuasive content on the site rendered as the quietest thing on it, and
-     gold is forbidden as an accent on cream (2.46:1) but clears comfortably on
-     navy (5.50:1). It must be listed HERE and not only inside the component,
-     or the light/dark rotation and the seam direction are both computed
-     against a tone the band does not actually use. */
-  "proof",
   "closingCta",
 ]);
 
